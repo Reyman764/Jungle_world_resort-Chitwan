@@ -1,0 +1,126 @@
+/* ============================================================
+   PAGE HERO — Shared inner-page hero banner
+   ============================================================ */
+
+.page-hero {
+  position: relative;
+  height: 52vh;
+  min-height: 360px;
+  max-height: 520px;
+  display: flex;
+  align-items: flex-end;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+}
+
+/* Parallax-lite: keep image slightly larger so it can shift */
+.page-hero::before {
+  content: '';
+  position: absolute;
+  inset: -8% 0;
+  background: inherit;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  z-index: 0;
+}
+
+.page-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    175deg,
+    rgba(6,13,8,0.35) 0%,
+    rgba(6,13,8,0.55) 50%,
+    rgba(6,13,8,0.82) 100%
+  );
+  z-index: 1;
+}
+
+.page-hero__content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 32px 52px;
+}
+
+/* Breadcrumbs */
+.page-hero__content .breadcrumbs {
+  margin-bottom: 14px;
+  color: rgba(255,255,255,0.50);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+.page-hero__content .breadcrumbs__link {
+  color: var(--gold-light);
+  transition: color 0.2s;
+}
+.page-hero__content .breadcrumbs__link:hover {
+  color: var(--gold-pale);
+}
+.page-hero__content .breadcrumbs__sep {
+  color: rgba(255,255,255,0.30);
+  margin: 0 4px;
+}
+
+/* Heading */
+.page-hero__content h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 5.5vw, 4rem);
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.1;
+  margin-bottom: 12px;
+  text-shadow: 0 2px 24px rgba(0,0,0,0.35);
+  letter-spacing: 0.01em;
+}
+
+/* Decorative gold underline */
+.page-hero__content h1::after {
+  content: '';
+  display: block;
+  width: 56px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold-rich), var(--gold-light));
+  margin-top: 14px;
+  border-radius: 2px;
+}
+
+/* Subtitle */
+.page-hero__content p {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(1rem, 1.8vw, 1.15rem);
+  color: rgba(255,255,255,0.72);
+  margin-top: 4px;
+  max-width: 500px;
+  line-height: 1.6;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .page-hero {
+    height: 44vh;
+    min-height: 280px;
+  }
+  .page-hero__content {
+    padding: 0 24px 36px;
+  }
+  .page-hero__content h1 {
+    font-size: clamp(1.8rem, 7vw, 2.6rem);
+  }
+}
+
+/* ── Dark mode: overlay slightly denser ── */
+[data-theme="dark"] .page-hero__overlay {
+  background: linear-gradient(
+    175deg,
+    rgba(4,9,5,0.42) 0%,
+    rgba(4,9,5,0.62) 50%,
+    rgba(4,9,5,0.88) 100%
+  );
+}

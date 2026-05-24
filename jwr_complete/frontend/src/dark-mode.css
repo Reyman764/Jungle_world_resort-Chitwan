@@ -1,0 +1,611 @@
+/*
+ * ================================================================
+ *  JUNGLE WORLD RESORT — PREMIUM DARK MODE
+ *  A complete, self-contained dark mode system.
+ *  Every element addressed. Premium luxury-jungle aesthetic.
+ * ================================================================
+ */
+
+/* ── Typography global ─────────────────────────────────────── */
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5 { color: var(--text-primary); }
+[data-theme="dark"] p  { color: var(--text-secondary); line-height: 1.85; }
+[data-theme="dark"] body {
+  letter-spacing: 0.3px;
+  -webkit-text-stroke: 0.3px rgba(255,255,255,0.05);
+}
+[data-theme="dark"] .section-title           { color: var(--text-primary); }
+[data-theme="dark"] .section-title.light     { color: rgba(237,232,223,0.9); }
+
+/* ── Navbar ────────────────────────────────────────────────── */
+[data-theme="dark"] .logo-text__main { color: #ede8df; }
+[data-theme="dark"] .logo-text__sub  { color: var(--gold-light); }
+
+[data-theme="dark"] .nav-link              { color: rgba(237,232,223,0.60); }
+[data-theme="dark"] .nav-link:hover,
+[data-theme="dark"] .nav-link.active       { color: #ede8df; }
+
+[data-theme="dark"] .theme-toggle {
+  background:   rgba(200,151,58,0.10);
+  border-color: rgba(200,151,58,0.28);
+  color:        var(--gold-light);
+}
+[data-theme="dark"] .theme-toggle:hover {
+  background:   rgba(200,151,58,0.20);
+  border-color: var(--gold-rich);
+}
+
+/* ── Section backgrounds ───────────────────────────────────── */
+[data-theme="dark"] .intro,
+[data-theme="dark"] .act-intro,
+[data-theme="dark"] .act-grid-section,
+[data-theme="dark"] .activities-section,
+[data-theme="dark"] .about-intro,
+[data-theme="dark"] .wildlife-section,
+[data-theme="dark"] .gallery-section,
+[data-theme="dark"] .contact-section,
+[data-theme="dark"] .tariff-section,
+[data-theme="dark"] .pkgs-list,
+[data-theme="dark"] .pkg-intro,
+[data-theme="dark"] .pkg-note             { background: var(--bg); }
+
+[data-theme="dark"] .getting-there,
+[data-theme="dark"] .act-cta              { background: var(--surface-2); }
+
+[data-theme="dark"] .packages-section,
+[data-theme="dark"] .testimonials-section,
+[data-theme="dark"] .tariff-bottom        { background: var(--surface-2); }
+
+/* ── Card mixin — glass-gold premium look ──────────────────── */
+/*    Applied to every card variant below                       */
+[data-theme="dark"] .pkg-card,
+[data-theme="dark"] .activity-card,
+[data-theme="dark"] .act-card,
+[data-theme="dark"] .wildlife-card,
+[data-theme="dark"] .feature-card,
+[data-theme="dark"] .testimonial-card {
+  background: var(--surface);
+  border: 1px solid rgba(200,151,58,0.12);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.35),
+              inset 0 1px 0 rgba(200,151,58,0.06);
+}
+[data-theme="dark"] .pkg-card:hover,
+[data-theme="dark"] .activity-card:hover,
+[data-theme="dark"] .act-card:hover,
+[data-theme="dark"] .wildlife-card:hover {
+  border-color: rgba(200,151,58,0.30);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45),
+              0 0 0 1px rgba(200,151,58,0.14),
+              inset 0 1px 0 rgba(200,151,58,0.10);
+}
+
+/* ── HOME ──────────────────────────────────────────────────── */
+[data-theme="dark"] .intro__lead,
+[data-theme="dark"] .intro__body  { color: var(--text-secondary); }
+[data-theme="dark"] .intro__feature { color: var(--text-primary); }
+[data-theme="dark"] .intro__img--accent { border-color: var(--surface-2); }
+
+[data-theme="dark"] .pkg-card__name  { color: var(--text-primary); }
+[data-theme="dark"] .pkg-card__desc  { color: var(--text-secondary); }
+[data-theme="dark"] .pkg-card__btn {
+  background: rgba(200,151,58,0.12);
+  color:      var(--gold-light);
+  border:     1px solid rgba(200,151,58,0.25);
+}
+[data-theme="dark"] .pkg-card__btn:hover {
+  background: var(--gold-rich);
+  color:      var(--forest-deep);
+  border-color: var(--gold-rich);
+}
+[data-theme="dark"] .from,
+[data-theme="dark"] .per { color: var(--text-light); }
+
+[data-theme="dark"] .activity-card__body h3 { color: var(--text-primary); }
+[data-theme="dark"] .activity-card__body p  { color: var(--text-secondary); }
+
+[data-theme="dark"] .testimonial-card { border-top: 2px solid var(--gold-rich); }
+[data-theme="dark"] .testimonial-text  { color: var(--text-primary); }
+[data-theme="dark"] .testimonial-name  { color: var(--text-primary); }
+[data-theme="dark"] .testimonial-country { color: var(--text-light); }
+[data-theme="dark"] .dot              { background: rgba(200,151,58,0.18); }
+[data-theme="dark"] .dot.active       { background: var(--gold-rich); }
+
+/* ── PACKAGES ──────────────────────────────────────────────── */
+[data-theme="dark"] .pkg-intro__text { color: var(--text-secondary); }
+[data-theme="dark"] .pkg-detail {
+  border-bottom: 1px solid rgba(200,151,58,0.10);
+}
+[data-theme="dark"] .pkg-detail__name { color: var(--text-primary); }
+[data-theme="dark"] .pkg-detail__desc {
+  color:       var(--text-secondary);
+  border-left: 3px solid var(--gold-rich);
+}
+[data-theme="dark"] .pkg-detail__includes h4      { color: var(--gold-rich); }
+[data-theme="dark"] .pkg-detail__includes li       { color: var(--text-secondary); }
+[data-theme="dark"] .pkg-detail__includes li svg   { color: var(--gold-rich); }
+
+[data-theme="dark"] .pkg-detail__pricing {
+  border:        1px solid rgba(200,151,58,0.14);
+  border-radius: 10px;
+  overflow:      hidden;
+}
+[data-theme="dark"] .price-tier {
+  background:  var(--surface);
+  border-right: 1px solid rgba(200,151,58,0.10);
+}
+[data-theme="dark"] .price-label  { color: var(--text-light); }
+[data-theme="dark"] .price-amount { color: var(--gold-light); }
+
+[data-theme="dark"] .pkg-note__box {
+  background:  var(--surface);
+  border-left: 4px solid var(--gold-rich);
+  color:       var(--text-secondary);
+  box-shadow:  var(--shadow-sm);
+}
+[data-theme="dark"] .pkg-note__box strong { color: var(--gold-light); }
+
+[data-theme="dark"] .pkg-detail__popular {
+  background: var(--gold-rich);
+  color:      var(--forest-deep);
+}
+[data-theme="dark"] .pkg-detail__badge {
+  background: rgba(6,13,8,0.92);
+  color:      var(--gold-light);
+}
+
+/* View toggle & compare */
+[data-theme="dark"] .view-toggle    { border-color: rgba(200,151,58,0.30); }
+[data-theme="dark"] .toggle-btn     { color: var(--text-secondary); }
+[data-theme="dark"] .toggle-btn.active {
+  background: var(--forest-light);
+  color:      #ede8df;
+}
+[data-theme="dark"] .btn-ghost-dark {
+  border-color: rgba(200,151,58,0.40);
+  color:        var(--gold-rich);
+}
+[data-theme="dark"] .btn-ghost-dark:hover {
+  background: var(--gold-rich);
+  color:      var(--forest-deep);
+}
+
+[data-theme="dark"] .compare-grid         { background: rgba(200,151,58,0.07); }
+[data-theme="dark"] .compare-col          { background: var(--surface); color: var(--text-secondary); }
+[data-theme="dark"] .compare-col--pkg     { background: var(--surface-2); }
+[data-theme="dark"] .compare-col--label   { color: var(--text-secondary); }
+[data-theme="dark"] .compare-price-sub,
+[data-theme="dark"] .compare-duration     { color: var(--text-light); }
+[data-theme="dark"] .compare-col--pkg.featured {
+  background: rgba(13,34,24,0.85);
+}
+
+/* ── TARIFF ────────────────────────────────────────────────── */
+[data-theme="dark"] .tariff-sub-heading { color: var(--gold-light); }
+
+[data-theme="dark"] .include-item {
+  background:  var(--surface);
+  border-left: 3px solid var(--forest-light);
+  color:       var(--text-secondary);
+  box-shadow:  none;
+  border-bottom: 1px solid rgba(200,151,58,0.06);
+}
+[data-theme="dark"] .include-item svg { color: var(--gold-rich); }
+
+[data-theme="dark"] .exclude-item {
+  background:  var(--surface);
+  border-left: 3px solid rgba(200,80,60,0.55);
+  color:       var(--text-secondary);
+}
+[data-theme="dark"] .exclude-item svg { color: #d06050; }
+
+/* Tariff table */
+[data-theme="dark"] .tariff-table            { background: var(--surface); }
+[data-theme="dark"] .tariff-table td         {
+  color:         var(--text-secondary);
+  border-bottom: 1px solid rgba(200,151,58,0.07);
+}
+[data-theme="dark"] .tariff-table tbody tr:hover { background: rgba(200,151,58,0.04); }
+[data-theme="dark"] .featured-row,
+[data-theme="dark"] .tr-featured td          { background: rgba(200,151,58,0.06); }
+[data-theme="dark"] .td-name                 { color: var(--text-primary) !important; }
+[data-theme="dark"] .td-price,
+[data-theme="dark"] .price-cell              { color: var(--gold-rich) !important; }
+[data-theme="dark"] .pkg-name-cell           { color: var(--text-primary); }
+[data-theme="dark"] .table-book-btn {
+  background: rgba(200,151,58,0.12);
+  color:      var(--gold-light);
+  border-radius: 4px;
+}
+[data-theme="dark"] .table-book-btn:hover {
+  background: var(--gold-rich);
+  color:      var(--forest-deep);
+}
+
+/* Room cards */
+[data-theme="dark"] .room-card {
+  background:  var(--surface);
+  border-top:  3px solid rgba(200,151,58,0.25);
+  box-shadow:  var(--shadow-sm);
+}
+[data-theme="dark"] .room-card:hover  { border-top-color: var(--gold-rich); }
+[data-theme="dark"] .room-card__type  { color: var(--text-light); }
+[data-theme="dark"] .room-card__price { color: var(--gold-light); }
+[data-theme="dark"] .room-card__per   { color: var(--text-light); }
+
+/* Tariff notes & disclaimer */
+[data-theme="dark"] .tariff-note {
+  background: rgba(200,151,58,0.04);
+  color:      var(--text-secondary);
+}
+[data-theme="dark"] .tariff-note svg { color: var(--gold-rich); }
+[data-theme="dark"] .tariff-note--alt { background: rgba(45,90,61,0.06); }
+
+[data-theme="dark"] .tariff-disclaimer {
+  background:  var(--surface-2);
+  border-left: 4px solid var(--gold-rich);
+  color:       var(--text-secondary);
+}
+[data-theme="dark"] .tariff-disclaimer strong { color: var(--gold-light); }
+
+/* Room rate rows */
+[data-theme="dark"] .room-rate-row {
+  background: var(--surface);
+  box-shadow: none;
+  border:     1px solid rgba(200,151,58,0.08);
+  border-radius: 8px;
+}
+[data-theme="dark"] .room-price       { color: var(--gold-light); }
+[data-theme="dark"] .room-price small { color: var(--text-light); }
+[data-theme="dark"] .incl-list li,
+[data-theme="dark"] .excl-list li     { color: var(--text-secondary); }
+
+/* Price Calculator */
+[data-theme="dark"] .calc-widget {
+  background:  var(--surface);
+  border-top:  3px solid var(--gold-rich);
+  box-shadow:  var(--shadow-md);
+}
+[data-theme="dark"] .calc-title { color: var(--text-primary); }
+[data-theme="dark"] .calc-label { color: var(--gold-rich); letter-spacing: 0.14em; }
+
+[data-theme="dark"] .calc-select {
+  background:   var(--surface-2);
+  border:       1.5px solid rgba(200,151,58,0.18);
+  color:        var(--text-primary);
+  border-radius: 8px;
+}
+[data-theme="dark"] .calc-select:focus { border-color: var(--gold-rich); }
+
+[data-theme="dark"] .calc-cat-btn {
+  background:   var(--surface-2);
+  border-color: rgba(200,151,58,0.15);
+  color:        var(--text-secondary);
+}
+[data-theme="dark"] .calc-cat-btn.active {
+  background:   var(--forest-light);
+  color:        #ede8df;
+  border-color: var(--forest-light);
+}
+[data-theme="dark"] .calc-cat-btn:hover:not(.active) {
+  border-color: var(--gold-rich);
+  color:        var(--gold-rich);
+}
+
+[data-theme="dark"] .calc-counter { border-color: rgba(200,151,58,0.15); }
+[data-theme="dark"] .counter-btn {
+  background: var(--surface-2);
+  color:      var(--text-primary);
+}
+[data-theme="dark"] .counter-btn:hover { background: var(--forest-light); color: #ede8df; }
+[data-theme="dark"] .counter-val       { color: var(--text-primary); }
+
+[data-theme="dark"] .calc-result { background: var(--surface-2); border-radius: 8px; }
+[data-theme="dark"] .calc-line   { color: var(--text-secondary); }
+[data-theme="dark"] .calc-total  {
+  color:       var(--text-primary);
+  border-top:  1px solid rgba(200,151,58,0.15);
+}
+[data-theme="dark"] .calc-total-amount { color: var(--gold-rich); }
+
+/* ── CONTACT ───────────────────────────────────────────────── */
+[data-theme="dark"] .contact-info__heading { color: var(--text-primary); }
+[data-theme="dark"] .contact-info__intro   { color: var(--text-secondary); }
+
+[data-theme="dark"] .contact-card {
+  background:  var(--surface);
+  border-left: 3px solid rgba(200,151,58,0.25);
+  box-shadow:  none;
+  border-radius: 4px;
+}
+[data-theme="dark"] .contact-card:hover {
+  border-left-color: var(--gold-rich);
+  background:        var(--surface-2);
+}
+[data-theme="dark"] .contact-card__icon {
+  background: rgba(200,151,58,0.10);
+  color:      var(--gold-rich);
+}
+[data-theme="dark"] .contact-card h4 { color: var(--gold-rich); }
+[data-theme="dark"] .contact-card p  { color: var(--text-secondary); }
+
+[data-theme="dark"] .contact-map { border-color: rgba(200,151,58,0.12); }
+[data-theme="dark"] .contact-map iframe {
+  filter: invert(0.88) hue-rotate(175deg) saturate(0.45) brightness(0.90);
+}
+
+[data-theme="dark"] .contact-form-panel {
+  background: var(--surface);
+  border:     1px solid rgba(200,151,58,0.12);
+  box-shadow: 0 12px 48px rgba(0,0,0,0.35),
+              inset 0 1px 0 rgba(200,151,58,0.06);
+}
+[data-theme="dark"] .contact-form-header h2 { color: var(--text-primary); }
+[data-theme="dark"] .contact-form-header p  { color: var(--text-secondary); }
+
+[data-theme="dark"] .form-group label { color: var(--gold-rich); }
+
+[data-theme="dark"] .form-group input,
+[data-theme="dark"] .form-group select,
+[data-theme="dark"] .form-group textarea {
+  background:    var(--surface-2);
+  color:         var(--text-primary);
+  border:        1.5px solid rgba(200,151,58,0.16);
+  border-radius: 4px;
+}
+[data-theme="dark"] .form-group input::placeholder,
+[data-theme="dark"] .form-group textarea::placeholder { color: var(--text-light); }
+[data-theme="dark"] .form-group input:focus,
+[data-theme="dark"] .form-group select:focus,
+[data-theme="dark"] .form-group textarea:focus {
+  border-color: var(--gold-rich);
+  box-shadow:   0 0 0 3px rgba(200,151,58,0.10);
+  outline: none;
+}
+
+[data-theme="dark"] .form-success {
+  background:  rgba(45,90,61,0.14);
+  border-left: 4px solid var(--forest-light);
+  color:       #80c878;
+}
+[data-theme="dark"] .form-success svg { color: #80c878; }
+
+/* ── ACTIVITIES ────────────────────────────────────────────── */
+[data-theme="dark"] .act-card__name   { color: var(--text-primary); }
+[data-theme="dark"] .act-card__desc   { color: var(--text-secondary); }
+
+[data-theme="dark"] .highlight-tag {
+  color:        var(--gold-light);
+  background:   rgba(200,151,58,0.08);
+  border-color: rgba(200,151,58,0.22);
+}
+
+[data-theme="dark"] .filter-btn,
+[data-theme="dark"] .act-filters .filter-btn {
+  background:   var(--surface);
+  border-color: rgba(200,151,58,0.14);
+  color:        var(--text-secondary);
+}
+[data-theme="dark"] .filter-btn:hover,
+[data-theme="dark"] .act-filters .filter-btn:hover {
+  border-color: var(--gold-rich);
+  color:        var(--gold-light);
+  background:   rgba(200,151,58,0.06);
+}
+[data-theme="dark"] .filter-btn.active,
+[data-theme="dark"] .act-filters .filter-btn.active {
+  background:   var(--forest-light);
+  color:        #ede8df;
+  border-color: var(--forest-light);
+}
+
+[data-theme="dark"] .btn-ghost-dark2 {
+  border-color: rgba(200,151,58,0.38);
+  color:        var(--gold-rich);
+}
+[data-theme="dark"] .btn-ghost-dark2:hover {
+  background:   var(--gold-rich);
+  color:        var(--forest-deep);
+  border-color: var(--gold-rich);
+}
+
+/* ── GALLERY ───────────────────────────────────────────────── */
+[data-theme="dark"] .gallery-section { background: var(--bg); }
+[data-theme="dark"] .gallery-item    { background: var(--surface); }
+[data-theme="dark"] .gallery-filters .filter-btn.active {
+  background:   var(--forest-deep);
+  color:        var(--gold-light);
+  border-color: rgba(200,151,58,0.3);
+}
+
+/* ── ABOUT CHITWAN ─────────────────────────────────────────── */
+[data-theme="dark"] .about-lead {
+  color:       var(--text-secondary);
+  border-left: 3px solid var(--gold-rich);
+}
+[data-theme="dark"] .about-body { color: var(--text-secondary); }
+
+[data-theme="dark"] .wildlife-card {
+  border-top:  3px solid transparent;
+  border-left: 1px solid rgba(200,151,58,0.10);
+  border-right: 1px solid rgba(200,151,58,0.10);
+  border-bottom: 1px solid rgba(200,151,58,0.10);
+}
+[data-theme="dark"] .wildlife-card:hover {
+  border-top-color: var(--gold-rich);
+}
+[data-theme="dark"] .wildlife-card h3 { color: var(--text-primary); }
+[data-theme="dark"] .wildlife-card p  { color: var(--text-secondary); }
+
+[data-theme="dark"] .route-item {
+  background:  var(--surface);
+  border-left: 3px solid var(--forest-light);
+  box-shadow:  none;
+  border: 1px solid rgba(200,151,58,0.10);
+  border-left: 3px solid var(--forest-light);
+}
+[data-theme="dark"] .route-mode { color: var(--gold-light); }
+[data-theme="dark"] .route-item p { color: var(--text-secondary); }
+
+/* ── FOOTER silhouette ─────────────────────────────────────── */
+[data-theme="dark"] .footer__silhouette { background: var(--bg); }
+
+/* ── Gradient divider / decorative lines ──────────────────── */
+[data-theme="dark"] .gradient-divider { opacity: 0.3; }
+
+/* ── Sticky book button ────────────────────────────────────── */
+[data-theme="dark"] .sticky-book-btn {
+  box-shadow: 0 8px 32px rgba(200,151,58,0.35);
+}
+
+/* ── Section tag colour ────────────────────────────────────── */
+[data-theme="dark"] .section-tag { color: var(--gold-rich); }
+
+/* ── Breadcrumbs ───────────────────────────────────────────── */
+[data-theme="dark"] .breadcrumbs   { color: rgba(237,232,223,0.45); }
+[data-theme="dark"] .breadcrumbs a,
+[data-theme="dark"] .breadcrumbs__link { color: var(--gold-rich); }
+
+/* ── Stats strip ───────────────────────────────────────────── */
+[data-theme="dark"] .stats-strip { background: var(--surface-2); }
+[data-theme="dark"] .stat-value  { color: var(--gold-light); }
+[data-theme="dark"] .stat-label  { color: rgba(237,232,223,0.45); }
+
+/* ── Table badge ───────────────────────────────────────────── */
+[data-theme="dark"] .table-badge {
+  background: var(--gold-rich);
+  color:      var(--forest-deep);
+}
+
+/* ── Section dividers ──────────────────────────────────────── */
+[data-theme="dark"] .section-divider {
+  background: linear-gradient(90deg, var(--gold-rich), var(--gold-light));
+  opacity: 0.7;
+}
+
+/* ── Pkg-card featured variant ─────────────────────────────── */
+[data-theme="dark"] .pkg-card--featured {
+  border-color: rgba(200,151,58,0.40) !important;
+  box-shadow: 0 4px 28px rgba(200,151,58,0.14),
+              inset 0 1px 0 rgba(200,151,58,0.10) !important;
+}
+
+/* ── Feature cards (dark bg section, already fine) ─────────── */
+[data-theme="dark"] .feature-card h3 { color: var(--gold-light); }
+[data-theme="dark"] .feature-card p  { color: rgba(237,232,223,0.58); }
+
+/* ============================================================
+   PHASE 2 DARK MODE ENHANCEMENTS
+   ============================================================ */
+
+/* ── 2a: Ambient glow overlays behind cards ── */
+[data-theme="dark"] .pkg-card,
+[data-theme="dark"] .act-card,
+[data-theme="dark"] .wildlife-card,
+[data-theme="dark"] .feature-card,
+[data-theme="dark"] .activity-card {
+  position: relative;
+}
+[data-theme="dark"] .pkg-card::before,
+[data-theme="dark"] .act-card::before,
+[data-theme="dark"] .wildlife-card::before,
+[data-theme="dark"] .feature-card::before,
+[data-theme="dark"] .activity-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 30%, rgba(200,151,58,0.07) 0%, transparent 68%);
+  pointer-events: none;
+  z-index: 0;
+  border-radius: inherit;
+}
+
+/* ── 2d: Layered depth shadows on hover ── */
+[data-theme="dark"] .pkg-card:hover,
+[data-theme="dark"] .act-card:hover,
+[data-theme="dark"] .wildlife-card:hover,
+[data-theme="dark"] .activity-card:hover {
+  box-shadow:
+    0 4px 16px rgba(0,0,0,0.55),
+    0 24px 60px rgba(0,0,0,0.50),
+    0 0 40px rgba(200,151,58,0.16),
+    0 0 0 1px rgba(200,151,58,0.22) !important;
+}
+[data-theme="dark"] .btn-primary:hover {
+  box-shadow:
+    0 8px 32px rgba(200,151,58,0.38),
+    0 0 20px rgba(200,151,58,0.14) !important;
+}
+[data-theme="dark"] .navbar--scrolled {
+  box-shadow: 0 4px 30px rgba(0,0,0,0.40);
+}
+
+/* ── Gold accent on active states ── */
+[data-theme="dark"] .filter-btn.active,
+[data-theme="dark"] .toggle-btn.active {
+  border-color: var(--gold-accent, rgba(200,151,58,0.35)) !important;
+}
+[data-theme="dark"] .form-group:focus-within {
+  background: var(--surface-3, #152019);
+}
+
+/* ── Trust signals in dark mode ── */
+[data-theme="dark"] .trust-badge { color: #7bc67a; }
+
+/* ── Package countdown bar ── */
+[data-theme="dark"] .pkg-countdown-bar {
+  background: linear-gradient(135deg, #040b06, #081108);
+}
+
+/* ── Countdown units ── */
+[data-theme="dark"] .countdown-unit {
+  background: rgba(200,151,58,0.10);
+  border-color: rgba(200,151,58,0.20);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TEXT VISIBILITY FIXES — Addresses 3 specific contrast failures
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── FIX 1: Fact/stats cards on About Chitwan page ───────────────
+   .fact-value used color: var(--cream).
+   In dark mode --cream is remapped to #060d08 (near-black bg colour)
+   so the text became invisible against the dark surface. */
+[data-theme="dark"] .fact-value {
+  color: #ede8df;
+}
+
+[data-theme="dark"] .fact-card {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(200,151,58,0.18);
+}
+
+/* ── FIX 2: .btn-outline (e.g. "CONTACT US" button) ─────────────
+   .btn-outline used color: var(--white).
+   In dark mode --white is remapped to #0c1710 (card bg colour)
+   making the button label completely invisible. */
+[data-theme="dark"] .btn-outline {
+  color: #ede8df;
+  border-color: rgba(237,232,223,0.55);
+}
+
+[data-theme="dark"] .btn-outline:hover {
+  color: #ffffff;
+  border-color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.10);
+}
+
+/* ── FIX 3: "Contact Us" btn-outline on light section (AboutChitwan CTA) ──
+   The button had inline color:var(--forest-deep) which is #0d2218 in dark mode
+   (near-black on dark bg = invisible). Inline removed; CSS handles both modes. */
+.btn-outline--dark-adaptable {
+  color: var(--forest-deep);
+  border-color: var(--forest-deep);
+}
+
+[data-theme="dark"] .btn-outline--dark-adaptable {
+  color: #ede8df;
+  border-color: rgba(237,232,223,0.55);
+}

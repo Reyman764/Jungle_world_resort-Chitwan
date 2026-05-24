@@ -1,0 +1,6 @@
+# Services encapsulate external integrations & complex business logic.
+#
+#   emailService.js   — SendGrid (booking confirmations, reminders)
+#   paymentService.js — Stripe & Khalti payment processing
+#   smsService.js     — Twilio SMS notifications (optional)
+#   pdfService.js     — Invoice PDF generation

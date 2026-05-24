@@ -1,0 +1,6 @@
+# Middleware will be added in Step 2 onwards.
+#
+#   auth.js       — authenticateToken, requireAdmin, optionalAuth
+#   validate.js   — express-validator error formatter
+#   upload.js     — multer config for image uploads (Step 4+)
+#   errorHandler.js — centralised error handling (already in app.js)

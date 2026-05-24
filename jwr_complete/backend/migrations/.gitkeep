@@ -1,0 +1,12 @@
+# Database migrations will be added in Step 2 (Database Setup).
+#
+# Planned migration files (in order):
+#   001-create-users-table.js
+#   002-create-packages-table.js
+#   003-create-bookings-table.js
+#   004-create-payments-table.js
+#   005-create-reviews-table.js
+#   006-create-room-blocks-table.js
+#
+# Run with:  npm run migrate
+# Undo with: npm run migrate:undo

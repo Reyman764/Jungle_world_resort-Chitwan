@@ -1,0 +1,9 @@
+# Controllers will be added in Step 2 (Auth) and Step 3 (Bookings).
+# 
+# Each controller handles the business logic for a specific resource:
+#   authController.js      — register, login, logout, refresh token
+#   bookingController.js   — create, read, update, cancel bookings
+#   packageController.js   — list packages, availability, pricing
+#   paymentController.js   — Stripe & Khalti payment flows
+#   adminController.js     — admin-only operations
+#   reviewController.js    — guest reviews & ratings

@@ -1,0 +1,322 @@
+.tariff-section {
+  padding: 80px 0 100px;
+  background: var(--cream);
+}
+
+.tariff-sub-heading {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 500;
+  color: var(--forest-deep);
+  margin-bottom: 28px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--cream-dark);
+}
+
+.tariff-includes {
+  margin-bottom: 60px;
+}
+
+.includes-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.include-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14.5px;
+  color: var(--text-dark);
+  background: var(--white);
+  padding: 14px 18px;
+  border-left: 3px solid var(--forest-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.include-item svg {
+  color: var(--forest-light);
+  flex-shrink: 0;
+}
+
+/* Table */
+.tariff-table-wrap {
+  margin-bottom: 60px;
+}
+
+.tariff-table-header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.tariff-table-scroll {
+  overflow-x: auto;
+  margin-bottom: 0;
+}
+
+.tariff-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--white);
+  box-shadow: var(--shadow-md);
+}
+
+.tariff-table thead tr {
+  background: var(--forest-deep);
+}
+
+.tariff-table th {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold-light);
+  padding: 18px 24px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.tariff-table td {
+  padding: 20px 24px;
+  font-size: 14.5px;
+  color: var(--text-dark);
+  border-bottom: 1px solid var(--cream-dark);
+}
+
+.tariff-table tbody tr:hover {
+  background: rgba(200,151,58,0.04);
+}
+
+.tr-featured td {
+  background: rgba(200,151,58,0.06);
+  font-weight: 600;
+}
+
+.td-name {
+  font-weight: 600;
+  color: var(--forest-deep) !important;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.table-badge {
+  background: var(--gold-rich);
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  margin-left: 8px;
+}
+
+.td-price {
+  font-family: var(--font-display);
+  font-size: 1.15rem !important;
+  font-weight: 500;
+  color: var(--forest-mid) !important;
+}
+
+.table-book-btn {
+  display: inline-block;
+  background: var(--forest-deep);
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 9px 18px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.3s;
+}
+
+.table-book-btn:hover {
+  background: var(--gold-rich);
+}
+
+.tariff-notes {
+  margin-top: 2px;
+}
+
+.tariff-note {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13.5px;
+  color: var(--text-mid);
+  padding: 13px 20px;
+  background: rgba(45,90,61,0.05);
+}
+
+.tariff-note--alt {
+  background: rgba(200,151,58,0.05);
+}
+
+.tariff-note svg {
+  color: var(--forest-light);
+  flex-shrink: 0;
+}
+
+/* Room Rates */
+.room-rates {
+  margin-bottom: 60px;
+}
+
+.room-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.room-card {
+  background: var(--white);
+  padding: 40px 28px;
+  text-align: center;
+  border-top: 3px solid var(--forest-light);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.room-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-top-color: var(--gold-rich);
+}
+
+.room-card__icon {
+  font-size: 2rem;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.room-card__type {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-mid);
+  margin-bottom: 12px;
+}
+
+.room-card__price {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  font-weight: 500;
+  color: var(--forest-deep);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.room-card__per {
+  font-size: 12px;
+  color: var(--text-light);
+  letter-spacing: 0.08em;
+}
+
+/* Excludes */
+.tariff-excludes {
+  margin-bottom: 48px;
+}
+
+.excludes-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.exclude-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14.5px;
+  color: var(--text-dark);
+  background: var(--white);
+  padding: 14px 18px;
+  border-left: 3px solid #e55;
+}
+
+.exclude-item svg {
+  color: #d44;
+  flex-shrink: 0;
+}
+
+.tariff-cta {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.tariff-disclaimer {
+  background: var(--cream-dark);
+  border-left: 4px solid var(--gold-rich);
+  padding: 20px 24px;
+  font-size: 13.5px;
+  color: var(--text-mid);
+  line-height: 1.8;
+}
+
+.tariff-disclaimer strong {
+  color: var(--forest-deep);
+}
+
+@media (max-width: 900px) {
+  .includes-grid, .excludes-grid { grid-template-columns: 1fr; }
+  .room-grid { grid-template-columns: 1fr; }
+}
+
+/* ── V2 CALCULATOR ADDITIONS ── */
+.calc-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; padding: 80px 0; }
+.calc-widget { background: var(--surface); border-radius: 16px; padding: 36px 32px; box-shadow: var(--shadow-md); border-top: 3px solid var(--gold-rich); }
+.calc-title { font-family: var(--font-display); font-size: 1.4rem; color: var(--text-primary); margin-bottom: 24px; }
+.calc-label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px; margin-top: 18px; }
+.calc-select { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border-color); border-radius: 8px; font-family: var(--font-body); font-size: 14px; background: var(--surface-2); color: var(--text-primary); outline: none; transition: border-color 0.3s; }
+.calc-select:focus { border-color: var(--gold-rich); }
+.calc-cat-group { display: flex; gap: 6px; flex-wrap: wrap; }
+.calc-cat-btn { padding: 8px 16px; border-radius: 50px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; border: 1.5px solid var(--border-color); background: var(--surface-2); color: var(--text-secondary); cursor: pointer; transition: all 0.3s; }
+.calc-cat-btn.active { background: var(--forest-deep); color: var(--gold-light); border-color: var(--forest-deep); }
+.calc-cat-btn:hover:not(.active) { border-color: var(--gold-rich); color: var(--gold-rich); }
+.calc-counter { display: flex; align-items: center; gap: 0; border: 1.5px solid var(--border-color); border-radius: 8px; overflow: hidden; width: fit-content; }
+.counter-btn { width: 40px; height: 40px; font-size: 18px; font-weight: 300; background: var(--surface-2); color: var(--text-primary); cursor: pointer; transition: background 0.2s; border: none; }
+.counter-btn:hover { background: var(--forest-light); color: white; }
+.counter-val { min-width: 52px; text-align: center; font-size: 16px; font-weight: 700; color: var(--text-primary); }
+.calc-result { background: var(--surface-2); border-radius: 10px; padding: 20px; margin-top: 20px; }
+.calc-line { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-secondary); padding: 5px 0; }
+.calc-total { display: flex; justify-content: space-between; padding-top: 12px; margin-top: 8px; border-top: 1px solid var(--border-color); font-weight: 700; color: var(--text-primary); font-size: 15px; }
+.calc-total-amount { color: var(--gold-rich); font-family: var(--font-display); font-size: 1.3rem; }
+
+/* Tariff table */
+.tariff-table-wrap { overflow-x: auto; border-radius: 12px; box-shadow: var(--shadow-md); }
+.tariff-table { width: 100%; border-collapse: collapse; background: var(--surface); }
+.tariff-table th { background: var(--forest-deep); color: var(--gold-light); padding: 16px 20px; text-align: left; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; }
+.tariff-table td { padding: 18px 20px; border-bottom: 1px solid var(--border-color); font-size: 14px; color: var(--text-primary); }
+.tariff-table tr:last-child td { border-bottom: none; }
+.featured-row { background: rgba(200,151,58,0.06); }
+[data-theme="dark"] .featured-row { background: rgba(200,151,58,0.08); }
+.pkg-name-cell { font-weight: 600; }
+.price-cell { font-family: var(--font-display); font-size: 1.1rem; color: var(--gold-rich); font-weight: 700; }
+.table-badge { display: inline-block; margin-left: 8px; padding: 2px 8px; background: var(--gold-rich); color: var(--forest-deep); border-radius: 50px; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; vertical-align: middle; }
+.table-book-btn { padding: 7px 18px; background: var(--forest-deep); color: var(--gold-light); border-radius: 50px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; transition: background 0.3s; }
+.table-book-btn:hover { background: var(--forest-light); }
+
+/* Bottom section */
+.tariff-bottom { padding: 80px 0; background: var(--surface-2); }
+.tariff-bottom-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 48px; }
+.room-rates { display: flex; flex-direction: column; gap: 12px; }
+.room-rate-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; background: var(--surface); border-radius: 8px; box-shadow: var(--shadow-sm); }
+.room-price { font-family: var(--font-display); font-size: 1.2rem; color: var(--gold-rich); font-weight: 700; }
+.room-price small { font-size: 11px; color: var(--text-light); font-family: var(--font-body); }
+.incl-list, .excl-list { display: flex; flex-direction: column; gap: 10px; }
+.incl-list li, .excl-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+.incl-icon { color: #4a9d4a; font-weight: 900; flex-shrink: 0; margin-top: 2px; }
+.excl-icon { color: #c44; font-weight: 900; flex-shrink: 0; margin-top: 2px; }
+
+@media (max-width: 768px) { .calc-inner { grid-template-columns: 1fr; gap: 32px; } .tariff-bottom-grid { grid-template-columns: 1fr; gap: 40px; } }

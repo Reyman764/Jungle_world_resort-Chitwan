@@ -1,0 +1,7 @@
+# Utility helpers — small, stateless functions.
+#
+#   bookingRef.js  — generate booking reference (JWR-YYYYMMDD-XXXX)
+#   crypto.js      — encrypt / decrypt sensitive data
+#   pagination.js  — offset/limit helpers for list endpoints
+#   validators.js  — reusable Joi schemas
+#   constants.js   — shared enums (booking statuses, payment methods, etc.)

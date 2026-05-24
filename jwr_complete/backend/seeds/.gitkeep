@@ -1,0 +1,8 @@
+# Seed files will be added in Step 2 (Database Setup).
+#
+# Planned seed files:
+#   001-seed-packages.js  — pre-load the 3 resort packages
+#   002-seed-admin.js     — create initial admin user
+#
+# Run with:  npm run seed
+# Undo with: npm run seed:undo

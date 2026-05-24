@@ -1,0 +1,8 @@
+# Routes will be added in Step 2 onwards.
+#
+#   auth.js       — POST /api/auth/login, register, refresh, logout
+#   bookings.js   — CRUD /api/bookings
+#   packages.js   — GET  /api/packages, /api/availability
+#   payments.js   — POST /api/payments/stripe|khalti
+#   admin.js      — GET/PUT /api/admin/bookings, rooms, analytics
+#   reviews.js    — CRUD /api/reviews
