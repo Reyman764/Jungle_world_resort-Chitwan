@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Link, NavLink, useLocation } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import './Navbar.css'
 
 const links = [
@@ -16,6 +16,10 @@ export default function Navbar({ theme, toggleTheme }) {
   const [scrolled, setScrolled]   = useState(false)
   const [menuOpen, setMenuOpen]   = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
+
+  // Staff login state
+  const isLoggedIn = !!localStorage.getItem('token')
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50)
@@ -24,6 +28,12 @@ export default function Navbar({ theme, toggleTheme }) {
   }, [])
 
   useEffect(() => { setMenuOpen(false) }, [location])
+
+  function handleLogout() {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    navigate('/staff-login')
+  }
 
   return (
     <>
@@ -121,13 +131,40 @@ export default function Navbar({ theme, toggleTheme }) {
               }
             </button>
 
-            <Link to="/contact" className="navbar__cta" aria-label="Book or reserve your stay">
-              <svg viewBox="0 0 16 16" fill="none" width="13" height="13" aria-hidden="true">
-                <rect x="2" y="3" width="12" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.3"/>
-                <path d="M5 2v2M11 2v2M2 7h12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
-              </svg>
-              Book&thinsp;/&thinsp;Reserve
-            </Link>
+            {isLoggedIn ? (
+              <>
+                <Link to="/admin/dashboard" className="navbar__cta" style={{ marginRight: 6 }}>
+                  Dashboard
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="navbar__cta"
+                  style={{ background: 'transparent', border: '1px solid rgba(200,151,58,0.4)', cursor: 'pointer' }}
+                  aria-label="Logout"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/staff-login" className="theme-btn" aria-label="Staff login" title="Staff portal login"
+                  style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--text-light)', textDecoration: 'none', padding: '6px 10px', letterSpacing: '0.05em' }}
+                >
+                  <svg viewBox="0 0 16 16" fill="none" width="12" height="12">
+                    <circle cx="8" cy="5" r="3" stroke="currentColor" strokeWidth="1.3"/>
+                    <path d="M2.5 14c0-3.038 2.462-5.5 5.5-5.5s5.5 2.462 5.5 5.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                  </svg>
+                  Staff
+                </Link>
+                <Link to="/contact" className="navbar__cta" aria-label="Book or reserve your stay">
+                  <svg viewBox="0 0 16 16" fill="none" width="13" height="13" aria-hidden="true">
+                    <rect x="2" y="3" width="12" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.3"/>
+                    <path d="M5 2v2M11 2v2M2 7h12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                  </svg>
+                  Book&thinsp;/&thinsp;Reserve
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Hamburger */}

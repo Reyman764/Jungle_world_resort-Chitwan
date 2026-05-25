@@ -1,0 +1,274 @@
+/* ─── Staff Login Page ──────────────────────────────────── */
+
+.staff-login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--forest-deep);
+  background-image:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(45,90,61,0.5) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 90% 90%, rgba(200,151,58,0.12) 0%, transparent 60%);
+  padding: 40px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.staff-login-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 60px,
+      rgba(45,90,61,0.06) 60px,
+      rgba(45,90,61,0.06) 61px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 60px,
+      rgba(45,90,61,0.06) 60px,
+      rgba(45,90,61,0.06) 61px
+    );
+  pointer-events: none;
+}
+
+/* ── Card ─────────────────────────────────────────────── */
+.staff-login-card {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(200,151,58,0.25);
+  border-radius: 4px;
+  padding: 52px 48px 44px;
+  box-shadow:
+    0 2px 0 rgba(200,151,58,0.4),
+    0 32px 80px rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+  animation: loginCardIn 0.5s cubic-bezier(0,0,0.2,1) both;
+}
+
+@keyframes loginCardIn {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Brand header ────────────────────────────────────── */
+.staff-login-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.staff-login-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--forest-mid);
+  border: 2px solid rgba(200,151,58,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.staff-login-name {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 400;
+  color: #f0d99a;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.staff-login-sub {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold-rich);
+  margin-top: 2px;
+}
+
+/* ── Form ────────────────────────────────────────────── */
+.staff-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.staff-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.staff-form-label {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(200,151,58,0.85);
+}
+
+.staff-form-input {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(200,151,58,0.2);
+  border-radius: 2px;
+  padding: 13px 16px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: #ede8dc;
+  outline: none;
+  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+}
+
+.staff-form-input::placeholder {
+  color: rgba(255,255,255,0.25);
+}
+
+.staff-form-input:focus {
+  border-color: var(--gold-rich);
+  background: rgba(255,255,255,0.08);
+  box-shadow: 0 0 0 3px rgba(200,151,58,0.12);
+}
+
+/* ── Error message ───────────────────────────────────── */
+.staff-login-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(220,53,53,0.12);
+  border: 1px solid rgba(220,53,53,0.3);
+  border-left: 3px solid #dc3535;
+  border-radius: 2px;
+  padding: 12px 14px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: #f5a0a0;
+  animation: errorIn 0.25s ease both;
+}
+
+@keyframes errorIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Submit button ───────────────────────────────────── */
+.staff-login-btn {
+  width: 100%;
+  background: var(--gold-rich);
+  color: var(--forest-deep);
+  border: none;
+  border-radius: 2px;
+  padding: 15px 24px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: background 0.25s, transform 0.15s, box-shadow 0.25s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.staff-login-btn:hover:not(:disabled) {
+  background: #ddb86a;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(200,151,58,0.4);
+}
+
+.staff-login-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.staff-login-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Loading spinner */
+.btn-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(13,34,24,0.3);
+  border-top-color: var(--forest-deep);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Demo credentials ────────────────────────────────── */
+.staff-login-demo {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(200,151,58,0.12);
+}
+
+.staff-login-demo__label {
+  font-family: var(--font-body);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(200,151,58,0.5);
+  margin-bottom: 10px;
+  display: block;
+  text-align: center;
+}
+
+.staff-login-demo__creds {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(200,151,58,0.1);
+  border-radius: 2px;
+  padding: 12px 14px;
+  text-align: center;
+}
+
+.staff-login-demo__creds p {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: rgba(255,255,255,0.45);
+  line-height: 1.9;
+  margin: 0;
+}
+
+.staff-login-demo__creds strong {
+  color: rgba(200,151,58,0.65);
+  font-weight: 600;
+}
+
+/* ── Back link ───────────────────────────────────────── */
+.staff-login-back {
+  display: block;
+  text-align: center;
+  margin-top: 20px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: rgba(255,255,255,0.25);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.staff-login-back:hover {
+  color: rgba(200,151,58,0.6);
+}

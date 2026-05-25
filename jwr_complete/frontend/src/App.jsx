@@ -1,19 +1,24 @@
-import React, { useEffect, useState, lazy, Suspense, useRef } from 'react'
+import React, { useEffect, useState, lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, useLocation, Link } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import SkipLink from './components/SkipLink'
 import ParticleBackground from './components/ParticleBackground'
 import FloatingBookBtn from './components/FloatingBookBtn'
+import ProtectedRoute from './components/ProtectedRoute'
 
-// Phase 5: Code-split routes for faster initial load
-const Home        = lazy(() => import('./pages/Home'))
-const Packages    = lazy(() => import('./pages/Packages'))
-const Activities  = lazy(() => import('./pages/Activities'))
-const Tariff      = lazy(() => import('./pages/Tariff'))
-const AboutChitwan= lazy(() => import('./pages/AboutChitwan'))
-const Contact     = lazy(() => import('./pages/Contact'))
-const Gallery     = lazy(() => import('./pages/Gallery'))
+// Public pages
+const Home         = lazy(() => import('./pages/Home'))
+const Packages     = lazy(() => import('./pages/Packages'))
+const Activities   = lazy(() => import('./pages/Activities'))
+const Tariff       = lazy(() => import('./pages/Tariff'))
+const AboutChitwan = lazy(() => import('./pages/AboutChitwan'))
+const Contact      = lazy(() => import('./pages/Contact'))
+const Gallery      = lazy(() => import('./pages/Gallery'))
+const StaffLogin   = lazy(() => import('./pages/StaffLogin'))
+
+// Admin pages (lazy — not shipped to guests until needed)
+const AdminDashboard = lazy(() => import('./admin/AdminDashboard'))
 
 function PageLoader() {
   return (
@@ -49,31 +54,6 @@ function ScrollReveal() {
   return null
 }
 
-function StickyBookBtn() {
-  const [visible, setVisible] = useState(false)
-  const [pulsed, setPulsed] = useState(false)
-
-  useEffect(() => {
-    const onScroll = () => {
-      const isVisible = window.scrollY > 400
-      setVisible(isVisible)
-      if (isVisible && !pulsed) setPulsed(true)
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [pulsed])
-
-  return (
-    <Link
-      to="/contact"
-      className={`sticky-book-btn${visible ? ' visible' : ''}${pulsed ? ' pulsed' : ''}`}
-      aria-label="Book your stay at Jungle World Resort"
-    >
-      🌿 Reserve Now
-    </Link>
-  )
-}
-
 function ScrollTopBtn() {
   const [visible, setVisible] = useState(false)
   useEffect(() => {
@@ -90,6 +70,34 @@ function ScrollTopBtn() {
   )
 }
 
+/**
+ * Layout wrapping all PUBLIC pages (navbar, footer, particles, etc.)
+ */
+function PublicLayout({ theme, toggleTheme }) {
+  return (
+    <>
+      <Navbar theme={theme} toggleTheme={toggleTheme} />
+      <div id="main-content">
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/"              element={<Home />} />
+            <Route path="/packages"      element={<Packages />} />
+            <Route path="/activities"    element={<Activities />} />
+            <Route path="/tariff"        element={<Tariff />} />
+            <Route path="/about-chitwan" element={<AboutChitwan />} />
+            <Route path="/contact"       element={<Contact />} />
+            <Route path="/gallery"       element={<Gallery />} />
+            <Route path="/staff-login"   element={<StaffLogin />} />
+          </Routes>
+        </Suspense>
+      </div>
+      <Footer />
+      <FloatingBookBtn />
+      <ScrollTopBtn />
+      <ParticleBackground />
+    </>
+  )
+}
 
 export default function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem('jwrTheme') || 'light')
@@ -106,24 +114,18 @@ export default function App() {
       <SkipLink />
       <ScrollToTop />
       <ScrollReveal />
-      <Navbar theme={theme} toggleTheme={toggleTheme} />
-      <div id="main-content">
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/"              element={<Home />} />
-            <Route path="/packages"      element={<Packages />} />
-            <Route path="/activities"    element={<Activities />} />
-            <Route path="/tariff"        element={<Tariff />} />
-            <Route path="/about-chitwan" element={<AboutChitwan />} />
-            <Route path="/contact"       element={<Contact />} />
-            <Route path="/gallery"       element={<Gallery />} />
-          </Routes>
-        </Suspense>
-      </div>
-      <Footer />
-      <FloatingBookBtn />
-      <ScrollTopBtn />
-      <ParticleBackground />
+
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          {/* ── Protected admin routes (no Navbar / Footer) ── */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          </Route>
+
+          {/* ── Public site (all other routes) ── */}
+          <Route path="/*" element={<PublicLayout theme={theme} toggleTheme={toggleTheme} />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   )
 }

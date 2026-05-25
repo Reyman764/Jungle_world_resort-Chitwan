@@ -83,4 +83,20 @@ async function optionalAuth(req, res, next) {
   }
 }
 
-module.exports = { authenticateToken, requireAdmin, requireStaff, optionalAuth };
+/**
+ * Require one of the given roles
+ * Usage: requireRole(['admin', 'manager', 'staff'])
+ */
+function requireRole(roles) {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Access denied. Insufficient permissions.' });
+    }
+    next();
+  };
+}
+
+module.exports = { authenticateToken, requireAdmin, requireStaff, requireRole, optionalAuth };

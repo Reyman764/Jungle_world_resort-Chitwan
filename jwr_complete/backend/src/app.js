@@ -73,9 +73,9 @@ app.get('/api/health', (req, res) => {
 // ── API Routes ────────────────────────────────────────────
 app.use('/api/auth',     require('./routes/auth'));
 app.use('/api/bookings', require('./routes/bookings'));   // ✅ FIXED: was commented out
+app.use('/api/admin',    require('./routes/admin'));      // ✅ Admin dashboard routes
 // app.use('/api/packages',  require('./routes/packages'));  // add when ready
 // app.use('/api/payments',  require('./routes/payments'));  // add when ready
-// app.use('/api/admin',     require('./routes/admin'));     // add when ready
 
 // ── 404 Handler ───────────────────────────────────────────
 app.use((req, res) => {
