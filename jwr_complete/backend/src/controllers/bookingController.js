@@ -1,6 +1,7 @@
 'use strict';
 
 const bcrypt  = require('bcryptjs');
+const jwt     = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const { User, Package, Booking } = require('../models');
 const { generateBookingReference } = require('../utils/bookingRef');
@@ -39,7 +40,34 @@ async function createBooking(req, res, next) {
       service_charge,
       vat,
       total_price,
+      verification_token, // ← required: issued after OTP verification
     } = req.body;
+
+    // ── 0. Require a valid verification token ────────────────
+    if (!verification_token) {
+      return res.status(400).json({
+        error: 'Email verification is required. Please verify your email address before submitting a booking.',
+      });
+    }
+    try {
+      const decoded = jwt.verify(
+        verification_token,
+        process.env.JWT_SECRET || 'dev-secret-change-in-production'
+      );
+      if (!decoded.email_verified) throw new Error('Email not verified');
+      // Ensure the verified email matches the booking email
+      const verifiedEmail  = decoded.email.trim().toLowerCase();
+      const submittedEmail = (guest_email || '').trim().toLowerCase();
+      if (verifiedEmail !== submittedEmail) {
+        return res.status(400).json({
+          error: 'The verified email address does not match the booking email. Please re-verify.',
+        });
+      }
+    } catch (jwtErr) {
+      return res.status(401).json({
+        error: 'Verification token is invalid or has expired. Please verify your email again.',
+      });
+    }
 
     // ── 1. Validate required fields ──────────────────────────
     if (!guest_name || !guest_email || !check_in_date || !package_slug) {
@@ -81,7 +109,12 @@ async function createBooking(req, res, next) {
         last_name:     lastName,
         phone:         guest_phone || null,
         role:          'guest',
-        is_verified:   false,
+        is_verified:   true, // email OTP verified before booking
+      });
+    } else if (!user.is_verified) {
+      await user.update({
+        is_verified: true,
+        phone: guest_phone || user.phone,
       });
     }
 

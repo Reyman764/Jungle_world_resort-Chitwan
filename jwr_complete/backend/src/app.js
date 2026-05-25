@@ -72,8 +72,9 @@ app.get('/api/health', (req, res) => {
 
 // ── API Routes ────────────────────────────────────────────
 app.use('/api/auth',     require('./routes/auth'));
-app.use('/api/bookings', require('./routes/bookings'));   // ✅ FIXED: was commented out
-app.use('/api/admin',    require('./routes/admin'));      // ✅ Admin dashboard routes
+app.use('/api/verify',   require('./routes/verify'));        // ✅ OTP email/phone verification
+app.use('/api/bookings', require('./routes/bookings'));      // ✅ FIXED: was commented out
+app.use('/api/admin',    require('./routes/admin'));         // ✅ Admin dashboard routes
 // app.use('/api/packages',  require('./routes/packages'));  // add when ready
 // app.use('/api/payments',  require('./routes/payments'));  // add when ready
 

@@ -4,21 +4,21 @@ import PageHero from '../components/PageHero'
 import './AboutChitwan.css'
 
 const facts = [
-  { icon: '📍', label: 'Location', value: 'Southern Nepal, where the Terai meets the hills' },
-  { icon: '🌿', label: 'Area', value: '952 sq km of protected core wilderness' },
-  { icon: '🏆', label: 'UNESCO Status', value: 'Inscribed as World Heritage Site, 1984' },
-  { icon: '🦏', label: 'One-horned Rhino', value: 'Over 700 individuals — a conservation triumph' },
-  { icon: '🐯', label: 'Bengal Tiger', value: 'More than 100 individuals, carefully protected' },
-  { icon: '🦅', label: 'Bird Species', value: '544 recorded species, and still counting' },
+  { img: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&q=80', alt: 'Terai landscape in southern Nepal', label: 'Location', value: 'Southern Nepal, where the Terai meets the hills' },
+  { img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&q=80', alt: 'Sal forest in Chitwan National Park', label: 'Area', value: '952 sq km of protected core wilderness' },
+  { img: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=500&q=80', alt: 'Chitwan National Park wilderness', label: 'UNESCO Status', value: 'Inscribed as World Heritage Site, 1984' },
+  { img: 'https://images.unsplash.com/photo-1546182990-39b8be271d69?w=500&q=80', alt: 'One-horned rhinoceros in Chitwan', label: 'One-horned Rhino', value: 'Over 700 individuals — a conservation triumph' },
+  { img: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=500&q=80', alt: 'Bengal tiger in the wild', label: 'Bengal Tiger', value: 'More than 100 individuals, carefully protected' },
+  { img: 'https://images.unsplash.com/photo-1444464666168-49d633b86797?w=500&q=80', alt: 'Colorful bird species in Chitwan', label: 'Bird Species', value: '544 recorded species, and still counting' },
 ]
 
 const wildlife = [
-  { name: 'Bengal Tiger', emoji: '🐯', desc: 'Chitwan is one of the last bastions of the Bengal tiger. Patient observers on dawn jeep safaris are sometimes rewarded with a sighting.' },
-  { name: 'One-Horned Rhino', emoji: '🦏', desc: 'Nepal\'s conservation success story — from near-extinction to a thriving population of 700+. Easily spotted on jungle walks.' },
-  { name: 'Gharial Crocodile', emoji: '🐊', desc: 'The long-snouted gharial basks along river banks. Critically endangered globally, Chitwan holds an important population.' },
-  { name: 'Asiatic Elephant', emoji: '🐘', desc: 'Wild herds roam the grasslands. Our resident elephants also offer bathing and interaction experiences with their mahouts.' },
-  { name: 'Sloth Bear', emoji: '🐻', desc: 'Nocturnal and elusive, sloth bears are occasionally spotted foraging in the forest. A true wildlife treat when seen.' },
-  { name: 'Leopard', emoji: '🐆', desc: 'Silent and supremely beautiful, the leopard keeps to the forest edges and rocky outcrops of the park\'s periphery.' },
+  { name: 'Bengal Tiger', img: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=600&q=80', alt: 'Bengal tiger in Chitwan National Park', desc: 'Chitwan is one of the last bastions of the Bengal tiger. Patient observers on dawn jeep safaris are sometimes rewarded with a sighting.' },
+  { name: 'One-Horned Rhino', img: 'https://images.unsplash.com/photo-1546182990-39b8be271d69?w=600&q=80', alt: 'One-horned rhinoceros on a jungle walk', desc: 'Nepal\'s conservation success story — from near-extinction to a thriving population of 700+. Easily spotted on jungle walks.' },
+  { name: 'Gharial Crocodile', img: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?w=600&q=80', alt: 'River bank habitat of gharial crocodiles', desc: 'The long-snouted gharial basks along river banks. Critically endangered globally, Chitwan holds an important population.' },
+  { name: 'Asiatic Elephant', img: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=600&q=80', alt: 'Wild elephants in Chitwan grasslands', desc: 'Wild herds roam the grasslands. Our resident elephants also offer bathing and interaction experiences with their mahouts.' },
+  { name: 'Sloth Bear', img: 'https://images.unsplash.com/photo-1584712693256-d110b9933e04?w=600&q=80', alt: 'Sloth bear in forest habitat', desc: 'Nocturnal and elusive, sloth bears are occasionally spotted foraging in the forest. A true wildlife treat when seen.' },
+  { name: 'Leopard', img: 'https://images.unsplash.com/photo-1549366021-9f750ad6a0ed?w=600&q=80', alt: 'Leopard at the forest edge', desc: 'Silent and supremely beautiful, the leopard keeps to the forest edges and rocky outcrops of the park\'s periphery.' },
 ]
 
 export default function AboutChitwan() {
@@ -80,7 +80,9 @@ export default function AboutChitwan() {
           <div className="facts-grid">
             {facts.map((f, i) => (
               <div key={i} className="fact-card">
-                <span className="fact-icon">{f.icon}</span>
+                <div className="fact-card__image">
+                  <img src={f.img} alt={f.alt} loading="lazy" />
+                </div>
                 <div className="fact-label">{f.label}</div>
                 <div className="fact-value">{f.value}</div>
               </div>
@@ -100,9 +102,13 @@ export default function AboutChitwan() {
           <div className="wildlife-grid">
             {wildlife.map((w, i) => (
               <div key={i} className="wildlife-card">
-                <div className="wildlife-emoji">{w.emoji}</div>
-                <h3>{w.name}</h3>
-                <p>{w.desc}</p>
+                <div className="wildlife-card__image">
+                  <img src={w.img} alt={w.alt} loading="lazy" />
+                </div>
+                <div className="wildlife-card__body">
+                  <h3>{w.name}</h3>
+                  <p>{w.desc}</p>
+                </div>
               </div>
             ))}
           </div>

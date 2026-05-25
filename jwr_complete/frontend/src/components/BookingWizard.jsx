@@ -1,6 +1,93 @@
-import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import './BookingWizard.css'
+
+const PACKAGE_NIGHTS = { glance: 1, closeup: 2, explore: 3 }
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+function isValidEmail(email) {
+  return EMAIL_RE.test((email || '').trim())
+}
+
+function addDays(dateStr, nights) {
+  if (!dateStr || !nights) return ''
+  const d = new Date(dateStr + 'T12:00:00')
+  d.setDate(d.getDate() + nights)
+  return d.toISOString().split('T')[0]
+}
+
+function formatDisplayDate(dateStr) {
+  if (!dateStr) return ''
+  return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-GB', {
+    weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+  })
+}
+
+/** Six-box OTP input with paste support and auto-advance */
+function OtpDigits({ value, onChange, onComplete, disabled, autoFocus }) {
+  const refs = useRef([])
+  const digits = Array.from({ length: 6 }, (_, i) => (value[i] || ''))
+
+  const update = useCallback((next) => {
+    const clean = next.replace(/\D/g, '').slice(0, 6)
+    onChange(clean)
+    if (clean.length === 6) onComplete?.(clean)
+  }, [onChange, onComplete])
+
+  const handleKeyDown = (i, e) => {
+    if (e.key === 'Backspace' && !digits[i] && i > 0) {
+      refs.current[i - 1]?.focus()
+    }
+    if (e.key === 'ArrowLeft' && i > 0) refs.current[i - 1]?.focus()
+    if (e.key === 'ArrowRight' && i < 5) refs.current[i + 1]?.focus()
+  }
+
+  const handleInput = (i, raw) => {
+    const clean = raw.replace(/\D/g, '')
+    if (clean.length > 1) {
+      update((value.slice(0, i) + clean).slice(0, 6))
+      const focusIdx = Math.min(i + clean.length, 5)
+      refs.current[focusIdx]?.focus()
+      return
+    }
+    const next = value.split('')
+    while (next.length < 6) next.push('')
+    next[i] = clean
+    update(next.join(''))
+    if (clean && i < 5) refs.current[i + 1]?.focus()
+  }
+
+  const handlePaste = (e) => {
+    e.preventDefault()
+    update(e.clipboardData.getData('text'))
+  }
+
+  useEffect(() => {
+    if (autoFocus) refs.current[0]?.focus()
+  }, [autoFocus])
+
+  return (
+    <div className="otp-digits" role="group" aria-label="6-digit verification code">
+      {digits.map((d, i) => (
+        <input
+          key={i}
+          ref={el => { refs.current[i] = el }}
+          type="text"
+          inputMode="numeric"
+          autoComplete={i === 0 ? 'one-time-code' : 'off'}
+          maxLength={1}
+          className={`otp-digit ${d ? 'otp-digit--filled' : ''}`}
+          value={d}
+          disabled={disabled}
+          aria-label={`Digit ${i + 1}`}
+          onChange={e => handleInput(i, e.target.value)}
+          onKeyDown={e => handleKeyDown(i, e)}
+          onPaste={handlePaste}
+          onFocus={e => e.target.select()}
+        />
+      ))}
+    </div>
+  )
+}
 
 /* ── Pricing Data ── */
 const PACKAGES = [
@@ -47,6 +134,7 @@ const CATEGORIES = [
 ]
 
 const STEPS = ['Package', 'Guests', 'Details', 'Review']
+const isDev = import.meta.env.DEV
 
 function fmtPrice(amount, currency) {
   return `${currency} ${amount.toLocaleString()}`
@@ -117,11 +205,66 @@ export default function BookingWizard({ preselect }) {
     name: '', email: '', phone: '', arrival: '', departure: '', requests: ''
   })
   const [sent, setSent]         = useState(false)
-  const [submitting, setSubmitting] = useState(false)  // loading phase
-  const [bookingDone, setBookingDone] = useState(false) // checkmark phase
+  const [submitting, setSubmitting] = useState(false)
+  const [bookingDone, setBookingDone] = useState(false)
+  const [bookingRef, setBookingRef] = useState(null)
   const [errors, setErrors]     = useState({})
+  const resendTimerRef = useRef(null)
 
+  const initialVerif = {
+    sessionId:     null,
+    emailSent:     false,
+    emailOtp:      '',
+    emailVerified: false,
+    emailLoading:  false,
+    emailError:    '',
+    emailResendIn: 0,
+    devOtp:        null,
+    phoneSent:     false,
+    phoneOtp:      '',
+    phoneVerified: false,
+    phoneSkipped:  false,
+    phoneLoading:  false,
+    phoneError:    '',
+    token:         null,
+  }
+
+  const [verif, setVerif] = useState(initialVerif)
+
+  const apiUrl      = import.meta.env.VITE_API_URL || 'http://localhost:3000'
   const selectedCat = CATEGORIES.find(c => c.id === category)
+  const computedDeparture = pkg && form.arrival
+    ? addDays(form.arrival, PACKAGE_NIGHTS[pkg.id])
+    : ''
+
+  useEffect(() => () => {
+    if (resendTimerRef.current) clearInterval(resendTimerRef.current)
+  }, [])
+
+  /* Auto-set departure from package length when arrival is chosen */
+  useEffect(() => {
+    if (!pkg || !form.arrival) return
+    const dep = addDays(form.arrival, PACKAGE_NIGHTS[pkg.id])
+    if (dep && dep !== form.departure) {
+      setForm(f => ({ ...f, departure: dep }))
+    }
+  }, [pkg?.id, form.arrival])
+
+  const startResendCountdown = () => {
+    if (resendTimerRef.current) clearInterval(resendTimerRef.current)
+    setVerif(v => ({ ...v, emailResendIn: 60 }))
+    let secs = 60
+    resendTimerRef.current = setInterval(() => {
+      secs -= 1
+      setVerif(v => ({ ...v, emailResendIn: secs }))
+      if (secs <= 0) {
+        clearInterval(resendTimerRef.current)
+        resendTimerRef.current = null
+      }
+    }, 1000)
+  }
+
+  const resetVerif = () => setVerif(initialVerif)
 
   /* ── Validation ── */
   const validateStep = () => {
@@ -130,7 +273,13 @@ export default function BookingWizard({ preselect }) {
       const e = {}
       if (!form.name.trim())  e.name    = 'Full name is required.'
       if (!form.email.trim()) e.email   = 'Email address is required.'
+      else if (!isValidEmail(form.email)) e.email = 'Enter a valid email address.'
       if (!form.arrival)      e.arrival = 'Please pick your arrival date.'
+      if (!verif.emailVerified) {
+        e.emailVerify = verif.emailSent
+          ? 'Enter the 6-digit code sent to your email to continue.'
+          : 'Verify your email — we send a quick code so we can confirm your booking.'
+      }
       return e
     }
     return {}
@@ -145,8 +294,116 @@ export default function BookingWizard({ preselect }) {
   const back = () => { setErrors({}); setStep(s => Math.max(s - 1, 0)) }
 
   const handleChange = e => {
-    setForm({ ...form, [e.target.name]: e.target.value })
-    if (errors[e.target.name]) setErrors({ ...errors, [e.target.name]: '' })
+    const { name, value } = e.target
+    setForm(f => ({ ...f, [name]: value }))
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
+    // Reset email verification if the email field changes
+    if (name === 'email') {
+      setVerif(v => ({
+        ...initialVerif,
+        emailResendIn: v.emailResendIn,
+      }))
+    }
+  }
+
+  // ── OTP handlers ─────────────────────────────────────────
+
+  const handleSendEmailOtp = async () => {
+    const email = form.email.trim().toLowerCase()
+    if (!email) { setErrors(prev => ({ ...prev, email: 'Enter your email address first.' })); return }
+    if (!isValidEmail(email)) { setErrors(prev => ({ ...prev, email: 'Enter a valid email address.' })); return }
+    setVerif(v => ({ ...v, emailLoading: true, emailError: '', emailOtp: '', devOtp: null }))
+    startResendCountdown()
+    try {
+      const r = await fetch(`${apiUrl}/api/verify/send-email-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name: form.name.trim() || 'Guest' }),
+      })
+      const d = await r.json()
+      if (!r.ok) throw new Error(d.error || 'Failed to send verification code')
+      setVerif(v => ({
+        ...v,
+        emailLoading: false,
+        emailSent: true,
+        sessionId: d.session_id,
+        emailError: '',
+        devOtp: isDev && d.dev_otp ? d.dev_otp : null,
+      }))
+    } catch (err) {
+      if (resendTimerRef.current) clearInterval(resendTimerRef.current)
+      setVerif(v => ({ ...v, emailLoading: false, emailError: err.message, emailResendIn: 0 }))
+    }
+  }
+
+  const handleVerifyEmailOtp = async (code) => {
+    const otp = (code || verif.emailOtp).trim()
+    if (otp.length !== 6) {
+      setVerif(v => ({ ...v, emailError: 'Enter all 6 digits.' })); return
+    }
+    if (!verif.sessionId) {
+      setVerif(v => ({ ...v, emailError: 'Session expired. Request a new code.' })); return
+    }
+    setVerif(v => ({ ...v, emailLoading: true, emailError: '' }))
+    try {
+      const r = await fetch(`${apiUrl}/api/verify/confirm-email-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: verif.sessionId, otp }),
+      })
+      const d = await r.json()
+      if (!r.ok) throw new Error(d.error || 'Incorrect code')
+      setVerif(v => ({
+        ...v,
+        emailLoading: false,
+        emailVerified: true,
+        emailOtp: otp,
+        token: d.verification_token,
+        emailError: '',
+        devOtp: null,
+      }))
+      setErrors(prev => ({ ...prev, emailVerify: '' }))
+    } catch (err) {
+      setVerif(v => ({ ...v, emailLoading: false, emailError: err.message, emailOtp: '' }))
+    }
+  }
+
+  const handleSendPhoneOtp = async () => {
+    const phone = form.phone.trim()
+    if (!phone) return
+    setVerif(v => ({ ...v, phoneLoading: true, phoneError: '' }))
+    try {
+      const r = await fetch(`${apiUrl}/api/verify/send-phone-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: verif.sessionId, phone }),
+      })
+      const d = await r.json()
+      if (!r.ok) throw new Error(d.error || 'Failed to send OTP')
+      setVerif(v => ({ ...v, phoneLoading: false, phoneSent: true, phoneError: '' }))
+    } catch (err) {
+      setVerif(v => ({ ...v, phoneLoading: false, phoneError: err.message }))
+    }
+  }
+
+  const handleVerifyPhoneOtp = async (code) => {
+    const otp = (code || verif.phoneOtp).trim()
+    if (otp.length !== 6) {
+      setVerif(v => ({ ...v, phoneError: 'Enter all 6 digits.' })); return
+    }
+    setVerif(v => ({ ...v, phoneLoading: true, phoneError: '' }))
+    try {
+      const r = await fetch(`${apiUrl}/api/verify/confirm-phone-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: verif.sessionId, otp }),
+      })
+      const d = await r.json()
+      if (!r.ok) throw new Error(d.error || 'Incorrect code')
+      setVerif(v => ({ ...v, phoneLoading: false, phoneVerified: true, token: d.verification_token, phoneError: '' }))
+    } catch (err) {
+      setVerif(v => ({ ...v, phoneLoading: false, phoneError: err.message }))
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -165,24 +422,24 @@ export default function BookingWizard({ preselect }) {
       const currency    = pkg.currency[category]
 
       const payload = {
-        package_slug:     pkg.id,
-        guest_name:       form.name.trim(),
-        guest_email:      form.email.trim(),
-        guest_phone:      form.phone.trim() || null,
-        guest_category:   category,
-        check_in_date:    form.arrival,
-        check_out_date:   form.departure || null,
-        num_adults:       adults,
-        num_children:     children,
-        special_requests: form.requests.trim() || null,
+        package_slug:       pkg.id,
+        guest_name:         form.name.trim(),
+        guest_email:        form.email.trim(),
+        guest_phone:        form.phone.trim() || null,
+        guest_category:     category,
+        check_in_date:      form.arrival,
+        check_out_date:     form.departure || computedDeparture || null,
+        num_adults:         adults,
+        num_children:       children,
+        special_requests:   form.requests.trim() || null,
         currency,
-        base_price:       base,
-        service_charge:   service,
-        vat:              vatAmt,
-        total_price:      total,
+        base_price:         base,
+        service_charge:     service,
+        vat:                vatAmt,
+        total_price:        total,
+        verification_token: verif.token,   // ← required by backend
       }
 
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
       const res    = await fetch(`${apiUrl}/api/bookings`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -194,7 +451,9 @@ export default function BookingWizard({ preselect }) {
         throw new Error(data.error || `Server error (${res.status})`)
       }
 
-      // ── Success animation ─────────────────────────────────
+      const data = await res.json()
+      setBookingRef(data.booking_reference || null)
+
       setSubmitting(false)
       setBookingDone(true)
       setTimeout(() => {
@@ -227,20 +486,54 @@ export default function BookingWizard({ preselect }) {
     return (
       <div className="wizard-success">
         <div className="wizard-success__icon">
-          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="48" height="48">
+          <svg viewBox="0 0 48 48" fill="none" width="48" height="48" aria-hidden="true">
             <circle cx="24" cy="24" r="22" stroke="var(--forest-light)" strokeWidth="2"/>
             <polyline points="14,25 21,32 34,17" stroke="var(--forest-light)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
-        <h3>Booking Request Sent!</h3>
-        <p>Thank you, <strong>{form.name}</strong>. We've received your request for <strong>{pkg.name}</strong> and will confirm within 24 hours at <strong>{form.email}</strong>.</p>
+        <span className="wizard-success__badge">Request received</span>
+        <h3>You're on the list!</h3>
+        <p>
+          Thank you, <strong>{form.name}</strong>. Your enquiry for <strong>{pkg.name}</strong> is in our inbox.
+          We'll confirm within <strong>24 hours</strong> at <strong>{form.email}</strong>.
+        </p>
+        {bookingRef && (
+          <div className="success-ref">
+            <span>Your reference</span>
+            <strong>{bookingRef}</strong>
+            <p>Save this to check your booking status or when you contact us.</p>
+          </div>
+        )}
         <div className="success-summary">
           <div className="success-row"><span>Package</span><strong>{pkg.name}</strong></div>
           <div className="success-row"><span>Guests</span><strong>{adults} adult{adults > 1 ? 's' : ''}{children > 0 ? ` · ${children} child${children > 1 ? 'ren' : ''}` : ''}</strong></div>
-          <div className="success-row"><span>Arrival</span><strong>{form.arrival}</strong></div>
+          <div className="success-row"><span>Arrival</span><strong>{formatDisplayDate(form.arrival)}</strong></div>
+          {form.departure && (
+            <div className="success-row"><span>Departure</span><strong>{formatDisplayDate(form.departure)}</strong></div>
+          )}
           <div className="success-row"><span>Estimate</span><strong>{fmtPrice(grand, cur)}</strong></div>
+          <div className="success-row success-row--verified">
+            <span>Email</span>
+            <strong className="verified-pill">Verified</strong>
+          </div>
         </div>
-        <button className="btn-primary" style={{ marginTop: '24px', width: '100%' }} onClick={() => { setSent(false); setStep(0); setPkg(null); setForm({ name:'', email:'', phone:'', arrival:'', departure:'', requests:'' }) }}>
+        <ul className="success-next-steps">
+          <li>Check your inbox for a confirmation email from our team</li>
+          <li>No payment is required now — pay at the resort on arrival</li>
+          <li>Questions? Call us at +977 9851198992</li>
+        </ul>
+        <button
+          type="button"
+          className="btn-primary wizard-success__cta"
+          onClick={() => {
+            setSent(false)
+            setStep(0)
+            setPkg(null)
+            setBookingRef(null)
+            setForm({ name:'', email:'', phone:'', arrival:'', departure:'', requests:'' })
+            resetVerif()
+          }}
+        >
           <span>Make Another Enquiry</span>
         </button>
       </div>
@@ -406,8 +699,8 @@ export default function BookingWizard({ preselect }) {
                 </div>
                 <div className="form-row-2">
                   <div className="form-group">
-                    <label htmlFor="wiz-phone">Phone / WhatsApp</label>
-                    <input id="wiz-phone" type="tel" name="phone" value={form.phone} onChange={handleChange} placeholder="+977 ..." />
+                    <label htmlFor="wiz-phone">Phone / WhatsApp <span className="label-optional">optional</span></label>
+                    <input id="wiz-phone" type="tel" name="phone" value={form.phone} onChange={handleChange} placeholder="+977 98XXXXXXXX" />
                   </div>
                   <div className={`form-group ${errors.arrival ? 'has-error' : ''}`}>
                     <label htmlFor="wiz-arrival">Arrival Date *</label>
@@ -415,10 +708,189 @@ export default function BookingWizard({ preselect }) {
                     {errors.arrival && <span className="field-error">{errors.arrival}</span>}
                   </div>
                 </div>
+                {pkg && form.arrival && computedDeparture && (
+                  <div className="departure-hint">
+                    <svg viewBox="0 0 16 16" fill="none" width="14" height="14" aria-hidden="true">
+                      <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.2"/>
+                      <path d="M8 7v4M8 5.5v.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                    </svg>
+                    <span>
+                      Suggested departure for <strong>{pkg.name}</strong>:{' '}
+                      <strong>{formatDisplayDate(computedDeparture)}</strong>
+                      {form.departure !== computedDeparture && ' (updated automatically)'}
+                    </span>
+                  </div>
+                )}
                 <div className="form-group">
                   <label htmlFor="wiz-requests">Special Requests</label>
                   <textarea id="wiz-requests" name="requests" value={form.requests} onChange={handleChange} rows={4} placeholder="Dietary needs, room preferences, celebrations, accessibility requirements…" />
                 </div>
+              </div>
+
+              {/* ── Email verification ── */}
+              <div className={`verif-section ${verif.emailVerified ? 'verif-section--complete' : ''}`}>
+                <div className="verif-section__header">
+                  <div className="verif-section__title">
+                    <svg viewBox="0 0 20 20" fill="none" width="18" height="18" aria-hidden="true">
+                      <path d="M10 2L3 6v4c0 4.418 3.134 7.979 7 8.944C13.866 17.979 17 14.418 17 10V6l-7-4z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+                      {verif.emailVerified && <polyline points="7,10 9,12 13,8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>}
+                    </svg>
+                    <div>
+                      <span>Secure your booking</span>
+                      <p>One quick email code — protects your enquiry and lets us reach you reliably.</p>
+                    </div>
+                  </div>
+                  {verif.emailVerified && <span className="verif-badge">Verified</span>}
+                </div>
+
+                <div className="verif-steps" aria-label="Verification progress">
+                  <div className={`verif-step-pill ${!verif.emailSent && !verif.emailVerified ? 'active' : verif.emailVerified || verif.emailSent ? 'done' : ''}`}>
+                    <span>1</span> Enter email
+                  </div>
+                  <div className={`verif-step-pill ${verif.emailSent && !verif.emailVerified ? 'active' : verif.emailVerified ? 'done' : ''}`}>
+                    <span>2</span> Confirm code
+                  </div>
+                  <div className={`verif-step-pill ${verif.emailVerified ? 'active done' : ''}`}>
+                    <span>3</span> Ready
+                  </div>
+                </div>
+
+                <div className={`verif-card ${verif.emailVerified ? 'verif-card--done' : ''}`}>
+                  {!verif.emailVerified ? (
+                    <>
+                      <div className="verif-card__email">
+                        <span className="verif-card__label">Sending code to</span>
+                        <strong>{form.email.trim() || 'Enter your email above'}</strong>
+                      </div>
+
+                      {!verif.emailSent ? (
+                        <button
+                          type="button"
+                          className="verif-btn verif-btn--primary"
+                          onClick={handleSendEmailOtp}
+                          disabled={verif.emailLoading || !isValidEmail(form.email)}
+                        >
+                          {verif.emailLoading ? <span className="verif-spinner" /> : 'Send verification code'}
+                        </button>
+                      ) : (
+                        <div className="verif-card__otp-block">
+                          <p className="verif-card__otp-label">Enter the 6-digit code from your inbox</p>
+                          <OtpDigits
+                            value={verif.emailOtp}
+                            onChange={code => setVerif(v => ({ ...v, emailOtp: code, emailError: '' }))}
+                            onComplete={handleVerifyEmailOtp}
+                            disabled={verif.emailLoading}
+                            autoFocus
+                          />
+                          <div className="verif-card__otp-actions">
+                            <button
+                              type="button"
+                              className="verif-btn verif-btn--primary"
+                              onClick={() => handleVerifyEmailOtp()}
+                              disabled={verif.emailLoading || verif.emailOtp.length !== 6}
+                            >
+                              {verif.emailLoading ? <span className="verif-spinner" /> : 'Confirm code'}
+                            </button>
+                            <button
+                              type="button"
+                              className="verif-btn verif-btn--ghost"
+                              onClick={handleSendEmailOtp}
+                              disabled={verif.emailLoading || verif.emailResendIn > 0}
+                            >
+                              {verif.emailResendIn > 0 ? `Resend in ${verif.emailResendIn}s` : 'Resend code'}
+                            </button>
+                            <button
+                              type="button"
+                              className="verif-btn verif-btn--text"
+                              onClick={() => setVerif(v => ({ ...v, emailSent: false, emailOtp: '', emailError: '', devOtp: null }))}
+                            >
+                              Change email
+                            </button>
+                          </div>
+                          {verif.emailSent && !verif.emailError && (
+                            <p className="verif-hint">Check your inbox and spam folder. Code expires in 10 minutes.</p>
+                          )}
+                          {isDev && verif.devOtp && (
+                            <p className="verif-dev-hint" role="status">
+                              Dev mode — your code is <strong>{verif.devOtp}</strong>
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      {verif.emailError && <p className="verif-error" role="alert">{verif.emailError}</p>}
+                    </>
+                  ) : (
+                    <div className="verif-card__success">
+                      <svg viewBox="0 0 24 24" fill="none" width="22" height="22" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10" fill="var(--forest-light)"/>
+                        <polyline points="8,12 11,15 16,9" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <div>
+                        <strong>Email verified</strong>
+                        <span>{form.email}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Optional phone verification */}
+                {verif.emailVerified && form.phone.trim() && !verif.phoneSkipped && (
+                  <div className={`verif-card verif-card--optional ${verif.phoneVerified ? 'verif-card--done' : ''}`}>
+                    <div className="verif-card__optional-header">
+                      <span>Optional</span>
+                      <strong>Verify phone for faster WhatsApp updates</strong>
+                    </div>
+                    {!verif.phoneVerified ? (
+                      <>
+                        {!verif.phoneSent ? (
+                          <button
+                            type="button"
+                            className="verif-btn verif-btn--secondary"
+                            onClick={handleSendPhoneOtp}
+                            disabled={verif.phoneLoading}
+                          >
+                            {verif.phoneLoading ? <span className="verif-spinner" /> : `Send SMS to ${form.phone}`}
+                          </button>
+                        ) : (
+                          <>
+                            <OtpDigits
+                              value={verif.phoneOtp}
+                              onChange={code => setVerif(v => ({ ...v, phoneOtp: code, phoneError: '' }))}
+                              onComplete={handleVerifyPhoneOtp}
+                              disabled={verif.phoneLoading}
+                              autoFocus
+                            />
+                            <button
+                              type="button"
+                              className="verif-btn verif-btn--primary"
+                              onClick={() => handleVerifyPhoneOtp()}
+                              disabled={verif.phoneLoading || verif.phoneOtp.length !== 6}
+                              style={{ marginTop: '12px' }}
+                            >
+                              {verif.phoneLoading ? <span className="verif-spinner" /> : 'Confirm phone'}
+                            </button>
+                          </>
+                        )}
+                        {verif.phoneError && <p className="verif-error" role="alert">{verif.phoneError}</p>}
+                        <button
+                          type="button"
+                          className="verif-skip"
+                          onClick={() => setVerif(v => ({ ...v, phoneSkipped: true }))}
+                        >
+                          Skip — email verification is enough
+                        </button>
+                      </>
+                    ) : (
+                      <div className="verif-card__success verif-card__success--compact">
+                        <span>Phone verified</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {errors.emailVerify && (
+                  <p className="field-error verif-section__error" role="alert">{errors.emailVerify}</p>
+                )}
               </div>
             </div>
           )}
@@ -460,9 +932,16 @@ export default function BookingWizard({ preselect }) {
                     <button type="button" className="review-edit" onClick={() => setStep(2)}>Edit</button>
                   </div>
                   <div className="review-row"><span>Name</span><strong>{form.name}</strong></div>
-                  <div className="review-row"><span>Email</span><strong>{form.email}</strong></div>
-                  {form.phone && <div className="review-row"><span>Phone</span><strong>{form.phone}</strong></div>}
-                  <div className="review-row"><span>Arrival</span><strong>{form.arrival}</strong></div>
+                  <div className="review-row">
+                    <span>Email</span>
+                    <strong className="review-verified">
+                      {form.email}
+                      <span className="verified-pill">Verified</span>
+                    </strong>
+                  </div>
+                  {form.phone && <div className="review-row"><span>Phone</span><strong>{form.phone}{verif.phoneVerified ? ' ✓' : ''}</strong></div>}
+                  <div className="review-row"><span>Arrival</span><strong>{formatDisplayDate(form.arrival)}</strong></div>
+                  {form.departure && <div className="review-row"><span>Departure</span><strong>{formatDisplayDate(form.departure)}</strong></div>}
                   {form.requests && <div className="review-row review-row--requests"><span>Requests</span><em>{form.requests}</em></div>}
                 </div>
               </div>
@@ -482,7 +961,10 @@ export default function BookingWizard({ preselect }) {
               : <span />}
             {step < 3
               ? <button type="button" className="btn-primary wizard__nav-next" onClick={next}>
-                  <span>{step === 0 ? 'Select Guests' : step === 1 ? 'Add Details' : 'Review Booking'}</span>
+                  <span>
+                    {step === 0 ? 'Select Guests' : step === 1 ? 'Your Details' : 'Review Booking'}
+                    {step === 2 && !verif.emailVerified && ' (verify email first)'}
+                  </span>
                   <svg viewBox="0 0 16 16" fill="none" width="14" height="14"><polyline points="5,3 11,8 5,13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </button>
               : <button
@@ -543,7 +1025,13 @@ export default function BookingWizard({ preselect }) {
                   {form.arrival && (
                     <div className="sg-row">
                       <span>Arrival</span>
-                      <span>{form.arrival}</span>
+                      <span>{formatDisplayDate(form.arrival)}</span>
+                    </div>
+                  )}
+                  {step >= 2 && (
+                    <div className={`sg-row sg-row--verify ${verif.emailVerified ? 'is-verified' : ''}`}>
+                      <span>Email status</span>
+                      <span>{verif.emailVerified ? 'Verified' : verif.emailSent ? 'Awaiting code' : 'Not verified'}</span>
                     </div>
                   )}
                 </div>

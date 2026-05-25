@@ -38,11 +38,12 @@ if (process.env.DATABASE_URL) {
 }
 
 // ── Import Models ─────────────────────────────────────────
-const User     = require('./User')(sequelize, DataTypes);
-const Package  = require('./Package')(sequelize, DataTypes);
-const Booking  = require('./Booking')(sequelize, DataTypes);
-const Payment  = require('./Payment')(sequelize, DataTypes);
-const Review   = require('./Review')(sequelize, DataTypes);
+const User                = require('./User')(sequelize, DataTypes);
+const Package             = require('./Package')(sequelize, DataTypes);
+const Booking             = require('./Booking')(sequelize, DataTypes);
+const Payment             = require('./Payment')(sequelize, DataTypes);
+const Review              = require('./Review')(sequelize, DataTypes);
+const VerificationSession = require('./VerificationSession')(sequelize, DataTypes);
 
 // ── Associations ──────────────────────────────────────────
 
@@ -75,4 +76,5 @@ module.exports = {
   Booking,
   Payment,
   Review,
+  VerificationSession,
 };

@@ -202,17 +202,21 @@ export default function Home() {
           <span className="section-divider center reveal reveal-delay-2" />
           <div className="features-grid">
             {[
-              { icon:'🏡', title:'Deluxe Eco Cottages', desc:'24-hour AC cottages with attached bath, blending luxury with nature.' },
-              { icon:'🌿', title:'Guided Jungle Walks', desc:'Expert naturalists lead you through the forest on foot — safe and thrilling.' },
-              { icon:'🍽️', title:'Local & International Cuisine', desc:'Fresh meals prepared daily featuring local Tharu recipes and favorites.' },
-              { icon:'🦏', title:'Wildlife Encounters', desc:'One-horned rhinos, Bengal tigers, gharials and 544+ bird species await.' },
-              { icon:'🛶', title:'River Canoe Safaris', desc:'Glide along the Rapti River at dawn for crocodile and birding sessions.' },
-              { icon:'🎭', title:'Tharu Cultural Program', desc:'Authentic Tharu stick dance performances by local artists each evening.' },
+              { img:'https://images.unsplash.com/photo-1522241450660-60e93e77e6e5?w=600&q=80', alt:'Deluxe eco cottage at Jungle World Resort', title:'Deluxe Eco Cottages', desc:'24-hour AC cottages with attached bath, blending luxury with nature.' },
+              { img:'https://images.unsplash.com/photo-1577721058720-c0fe5fbeef01?w=600&q=80', alt:'Guided jungle walk through sal forest', title:'Guided Jungle Walks', desc:'Expert naturalists lead you through the forest on foot — safe and thrilling.' },
+              { img:'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80', alt:'Fresh local and international cuisine', title:'Local & International Cuisine', desc:'Fresh meals prepared daily featuring local Tharu recipes and favorites.' },
+              { img:'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=600&q=80', alt:'Wildlife encounter in Chitwan National Park', title:'Wildlife Encounters', desc:'One-horned rhinos, Bengal tigers, gharials and 544+ bird species await.' },
+              { img:'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?w=600&q=80', alt:'Canoe safari on the Rapti River at dawn', title:'River Canoe Safaris', desc:'Glide along the Rapti River at dawn for crocodile and birding sessions.' },
+              { img:'https://images.unsplash.com/photo-1545679652-6f1db7d77e3b?w=600&q=80', alt:'Tharu cultural stick dance performance', title:'Tharu Cultural Program', desc:'Authentic Tharu stick dance performances by local artists each evening.' },
             ].map((f, i) => (
               <div key={i} className={`feature-card glossy-card reveal reveal-delay-${(i % 4) + 1}`}>
-                <div className="feature-icon" aria-hidden="true">{f.icon}</div>
-                <h3>{f.title}</h3>
-                <p>{f.desc}</p>
+                <div className="feature-card__image">
+                  <img src={f.img} alt={f.alt} loading="lazy" />
+                </div>
+                <div className="feature-card__body">
+                  <h3>{f.title}</h3>
+                  <p>{f.desc}</p>
+                </div>
               </div>
             ))}
           </div>
