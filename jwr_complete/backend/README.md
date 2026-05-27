@@ -75,6 +75,8 @@ cp .env.example .env
 # Edit .env — add your Supabase DATABASE_URL and JWT secrets
 ```
 
+**Booking verification emails (Gmail SMTP):** see [docs/GMAIL_SMTP_SETUP.md](docs/GMAIL_SMTP_SETUP.md). Set `SMTP_USER` + `SMTP_PASS` (Google App Password) in `.env`, then check `GET /api/health/email`. Optional SendGrid: [docs/SENDGRID_SETUP.md](docs/SENDGRID_SETUP.md).
+
 ### 3 — Run Migrations (creates tables in Supabase)
 
 ```bash

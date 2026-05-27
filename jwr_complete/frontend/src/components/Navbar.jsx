@@ -197,7 +197,7 @@ export default function Navbar({ theme, toggleTheme }) {
 
             <div className="drawer__footer">
               <button className="drawer__theme-btn" onClick={toggleTheme}>
-                {theme === 'dark' ? '☀️  Light Mode' : '🌙  Dark Mode'}
+                {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
               </button>
               <Link to="/contact" className="drawer__cta">
                 Book / Reserve

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
+import GoogleSignIn from './GoogleSignIn'
 import './BookingWizard.css'
 
 const PACKAGE_NIGHTS = { glance: 1, closeup: 2, explore: 3 }
@@ -96,7 +97,6 @@ const PACKAGES = [
     name: 'Chitwan at a Glance',
     duration: '1 Night · 2 Days',
     badge: '1N · 2D',
-    emoji: '🌅',
     prices: { foreigner: 120, saarc: 6000, nepali: 5000 },
     currency: { foreigner: 'USD', saarc: 'INR', nepali: 'NPR' },
     includes: ['Welcome drink & cultural show', 'Elephant bathing', 'Jeep safari', 'Canoe safari', 'All meals'],
@@ -107,7 +107,6 @@ const PACKAGES = [
     name: 'Close Up Chitwan',
     duration: '2 Nights · 3 Days',
     badge: '2N · 3D',
-    emoji: '🌿',
     prices: { foreigner: 190, saarc: 9500, nepali: 8500 },
     currency: { foreigner: 'USD', saarc: 'INR', nepali: 'NPR' },
     includes: ['All 1N/2D activities', 'Guided jungle walk', 'Bird watching', 'Sunset canoe', 'All meals'],
@@ -118,7 +117,6 @@ const PACKAGES = [
     name: 'Explore Chitwan',
     duration: '3 Nights · 4 Days',
     badge: '3N · 4D',
-    emoji: '🐆',
     popular: true,
     prices: { foreigner: 250, saarc: 15000, nepali: 12500 },
     currency: { foreigner: 'USD', saarc: 'INR', nepali: 'NPR' },
@@ -128,9 +126,9 @@ const PACKAGES = [
 ]
 
 const CATEGORIES = [
-  { id: 'foreigner', label: 'International', flag: '🌍', desc: 'Outside SAARC countries', currency: 'USD' },
-  { id: 'saarc',     label: 'SAARC',         flag: '🇮🇳', desc: 'India, Bangladesh, Sri Lanka…', currency: 'INR' },
-  { id: 'nepali',    label: 'Nepali',         flag: '🇳🇵', desc: 'Nepalese nationals', currency: 'NPR' },
+  { id: 'foreigner', label: 'International', desc: 'Outside SAARC countries', currency: 'USD' },
+  { id: 'saarc',     label: 'SAARC',         desc: 'India, Bangladesh, Sri Lanka…', currency: 'INR' },
+  { id: 'nepali',    label: 'Nepali',         desc: 'Nepalese nationals', currency: 'NPR' },
 ]
 
 const STEPS = ['Package', 'Guests', 'Details', 'Review']
@@ -227,9 +225,13 @@ export default function BookingWizard({ preselect }) {
     phoneLoading:  false,
     phoneError:    '',
     token:         null,
+    authMethod:    null,
+    googleProfile: null,
   }
 
   const [verif, setVerif] = useState(initialVerif)
+  const [emailCheck, setEmailCheck] = useState({ status: 'idle', message: '' })
+  const [googleError, setGoogleError] = useState('')
 
   const apiUrl      = import.meta.env.VITE_API_URL || 'http://localhost:3000'
   const selectedCat = CATEGORIES.find(c => c.id === category)
@@ -299,10 +301,75 @@ export default function BookingWizard({ preselect }) {
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
     // Reset email verification if the email field changes
     if (name === 'email') {
+      setEmailCheck({ status: 'idle', message: '' })
+      setGoogleError('')
       setVerif(v => ({
         ...initialVerif,
         emailResendIn: v.emailResendIn,
       }))
+    }
+  }
+
+  const handleEmailBlur = async () => {
+    const email = form.email.trim().toLowerCase()
+    if (!email || !isValidEmail(email) || verif.emailVerified) return
+
+    setEmailCheck({ status: 'checking', message: 'Checking if this inbox can receive mail…' })
+    try {
+      const r = await fetch(`${apiUrl}/api/verify/check-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const d = await r.json()
+      if (!r.ok) {
+        setEmailCheck({ status: 'invalid', message: d.error || 'This email does not look valid.' })
+        return
+      }
+      setEmailCheck({ status: 'valid', message: d.message || 'Email looks good — we can send your code here.' })
+    } catch {
+      setEmailCheck({ status: 'idle', message: '' })
+    }
+  }
+
+  const handleGoogleCredential = async (credential) => {
+    setGoogleError('')
+    setVerif(v => ({ ...v, emailLoading: true, emailError: '' }))
+    try {
+      const r = await fetch(`${apiUrl}/api/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential }),
+      })
+      const d = await r.json()
+      if (!r.ok) throw new Error(d.error || 'Google sign-in failed')
+
+      const profile = d.profile || {}
+      const fullName = profile.name || [d.user?.first_name, d.user?.last_name].filter(Boolean).join(' ')
+
+      setForm(f => ({
+        ...f,
+        name:  f.name.trim() || fullName || f.name,
+        email: profile.email || d.user?.email || f.email,
+      }))
+
+      if (d.access_token) localStorage.setItem('jwr_guest_token', d.access_token)
+      if (d.user) localStorage.setItem('jwr_guest_user', JSON.stringify(d.user))
+
+      setVerif(v => ({
+        ...v,
+        emailVerified: true,
+        token: d.verification_token,
+        authMethod: 'google',
+        googleProfile: profile,
+        emailLoading: false,
+        emailError: '',
+      }))
+      setEmailCheck({ status: 'valid', message: 'Signed in with Google — your email is verified.' })
+      setErrors(prev => ({ ...prev, emailVerify: '', email: '' }))
+    } catch (err) {
+      setGoogleError(err.message)
+      setVerif(v => ({ ...v, emailLoading: false }))
     }
   }
 
@@ -312,6 +379,10 @@ export default function BookingWizard({ preselect }) {
     const email = form.email.trim().toLowerCase()
     if (!email) { setErrors(prev => ({ ...prev, email: 'Enter your email address first.' })); return }
     if (!isValidEmail(email)) { setErrors(prev => ({ ...prev, email: 'Enter a valid email address.' })); return }
+    if (emailCheck.status === 'invalid') {
+      setVerif(v => ({ ...v, emailError: emailCheck.message || 'Please use a real email address.' }))
+      return
+    }
     setVerif(v => ({ ...v, emailLoading: true, emailError: '', emailOtp: '', devOtp: null }))
     startResendCountdown()
     try {
@@ -320,16 +391,23 @@ export default function BookingWizard({ preselect }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, name: form.name.trim() || 'Guest' }),
       })
-      const d = await r.json()
+      const d = await r.json().catch(() => ({}))
       if (!r.ok) throw new Error(d.error || 'Failed to send verification code')
       setVerif(v => ({
         ...v,
         emailLoading: false,
         emailSent: true,
         sessionId: d.session_id,
+        authMethod: 'otp',
         emailError: '',
         devOtp: isDev && d.dev_otp ? d.dev_otp : null,
       }))
+      setEmailCheck({
+        status: 'valid',
+        message: d.email_sent
+          ? 'Verification code sent — check your inbox and spam folder.'
+          : 'Email not configured on server — use the dev code below or add SendGrid to backend .env.',
+      })
     } catch (err) {
       if (resendTimerRef.current) clearInterval(resendTimerRef.current)
       setVerif(v => ({ ...v, emailLoading: false, emailError: err.message, emailResendIn: 0 }))
@@ -359,6 +437,7 @@ export default function BookingWizard({ preselect }) {
         emailVerified: true,
         emailOtp: otp,
         token: d.verification_token,
+        authMethod: 'otp',
         emailError: '',
         devOtp: null,
       }))
@@ -636,7 +715,6 @@ export default function BookingWizard({ preselect }) {
                       onClick={() => setCategory(cat.id)}
                       aria-pressed={category === cat.id}
                     >
-                      <span className="cat-flag">{cat.flag}</span>
                       <div>
                         <strong>{cat.label}</strong>
                         <span>{cat.desc}</span>
@@ -691,10 +769,29 @@ export default function BookingWizard({ preselect }) {
                     <input id="wiz-name" type="text" name="name" value={form.name} onChange={handleChange} placeholder="Your full name" />
                     {errors.name && <span className="field-error">{errors.name}</span>}
                   </div>
-                  <div className={`form-group ${errors.email ? 'has-error' : ''}`}>
+                  <div className={`form-group ${errors.email || emailCheck.status === 'invalid' ? 'has-error' : ''} ${emailCheck.status === 'valid' ? 'has-valid' : ''}`}>
                     <label htmlFor="wiz-email">Email Address *</label>
-                    <input id="wiz-email" type="email" name="email" value={form.email} onChange={handleChange} placeholder="your@email.com" />
+                    <input
+                      id="wiz-email"
+                      type="email"
+                      name="email"
+                      value={form.email}
+                      onChange={handleChange}
+                      onBlur={handleEmailBlur}
+                      placeholder="your@email.com"
+                      autoComplete="email"
+                      readOnly={verif.emailVerified && verif.authMethod === 'google'}
+                    />
                     {errors.email && <span className="field-error">{errors.email}</span>}
+                    {!errors.email && emailCheck.status === 'checking' && (
+                      <span className="field-hint field-hint--checking">{emailCheck.message}</span>
+                    )}
+                    {!errors.email && emailCheck.status === 'valid' && (
+                      <span className="field-hint field-hint--valid">{emailCheck.message}</span>
+                    )}
+                    {!errors.email && emailCheck.status === 'invalid' && (
+                      <span className="field-error">{emailCheck.message}</span>
+                    )}
                   </div>
                 </div>
                 <div className="form-row-2">
@@ -727,7 +824,7 @@ export default function BookingWizard({ preselect }) {
                 </div>
               </div>
 
-              {/* ── Email verification ── */}
+              {/* ── Sign in & email verification ── */}
               <div className={`verif-section ${verif.emailVerified ? 'verif-section--complete' : ''}`}>
                 <div className="verif-section__header">
                   <div className="verif-section__title">
@@ -736,13 +833,51 @@ export default function BookingWizard({ preselect }) {
                       {verif.emailVerified && <polyline points="7,10 9,12 13,8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>}
                     </svg>
                     <div>
-                      <span>Secure your booking</span>
-                      <p>One quick email code — protects your enquiry and lets us reach you reliably.</p>
+                      <span>Confirm it's really you</span>
+                      <p>
+                        {verif.emailVerified && verif.authMethod === 'google'
+                          ? 'Signed in with Google — your email is verified by Google.'
+                          : 'Sign in with Google for instant verification, or we send a 6-digit code to your inbox.'}
+                      </p>
                     </div>
                   </div>
-                  {verif.emailVerified && <span className="verif-badge">Verified</span>}
+                  {verif.emailVerified && (
+                    <span className="verif-badge">
+                      {verif.authMethod === 'google' ? 'Google' : 'Verified'}
+                    </span>
+                  )}
                 </div>
 
+                {!verif.emailVerified && (
+                  <div className="auth-block">
+                    <GoogleSignIn
+                      onCredential={handleGoogleCredential}
+                      onError={setGoogleError}
+                      disabled={verif.emailLoading}
+                    />
+                    {googleError && <p className="verif-error" role="alert">{googleError}</p>}
+                    <div className="auth-divider" aria-hidden="true">
+                      <span>or verify with email code</span>
+                    </div>
+                  </div>
+                )}
+
+                {verif.emailVerified && verif.authMethod === 'google' && verif.googleProfile && (
+                  <div className="verif-card verif-card--done verif-card--google">
+                    <div className="google-profile">
+                      {verif.googleProfile.picture && (
+                        <img src={verif.googleProfile.picture} alt="" width={40} height={40} className="google-profile__img" />
+                      )}
+                      <div>
+                        <strong>{verif.googleProfile.name}</strong>
+                        <span>{verif.googleProfile.email}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {verif.authMethod !== 'google' && (
+                <>
                 <div className="verif-steps" aria-label="Verification progress">
                   <div className={`verif-step-pill ${!verif.emailSent && !verif.emailVerified ? 'active' : verif.emailVerified || verif.emailSent ? 'done' : ''}`}>
                     <span>1</span> Enter email
@@ -891,6 +1026,8 @@ export default function BookingWizard({ preselect }) {
                 {errors.emailVerify && (
                   <p className="field-error verif-section__error" role="alert">{errors.emailVerify}</p>
                 )}
+                </>
+                )}
               </div>
             </div>
           )}
@@ -920,7 +1057,7 @@ export default function BookingWizard({ preselect }) {
                     <button type="button" className="review-edit" onClick={() => setStep(1)}>Edit</button>
                   </div>
                   <div className="review-row">
-                    <span>{selectedCat?.flag} {selectedCat?.label}</span>
+                    <span>{selectedCat?.label}</span>
                   </div>
                   <div className="review-row">
                     <span>{adults} Adult{adults > 1 ? 's' : ''}{children > 0 ? `, ${children} Child${children > 1 ? 'ren' : ''}` : ''}</span>
@@ -936,10 +1073,12 @@ export default function BookingWizard({ preselect }) {
                     <span>Email</span>
                     <strong className="review-verified">
                       {form.email}
-                      <span className="verified-pill">Verified</span>
+                      <span className="verified-pill">
+                        {verif.authMethod === 'google' ? 'Google verified' : 'Verified'}
+                      </span>
                     </strong>
                   </div>
-                  {form.phone && <div className="review-row"><span>Phone</span><strong>{form.phone}{verif.phoneVerified ? ' ✓' : ''}</strong></div>}
+                  {form.phone && <div className="review-row"><span>Phone</span><strong>{form.phone}{verif.phoneVerified ? ' (verified)' : ''}</strong></div>}
                   <div className="review-row"><span>Arrival</span><strong>{formatDisplayDate(form.arrival)}</strong></div>
                   {form.departure && <div className="review-row"><span>Departure</span><strong>{formatDisplayDate(form.departure)}</strong></div>}
                   {form.requests && <div className="review-row review-row--requests"><span>Requests</span><em>{form.requests}</em></div>}
@@ -998,7 +1137,7 @@ export default function BookingWizard({ preselect }) {
                 </button>}
                 {errors.submit && (
                   <p role="alert" style={{ color: '#c0392b', fontSize: '0.85rem', marginTop: '8px', textAlign: 'center' }}>
-                    ⚠ {errors.submit}
+                    Error: {errors.submit}
                   </p>
                 )}
           </div>
@@ -1019,7 +1158,7 @@ export default function BookingWizard({ preselect }) {
 
                 <div className="sidebar-guests">
                   <div className="sg-row">
-                    <span>{selectedCat?.flag} {selectedCat?.label}</span>
+                    <span>{selectedCat?.label}</span>
                     <span>{adults} adult{adults > 1 ? 's' : ''}{children > 0 ? `, ${children} child${children > 1 ? 'ren' : ''}` : ''}</span>
                   </div>
                   {form.arrival && (
@@ -1031,7 +1170,11 @@ export default function BookingWizard({ preselect }) {
                   {step >= 2 && (
                     <div className={`sg-row sg-row--verify ${verif.emailVerified ? 'is-verified' : ''}`}>
                       <span>Email status</span>
-                      <span>{verif.emailVerified ? 'Verified' : verif.emailSent ? 'Awaiting code' : 'Not verified'}</span>
+                      <span>
+                        {verif.emailVerified
+                          ? (verif.authMethod === 'google' ? 'Google' : 'Verified')
+                          : verif.emailSent ? 'Awaiting code' : 'Not verified'}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -1055,7 +1198,12 @@ export default function BookingWizard({ preselect }) {
               </>
             ) : (
               <div className="sidebar-empty">
-                <div className="sidebar-empty__icon">🌿</div>
+                <div className="sidebar-empty__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" width="24" height="24">
+                    <path d="M20 4c-6 1-10 5-11.5 10.5C7.5 17.2 7 20 7 20s2.8-.5 5.5-1.5C18 17 22 13 20 4Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/>
+                    <path d="M8 19c2-6 6-10 12-13" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
+                  </svg>
+                </div>
                 <p>Select a package to see your price estimate here.</p>
                 <div className="sidebar-teaser">
                   <div>From <strong>USD 120</strong> per person</div>

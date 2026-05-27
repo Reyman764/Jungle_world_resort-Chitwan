@@ -58,6 +58,7 @@ const authLimiter = rateLimit({
 });
 app.use('/api/auth/login',    authLimiter);
 app.use('/api/auth/register', authLimiter);
+app.use('/api/auth/google',   authLimiter);
 
 // ── Health Check ──────────────────────────────────────────
 app.get('/api/health', (req, res) => {
@@ -67,6 +68,30 @@ app.get('/api/health', (req, res) => {
     version: '2.0.0',
     environment: process.env.NODE_ENV,
     timestamp: new Date().toISOString(),
+  });
+});
+
+const { hasSendGrid, hasSmtp, isEmailConfigured } = require('./utils/mailer');
+app.get('/api/health/email', (req, res) => {
+  const from = process.env.SENDGRID_FROM_EMAIL || process.env.SMTP_FROM || null;
+  res.json({
+    configured: isEmailConfigured(),
+    sendgrid: {
+      configured: hasSendGrid(),
+      from: hasSendGrid() ? from : null,
+      hint: hasSendGrid()
+        ? null
+        : 'Set SENDGRID_API_KEY and SENDGRID_FROM_EMAIL in .env — see docs/SENDGRID_SETUP.md',
+    },
+    smtp: {
+      configured: hasSmtp(),
+      host: hasSmtp() ? process.env.SMTP_HOST : null,
+      user: hasSmtp() ? process.env.SMTP_USER : null,
+      hint: hasSmtp()
+        ? null
+        : 'Set SMTP_HOST, SMTP_USER, SMTP_PASS in .env — see docs/GMAIL_SMTP_SETUP.md',
+    },
+    dev_fallback: !isEmailConfigured() && process.env.NODE_ENV !== 'production',
   });
 });
 

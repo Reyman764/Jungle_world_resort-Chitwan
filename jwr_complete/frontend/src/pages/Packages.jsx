@@ -24,7 +24,7 @@ export default function Packages() {
 
       {/* Phase 4: Early bird countdown */}
       <div className="pkg-countdown-bar" role="banner" aria-label="Limited time offer">
-        <CountdownTimer targetDate="2026-09-30" label="🔥 Early Bird Discount Expires In" />
+        <CountdownTimer targetDate="2026-09-30" label="Early Bird Discount Expires In" />
       </div>
 
       <section className="pkg-intro">
@@ -67,7 +67,7 @@ export default function Packages() {
                   {/* Phase 4: Urgency badges */}
                   {pkg.urgency && (
                     <div className="pkg-badge pkg-badge--urgency" aria-label={`Only ${pkg.urgency}`}>
-                      🔥 Only {pkg.urgency}
+                      Only {pkg.urgency}
                     </div>
                   )}
                   {pkg.discount && (
@@ -123,7 +123,7 @@ export default function Packages() {
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   </div>
-                  {pkg.popular && <div className="compare-popular">⭐ Most Popular</div>}
+                  {pkg.popular && <div className="compare-popular">Most Popular</div>}
                   <h3>{pkg.name}</h3>
                   <div className="compare-price">{pkg.price}</div>
                   <div className="compare-price-sub">{pkg.priceINR} · {pkg.priceNPR}</div>
@@ -139,7 +139,7 @@ export default function Packages() {
                   {packages.map((pkg, i) => (
                     <div key={pkg.id} className={`compare-col compare-col--check ${pkg.popular ? 'featured' : ''}`}>
                       {pkg.includes.some(inc => inc.toLowerCase().includes(feature.toLowerCase().split(' ')[0])) || i >= (feature.includes('Elephant') ? 2 : feature.includes('Sunset') ? 2 : feature.includes('Airport') ? 2 : feature.includes('Bird') ? 1 : feature.includes('Guided') ? 1 : 0)
-                        ? <span className="check-yes" aria-label="Included">✓</span>
+                        ? <span className="check-yes" aria-label="Included">Included</span>
                         : <span className="check-no" aria-label="Not included">–</span>
                       }
                     </div>

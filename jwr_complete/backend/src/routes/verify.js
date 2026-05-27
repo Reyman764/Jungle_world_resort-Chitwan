@@ -5,6 +5,7 @@ const rateLimit = require('express-rate-limit');
 const { body }  = require('express-validator');
 const { validate } = require('../middleware/validate');
 const {
+  checkEmail,
   sendEmailOtp,
   confirmEmailOtp,
   sendPhoneOtp,
@@ -27,6 +28,17 @@ const confirmLimiter = rateLimit({
 });
 
 // ── Routes ────────────────────────────────────────────────
+
+// POST /api/verify/check-email — validate deliverability before OTP
+router.post(
+  '/check-email',
+  sendLimiter,
+  [
+    body('email').isEmail().withMessage('Valid email address required').normalizeEmail(),
+  ],
+  validate,
+  checkEmail
+);
 
 // POST /api/verify/send-email-otp
 router.post(

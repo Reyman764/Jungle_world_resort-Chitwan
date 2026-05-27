@@ -282,7 +282,7 @@
   gap: 4px;
 }
 .form-error::before {
-  content: '⚠';
+  content: '!';
   font-size: 10px;
 }
 
@@ -834,7 +834,7 @@
 
 
 /* ══════════════════════════════════════════════════════════════
-   15. LIGHT ↔ DARK MODE SMOOTH TRANSITION
+   15. LIGHT & DARK MODE SMOOTH TRANSITION
    ══════════════════════════════════════════════════════════════ */
 
 /* All elements transition color/background on theme change */

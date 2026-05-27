@@ -76,7 +76,7 @@ export default function BookingDetail({ bookingId, onClose, onUpdate }) {
 
       if (res.ok) {
         setBooking(data.booking)
-        showToast('success', '✓ Booking updated successfully')
+        showToast('success', 'Booking updated successfully')
         if (onUpdate) onUpdate()
       } else {
         showToast('error', data.error || 'Failed to save changes')
@@ -236,7 +236,7 @@ export default function BookingDetail({ bookingId, onClose, onUpdate }) {
               <button className="modal-save-btn" onClick={handleSave} disabled={saving}>
                 {saving ? (
                   <>
-                    <div className="admin-spinner admin-spinner--sm" style={{ borderTopColor: 'var(--forest-deep)', borderColor: 'rgba(13,34,24,0.3)' }} />
+                    <div className="admin-spinner admin-spinner--sm" style={{ borderTopColor: '#fff', borderColor: 'rgba(255,255,255,0.3)' }} />
                     Saving…
                   </>
                 ) : (

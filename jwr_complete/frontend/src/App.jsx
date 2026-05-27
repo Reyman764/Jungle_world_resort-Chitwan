@@ -26,7 +26,7 @@ function PageLoader() {
       minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
       color: 'var(--gold-rich)', fontSize: '28px',
     }}>
-      <span style={{ animation: 'shimmer 1.6s infinite' }}>🌿</span>
+      <span style={{ animation: 'shimmer 1.6s infinite', letterSpacing: '0.08em' }}>Loading…</span>
     </div>
   )
 }

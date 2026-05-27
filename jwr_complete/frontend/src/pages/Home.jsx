@@ -9,10 +9,10 @@ const packages = [
 ]
 
 const activities = [
-  { name:'Jungle Safari', icon:'🐆', desc:'Thrilling jeep safaris through the core zone of Chitwan — home to tigers, rhinos, and leopards.', img:'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=600&q=80' },
-  { name:'Canoe Riding', icon:'🛶', desc:'Glide silently along the Rapti River, spotting gharials, marsh muggers and kingfishers.', img:'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?w=600&q=80' },
-  { name:'Elephant Bathing', icon:'🐘', desc:'A rare chance to interact with the gentle giants — bathe and bond with resident elephants.', img:'https://images.unsplash.com/photo-1551969014-7d2c4cddf0b6?w=600&q=80' },
-  { name:'Bird Watching', icon:'🦜', desc:'Chitwan hosts 544+ bird species. Dawn walks with expert naturalist guides are a birder\'s paradise.', img:'https://images.unsplash.com/photo-1444464666168-49d633b86797?w=600&q=80' },
+  { name:'Jungle Safari', desc:'Thrilling jeep safaris through the core zone of Chitwan — home to tigers, rhinos, and leopards.', img:'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=600&q=80' },
+  { name:'Canoe Riding', desc:'Glide silently along the Rapti River, spotting gharials, marsh muggers and kingfishers.', img:'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?w=600&q=80' },
+  { name:'Elephant Bathing', desc:'A rare chance to interact with the gentle giants — bathe and bond with resident elephants.', img:'https://images.unsplash.com/photo-1551969014-7d2c4cddf0b6?w=600&q=80' },
+  { name:'Bird Watching', desc:'Chitwan hosts 544+ bird species. Dawn walks with expert naturalist guides are a birder\'s paradise.', img:'https://images.unsplash.com/photo-1444464666168-49d633b86797?w=600&q=80' },
 ]
 
 const stats = [
@@ -23,10 +23,10 @@ const stats = [
 ]
 
 const testimonials = [
-  { name:'Sarah M.', country:'🇬🇧 United Kingdom', rating:5, text:'Absolutely magical experience. The jeep safari at dawn with fog over the grass was something I\'ll never forget. Staff was incredibly knowledgeable and kind.' },
-  { name:'Rajesh K.', country:'🇮🇳 India', rating:5, text:'We had a family trip with kids and the team made everything so smooth. The elephant bathing was the highlight for our children. Will definitely return!' },
-  { name:'Annika L.', country:'🇩🇪 Germany', rating:5, text:'The cottages were beautiful and the food was outstanding — especially the Tharu cuisine. Birding at dawn was spectacular. Jungle World is the best in Sauraha.' },
-  { name:'Tom B.', country:'🇦🇺 Australia', rating:5, text:'Saw a one-horned rhino on the very first jeep safari! The guides know every trail. A bucket list destination executed perfectly.' },
+  { name:'Sarah M.', country:'United Kingdom', rating:5, text:'Absolutely magical experience. The jeep safari at dawn with fog over the grass was something I\'ll never forget. Staff was incredibly knowledgeable and kind.' },
+  { name:'Rajesh K.', country:'India', rating:5, text:'We had a family trip with kids and the team made everything so smooth. The elephant bathing was the highlight for our children. Will definitely return!' },
+  { name:'Annika L.', country:'Germany', rating:5, text:'The cottages were beautiful and the food was outstanding — especially the Tharu cuisine. Birding at dawn was spectacular. Jungle World is the best in Sauraha.' },
+  { name:'Tom B.', country:'Australia', rating:5, text:'Saw a one-horned rhino on the very first jeep safari! The guides know every trail. A bucket list destination executed perfectly.' },
 ]
 
 // Phase 3: Animated counter component
@@ -97,7 +97,7 @@ export default function Home() {
         </div>
         <div className="hero__bg" />
         <div className="hero__content">
-          <div className="hero__badge animate-fadeUp">🌿 &nbsp;UNESCO World Heritage Site</div>
+          <div className="hero__badge animate-fadeUp">UNESCO World Heritage Site</div>
           <h1 className="animate-fadeUp animate-delay-1">
             Into the <span className="gradient-text">Sal Forest,</span><br />Far From Ordinary
           </h1>
@@ -299,7 +299,6 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="activity-card__body">
-                  <span className="activity-icon" aria-hidden="true">{a.icon}</span>
                   <h3>{a.name}</h3>
                   <p>{a.desc}</p>
                 </div>
@@ -336,7 +335,7 @@ export default function Home() {
                   className="testimonial-card"
                   aria-hidden={i !== activeTestimonial}
                 >
-                  <div className="testimonial-stars" aria-label={`${t.rating} out of 5 stars`}>{'★'.repeat(t.rating)}</div>
+                  <div className="testimonial-stars" aria-label={`${t.rating} out of 5`}>{t.rating} / 5</div>
                   <p className="testimonial-text">"{t.text}"</p>
                   <div className="testimonial-author">
                     <div className="testimonial-avatar" aria-hidden="true">{t.name[0]}</div>

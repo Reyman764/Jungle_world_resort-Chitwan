@@ -42,13 +42,16 @@ async function getBookings(req, res, next) {
       ];
     }
 
-    const { count, rows } = await Booking.findAndCountAll({
+    const total = await Booking.count({ where });
+
+    const rows = await Booking.findAll({
       where,
       include: [
         {
           model: Package,
           as: 'package',
           attributes: ['id', 'name', 'slug', 'duration_nights'],
+          required: false,
         },
       ],
       order: [['created_at', 'DESC']],
@@ -58,9 +61,9 @@ async function getBookings(req, res, next) {
 
     return res.json({
       bookings:    rows,
-      total:       count,
+      total,
       page:        parseInt(page),
-      total_pages: Math.ceil(count / limit),
+      total_pages: Math.ceil(total / limit),
     });
   } catch (err) {
     next(err);

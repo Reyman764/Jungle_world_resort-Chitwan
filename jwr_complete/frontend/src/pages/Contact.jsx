@@ -81,21 +81,35 @@ export default function Contact() {
               </div>
               <div className="response-promise">
                 <div className="rp-item">
-                  <span className="rp-icon">⚡</span>
+                  <span className="rp-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                    </svg>
+                  </span>
                   <div>
                     <strong>24-hour Response</strong>
                     <p>We reply to every enquiry within 24 hours, usually much sooner.</p>
                   </div>
                 </div>
                 <div className="rp-item">
-                  <span className="rp-icon">🔒</span>
+                  <span className="rp-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="5" y="11" width="14" height="10" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                  </span>
                   <div>
                     <strong>No Payment Now</strong>
                     <p>Your booking request is free — we confirm and discuss payment after contact.</p>
                   </div>
                 </div>
                 <div className="rp-item">
-                  <span className="rp-icon">🔄</span>
+                  <span className="rp-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+                      <polyline points="21 3 21 9 15 9" />
+                    </svg>
+                  </span>
                   <div>
                     <strong>Free Cancellation</strong>
                     <p>Cancel up to 72 hours before arrival with no penalty.</p>

@@ -1161,6 +1161,91 @@
   font-size: 10px;
 }
 
+.form-group.has-valid input {
+  border-color: var(--forest-light);
+  background: rgba(45, 90, 61, 0.04);
+}
+
+.field-hint {
+  font-size: 12px;
+  line-height: 1.45;
+  margin-top: 2px;
+}
+.field-hint--checking { color: var(--text-mid); font-style: italic; }
+.field-hint--valid { color: var(--forest-light); font-weight: 500; }
+
+/* Google sign-in block */
+.auth-block {
+  margin-bottom: 20px;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 18px 0 4px;
+  color: var(--text-light);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(26, 71, 49, 0.15);
+}
+
+.google-signin {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 44px;
+}
+.google-signin--disabled { opacity: 0.55; pointer-events: none; }
+.google-signin__loading {
+  font-size: 0.8rem;
+  color: var(--text-mid);
+  font-style: italic;
+}
+.google-signin__missing {
+  font-size: 0.8rem;
+  color: var(--text-mid);
+  margin: 0;
+  line-height: 1.5;
+}
+.google-signin__missing code {
+  font-size: 0.75rem;
+  background: rgba(0,0,0,0.06);
+  padding: 1px 4px;
+}
+
+.google-profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.google-profile__img {
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--forest-light);
+}
+.google-profile strong {
+  display: block;
+  color: var(--forest-deep);
+  font-size: 0.95rem;
+}
+.google-profile span {
+  font-size: 0.82rem;
+  color: var(--text-mid);
+}
+
+.verif-card--google {
+  margin-bottom: 0;
+}
+
 .departure-hint {
   display: flex;
   align-items: flex-start;

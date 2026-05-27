@@ -17,10 +17,10 @@ function StatusBadge({ status }) {
 
 function StatCard({ label, value, sub, icon, accent }) {
   return (
-    <div className="stat-card" style={{ '--stat-accent': accent || 'var(--gold-rich)' }}>
-      <span className="stat-card__icon">{icon}</span>
+    <div className="stat-card" style={{ '--stat-accent': accent }}>
+      {icon && <span className="stat-card__icon">{icon}</span>}
       <div className="stat-card__label">{label}</div>
-      <div className="stat-card__value">{value}</div>
+      <div className="stat-card__value">{value ?? '—'}</div>
       {sub && <div className="stat-card__sub">{sub}</div>}
     </div>
   )
@@ -140,31 +140,27 @@ const res  = await fetch(`${API}/api/admin?${q}`, { headers: authHeader() })
           <div className="admin-stats-grid">
             <StatCard
               label="Total Bookings"
-              value={stats ? stats.total_bookings : '—'}
+              value={stats?.total_bookings}
               sub="all time"
-              icon="📋"
-              accent="#c8973a"
+              accent="#1a4731"
             />
             <StatCard
               label="Pending Confirmation"
-              value={stats ? stats.pending_confirmations : '—'}
+              value={stats?.pending_confirmations}
               sub="require action"
-              icon="⏳"
-              accent="#fbbf24"
+              accent="#d97706"
             />
             <StatCard
               label="Confirmed / Active"
-              value={stats ? (Number(stats.confirmed_bookings) + Number(stats.checked_in)) : '—'}
+              value={stats ? (Number(stats.confirmed_bookings) + Number(stats.checked_in)) : undefined}
               sub={stats ? `${stats.confirmed_bookings} confirmed · ${stats.checked_in} checked in` : ''}
-              icon="✅"
-              accent="#4ade80"
+              accent="#16a34a"
             />
             <StatCard
               label="Total Revenue"
-              value={stats ? `$${Number(stats.total_revenue).toLocaleString()}` : '—'}
+              value={stats ? `$${Number(stats.total_revenue).toLocaleString()}` : undefined}
               sub={stats ? `$${Number(stats.revenue_this_month).toLocaleString()} this month` : ''}
-              icon="💰"
-              accent="#a8d8a0"
+              accent="#2563eb"
             />
           </div>
         )}
@@ -241,7 +237,12 @@ const res  = await fetch(`${API}/api/admin?${q}`, { headers: authHeader() })
             </div>
           ) : bookings.length === 0 ? (
             <div className="admin-empty">
-              <div className="admin-empty__icon">🌿</div>
+              <div className="admin-empty__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" width="26" height="26">
+                  <path d="M20 4c-6 1-10 5-11.5 10.5C7.5 17.2 7 20 7 20s2.8-.5 5.5-1.5C18 17 22 13 20 4Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
+                  <path d="M8 19c2-6 6-10 12-13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+              </div>
               <div className="admin-empty__title">No bookings found</div>
               <div className="admin-empty__sub">Try adjusting your filters or create a test booking via the main site.</div>
             </div>
@@ -269,7 +270,7 @@ const res  = await fetch(`${API}/api/admin?${q}`, { headers: authHeader() })
                       <td>{b.check_in_date}</td>
                       <td style={{ textTransform: 'capitalize' }}>{b.guest_category}</td>
                       <td><StatusBadge status={b.status} /></td>
-                      <td className="amount">${Number(b.total_price || 0).toFixed(2)}</td>
+                      <td className="amount">${Number(b.total_price || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                       <td>
                         <button
                           className="admin-view-btn"

@@ -4,8 +4,8 @@
 
 /* ── Topbar ─────────────────────────────────────────────────────── */
 .topbar {
-  background: var(--forest-deep);
-  border-bottom: 1px solid rgba(200, 151, 58, 0.18);
+  background: var(--surface);
+  border-bottom: 1px solid rgba(13, 34, 24, 0.10);
   position: relative;
   z-index: 1001;
 }
@@ -33,7 +33,7 @@
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.06em;
-  color: rgba(248, 244, 236, 0.6);
+  color: rgba(13, 34, 24, 0.55);
   padding: 0 20px;
   height: 36px;
   white-space: nowrap;
@@ -52,7 +52,7 @@
   display: block;
   width: 1px;
   height: 14px;
-  background: rgba(248, 244, 236, 0.12);
+  background: rgba(13, 34, 24, 0.10);
   flex-shrink: 0;
 }
 
@@ -61,17 +61,17 @@
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: rgba(11, 28, 20, 0.98);
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(16px) saturate(160%);
   -webkit-backdrop-filter: blur(16px) saturate(160%);
-  border-bottom: 1px solid rgba(200, 151, 58, 0.14);
+  border-bottom: 1px solid rgba(13, 34, 24, 0.10);
   transition: box-shadow 0.35s ease, background 0.35s ease;
 }
 
 .navbar--scrolled {
-  background: rgba(8, 22, 15, 0.99);
-  box-shadow: 0 2px 40px rgba(0, 0, 0, 0.4);
-  border-bottom-color: rgba(200, 151, 58, 0.22);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 2px 40px rgba(17, 24, 39, 0.10);
+  border-bottom-color: rgba(13, 34, 24, 0.16);
 }
 
 .navbar__inner {
@@ -153,7 +153,7 @@
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(240, 236, 227, 0.62);
+  color: rgba(13, 34, 24, 0.62);
   text-decoration: none;
   padding: 8px 13px;
   position: relative;
@@ -177,7 +177,7 @@
 }
 
 .nav-link:hover {
-  color: #f0ece3;
+  color: var(--forest-deep);
 }
 
 .nav-link:hover::before {
@@ -185,7 +185,7 @@
 }
 
 .nav-link--active {
-  color: #f0ece3;
+  color: var(--forest-deep);
 }
 
 .nav-link--active::before {
@@ -207,12 +207,12 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(13, 34, 24, 0.05);
+  border: 1px solid rgba(13, 34, 24, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(240, 236, 227, 0.7);
+  color: rgba(13, 34, 24, 0.65);
   cursor: pointer;
   transition: background 0.25s, border-color 0.25s, color 0.25s, transform 0.25s;
   flex-shrink: 0;
@@ -293,7 +293,7 @@
   display: block;
   width: 22px;
   height: 1.5px;
-  background: rgba(240, 236, 227, 0.8);
+  background: rgba(13, 34, 24, 0.78);
   border-radius: 2px;
   transition: transform 0.3s ease, opacity 0.2s ease, width 0.3s ease;
   transform-origin: center;
@@ -322,8 +322,8 @@
   display: none;
   overflow: hidden;
   max-height: 0;
-  background: #0a1a10;
-  border-top: 1px solid rgba(200, 151, 58, 0.14);
+  background: var(--surface);
+  border-top: 1px solid rgba(13, 34, 24, 0.12);
   transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -344,10 +344,10 @@
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(240, 236, 227, 0.65);
+  color: rgba(13, 34, 24, 0.62);
   text-decoration: none;
   padding: 15px 32px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(13, 34, 24, 0.06);
   transition: color 0.2s, background 0.2s, padding-left 0.25s;
 }
 
@@ -359,8 +359,8 @@
 }
 
 .drawer-link:hover {
-  color: #f0ece3;
-  background: rgba(255, 255, 255, 0.03);
+  color: var(--forest-deep);
+  background: rgba(200, 151, 58, 0.08);
   padding-left: 40px;
 }
 
@@ -370,7 +370,7 @@
 }
 
 .drawer-link--active {
-  color: var(--gold-light);
+  color: var(--forest-deep);
 }
 
 .drawer-link--active svg {
@@ -386,9 +386,9 @@
 }
 
 .drawer__theme-btn {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: rgba(240, 236, 227, 0.65);
+  background: rgba(13, 34, 24, 0.04);
+  border: 1px solid rgba(13, 34, 24, 0.10);
+  color: rgba(13, 34, 24, 0.62);
   font-family: var(--font-body);
   font-size: 12px;
   font-weight: 500;
@@ -454,12 +454,78 @@
 }
 
 /* ── Dark mode ───────────────────────────────────────────────────── */
-[data-theme="dark"] .theme-btn {
-  background:   rgba(200, 151, 58, 0.1);
-  border-color: rgba(200, 151, 58, 0.25);
-  color:        var(--gold-light);
+[data-theme="dark"] .topbar {
+  background: var(--forest-deep);
+  border-bottom: 1px solid rgba(200, 151, 58, 0.18);
 }
+
+[data-theme="dark"] .topbar__item {
+  color: rgba(248, 244, 236, 0.6);
+}
+
+[data-theme="dark"] .topbar__sep {
+  background: rgba(248, 244, 236, 0.12);
+}
+
+[data-theme="dark"] .navbar {
+  background: rgba(11, 28, 20, 0.98);
+  border-bottom: 1px solid rgba(200, 151, 58, 0.14);
+}
+
+[data-theme="dark"] .navbar--scrolled {
+  background: rgba(8, 22, 15, 0.99);
+  box-shadow: 0 2px 40px rgba(0, 0, 0, 0.4);
+  border-bottom-color: rgba(200, 151, 58, 0.22);
+}
+
+[data-theme="dark"] .nav-link {
+  color: rgba(240, 236, 227, 0.62);
+}
+
+[data-theme="dark"] .nav-link:hover {
+  color: #f0ece3;
+}
+
+[data-theme="dark"] .nav-link--active {
+  color: #f0ece3;
+}
+
+[data-theme="dark"] .navbar__burger span {
+  background: rgba(240, 236, 227, 0.8);
+}
+
+[data-theme="dark"] .navbar__drawer {
+  background: #0a1a10;
+  border-top: 1px solid rgba(200, 151, 58, 0.14);
+}
+
+[data-theme="dark"] .drawer-link {
+  color: rgba(240, 236, 227, 0.65);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .drawer-link:hover {
+  color: #f0ece3;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+[data-theme="dark"] .drawer-link--active {
+  color: var(--gold-light);
+}
+
+[data-theme="dark"] .drawer__theme-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(240, 236, 227, 0.65);
+}
+
+[data-theme="dark"] .theme-btn {
+  background: rgba(200, 151, 58, 0.1);
+  border-color: rgba(200, 151, 58, 0.25);
+  color: var(--gold-light);
+}
+
 [data-theme="dark"] .theme-btn:hover {
-  background:   rgba(200, 151, 58, 0.22);
+  background: rgba(200, 151, 58, 0.22);
   border-color: var(--gold-rich);
 }

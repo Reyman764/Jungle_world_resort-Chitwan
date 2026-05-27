@@ -125,10 +125,10 @@ export default function AboutChitwan() {
               <span className="section-divider left" />
               <div className="route-list">
                 {[
-                  { mode: '✈️ By Air', detail: 'Fly to Bharatpur Airport (25 km from Sauraha). Daily flights from Kathmandu (~25 mins). We arrange airport pickup.' },
-                  { mode: '🚌 By Bus', detail: 'Tourist buses from Kathmandu (Thamel) to Sauraha take about 5–6 hours on the Prithvi Highway. Comfortable and scenic.' },
-                  { mode: '🚗 Private Car', detail: 'A private car from Kathmandu takes 4–5 hours and is the most comfortable option. We can arrange this for you.' },
-                  { mode: '🚆 By Train', detail: 'Train to Narayangadh (Bharatpur), then a short taxi to Sauraha (~30 mins).' },
+                  { mode: 'By Air', detail: 'Fly to Bharatpur Airport (25 km from Sauraha). Daily flights from Kathmandu (~25 mins). We arrange airport pickup.' },
+                  { mode: 'By Bus', detail: 'Tourist buses from Kathmandu (Thamel) to Sauraha take about 5–6 hours on the Prithvi Highway. Comfortable and scenic.' },
+                  { mode: 'Private Car', detail: 'A private car from Kathmandu takes 4–5 hours and is the most comfortable option. We can arrange this for you.' },
+                  { mode: 'By Train', detail: 'Train to Narayangadh (Bharatpur), then a short taxi to Sauraha (~30 mins).' },
                 ].map((r, i) => (
                   <div key={i} className="route-item">
                     <div className="route-mode">{r.mode}</div>

@@ -1,67 +1,58 @@
 'use strict';
 
 const bcrypt  = require('bcryptjs');
-const jwt     = require('jsonwebtoken');
 const { Op }  = require('sequelize');
 const { VerificationSession } = require('../models');
 const { sendOtpEmail }        = require('../utils/mailer');
+const { validateEmailAddress } = require('../utils/emailValidator');
+const { issueVerificationToken } = require('../utils/verificationToken');
 
-const OTP_TTL_MS     = 10 * 60 * 1000;   // 10 minutes
-const SESSION_TTL_MS = 2  * 60 * 60 * 1000; // 2 hours
+const OTP_TTL_MS     = 10 * 60 * 1000;
+const SESSION_TTL_MS = 2  * 60 * 60 * 1000;
 const MAX_ATTEMPTS   = 5;
 
-/** Generate a cryptographically adequate 6-digit OTP */
 function generateOtp() {
-  // Math.random is fine for a 6-digit OTP in this context;
-  // for higher security swap with crypto.randomInt(100000, 1000000)
   const { randomInt } = require('crypto');
   return String(randomInt(100000, 1000000));
 }
 
-function jwtSecret() {
-  return process.env.JWT_SECRET || 'dev-secret-change-in-production';
-}
-
-/** Issue a signed verification token once email is confirmed */
-function issueVerificationToken(session) {
-  return jwt.sign(
-    {
-      session_id:     session.id,
-      email:          session.email,
-      email_verified: true,
-      phone:          session.phone         || null,
-      phone_verified: session.phone_verified || false,
-    },
-    jwtSecret(),
-    { expiresIn: '2h' }
-  );
-}
-
-// ── Purge expired sessions (housekeeping, best-effort) ────
 async function purgeExpired() {
   await VerificationSession.destroy({ where: { expires_at: { [Op.lt]: new Date() } } }).catch(() => {});
 }
 
-// ─────────────────────────────────────────────────────────
+// POST /api/verify/check-email
+async function checkEmail(req, res, next) {
+  try {
+    const email = (req.body.email || '').trim().toLowerCase();
+    const result = await validateEmailAddress(email);
+    if (!result.valid) {
+      return res.status(400).json({ valid: false, error: result.reason });
+    }
+    return res.json({
+      valid: true,
+      message: 'This email address looks valid and can receive mail.',
+      domain: result.domain,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 // POST /api/verify/send-email-otp
-// body: { email, name? }
-// ─────────────────────────────────────────────────────────
 async function sendEmailOtp(req, res, next) {
   try {
     const email = (req.body.email || '').trim().toLowerCase();
     const name  = (req.body.name  || 'Guest').trim();
 
-    if (!email) return res.status(400).json({ error: 'Email address is required.' });
+    const emailCheck = await validateEmailAddress(email);
+    if (!emailCheck.valid) {
+      return res.status(400).json({ error: emailCheck.reason });
+    }
 
-    // Basic format guard (express-validator already ran, but be safe)
-    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRe.test(email)) return res.status(400).json({ error: 'Invalid email address format.' });
-
-    // Remove any unverified sessions for this email to avoid stale OTPs
     await VerificationSession.destroy({
       where: { email, email_verified: false },
     });
-    purgeExpired(); // fire-and-forget cleanup
+    purgeExpired();
 
     const otp     = generateOtp();
     const otpHash = await bcrypt.hash(otp, 10);
@@ -74,23 +65,28 @@ async function sendEmailOtp(req, res, next) {
       expires_at:        new Date(now.getTime() + SESSION_TTL_MS),
     });
 
-    await sendOtpEmail(email, otp, name);
+    const mailResult = await sendOtpEmail(email, otp, name);
 
     return res.status(200).json({
       session_id: session.id,
-      message:    'A 6-digit verification code has been sent to your email address.',
-      // In dev: also echo OTP so you don't need a real inbox
-      ...(process.env.NODE_ENV !== 'production' && { dev_otp: otp }),
+      message:    'A 6-digit verification code has been sent to your email inbox.',
+      email_sent: mailResult.delivered,
+      ...(process.env.NODE_ENV !== 'production' && !mailResult.delivered && { dev_otp: otp }),
     });
   } catch (err) {
+    if (err.message && err.message.includes('Email is not configured')) {
+      return res.status(503).json({ error: err.message });
+    }
+    if (err.message === 'Unauthorized' || err?.code === 401) {
+      return res.status(503).json({
+        error: 'Email service is misconfigured. Replace the placeholder SENDGRID_API_KEY in backend .env with a real key, or remove it to use dev mode.',
+      });
+    }
     next(err);
   }
 }
 
-// ─────────────────────────────────────────────────────────
 // POST /api/verify/confirm-email-otp
-// body: { session_id, otp }
-// ─────────────────────────────────────────────────────────
 async function confirmEmailOtp(req, res, next) {
   try {
     const { session_id, otp } = req.body;
@@ -107,12 +103,18 @@ async function confirmEmailOtp(req, res, next) {
 
     if (!session) {
       return res.status(404).json({
-        error: 'Verification session not found or expired. Please request a new code.',
+        error: 'Verification session expired. Please request a new code.',
       });
     }
     if (session.email_verified) {
-      // Already verified — just re-issue the token
-      return res.json({ verified: true, verification_token: issueVerificationToken(session) });
+      return res.json({
+        verified: true,
+        verification_token: issueVerificationToken({
+          sessionId: session.id,
+          email: session.email,
+          via: 'otp',
+        }),
+      });
     }
     if (session.attempts >= MAX_ATTEMPTS) {
       return res.status(429).json({
@@ -125,35 +127,33 @@ async function confirmEmailOtp(req, res, next) {
       });
     }
 
-    const valid = await bcrypt.compare(otp.trim(), session.email_otp_hash);
+    const valid = await bcrypt.compare(String(otp).trim(), session.email_otp_hash);
     if (!valid) {
       await session.increment('attempts');
       const remaining = MAX_ATTEMPTS - (session.attempts + 1);
       return res.status(400).json({
         error: remaining > 0
           ? `Incorrect code — ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`
-          : 'Incorrect code and no attempts remaining. Please request a new code.',
+          : 'Incorrect code. Please request a new verification code.',
       });
     }
 
-    // ✅ Correct OTP
     await session.update({ email_verified: true, attempts: 0, email_otp_hash: null });
 
     return res.json({
       verified:           true,
-      verification_token: issueVerificationToken(session),
-      message:            'Email verified successfully.',
+      verification_token: issueVerificationToken({
+        sessionId: session.id,
+        email: session.email,
+        via: 'otp',
+      }),
+      message: 'Email verified successfully.',
     });
   } catch (err) {
     next(err);
   }
 }
 
-// ─────────────────────────────────────────────────────────
-// POST /api/verify/send-phone-otp
-// body: { session_id, phone }
-// Requires email to already be verified on the session.
-// ─────────────────────────────────────────────────────────
 async function sendPhoneOtp(req, res, next) {
   try {
     const { session_id, phone } = req.body;
@@ -169,7 +169,7 @@ async function sendPhoneOtp(req, res, next) {
       },
     });
     if (!session) {
-      return res.status(404).json({ error: 'Verified session not found. Please verify your email first.' });
+      return res.status(404).json({ error: 'Please verify your email first.' });
     }
 
     const otp     = generateOtp();
@@ -181,13 +181,6 @@ async function sendPhoneOtp(req, res, next) {
       phone_verified:    false,
     });
 
-    // ── SMS dispatch ─────────────────────────────────────
-    // Wire up your SMS provider here:
-    //   Sparrow SMS (Nepal):  https://api.sparrowsms.com/v2/sms/
-    //   Twilio:               require('twilio')(SID, TOKEN)
-    //   AWS SNS, Vonage, etc.
-    //
-    // For now we log the OTP in development mode.
     console.log(`\n📱 [SMS OTP] Phone ${phone}: ${otp}\n`);
 
     return res.status(200).json({
@@ -199,10 +192,6 @@ async function sendPhoneOtp(req, res, next) {
   }
 }
 
-// ─────────────────────────────────────────────────────────
-// POST /api/verify/confirm-phone-otp
-// body: { session_id, otp }
-// ─────────────────────────────────────────────────────────
 async function confirmPhoneOtp(req, res, next) {
   try {
     const { session_id, otp } = req.body;
@@ -221,7 +210,16 @@ async function confirmPhoneOtp(req, res, next) {
       return res.status(404).json({ error: 'Session not found or expired.' });
     }
     if (session.phone_verified) {
-      return res.json({ verified: true, verification_token: issueVerificationToken(session) });
+      return res.json({
+        verified: true,
+        verification_token: issueVerificationToken({
+          sessionId: session.id,
+          email: session.email,
+          phone: session.phone,
+          phoneVerified: true,
+          via: 'otp',
+        }),
+      });
     }
     if (!session.phone_otp_hash || new Date() > session.phone_otp_expires) {
       return res.status(400).json({ error: 'OTP expired. Please request a new code.' });
@@ -230,7 +228,7 @@ async function confirmPhoneOtp(req, res, next) {
       return res.status(429).json({ error: 'Too many attempts. Please request a new code.' });
     }
 
-    const valid = await bcrypt.compare(otp.trim(), session.phone_otp_hash);
+    const valid = await bcrypt.compare(String(otp).trim(), session.phone_otp_hash);
     if (!valid) {
       await session.increment('attempts');
       return res.status(400).json({ error: 'Incorrect code.' });
@@ -240,12 +238,24 @@ async function confirmPhoneOtp(req, res, next) {
 
     return res.json({
       verified:           true,
-      verification_token: issueVerificationToken(session),
-      message:            'Phone number verified.',
+      verification_token: issueVerificationToken({
+        sessionId: session.id,
+        email: session.email,
+        phone: session.phone,
+        phoneVerified: true,
+        via: 'otp',
+      }),
+      message: 'Phone number verified.',
     });
   } catch (err) {
     next(err);
   }
 }
 
-module.exports = { sendEmailOtp, confirmEmailOtp, sendPhoneOtp, confirmPhoneOtp };
+module.exports = {
+  checkEmail,
+  sendEmailOtp,
+  confirmEmailOtp,
+  sendPhoneOtp,
+  confirmPhoneOtp,
+};

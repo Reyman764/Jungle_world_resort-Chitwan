@@ -72,11 +72,11 @@
 /* Facts */
 .facts-section {
   padding: 100px 0;
-  background: var(--forest-deep);
+  background: var(--cream);
 }
 
 .facts-section .section-title {
-  color: var(--cream);
+  color: var(--forest-deep);
 }
 
 .facts-grid {
@@ -86,8 +86,8 @@
 }
 
 .fact-card {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(200,151,58,0.12);
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(13,34,24,0.08);
   padding: 0 32px 36px;
   text-align: center;
   overflow: hidden;
@@ -95,7 +95,7 @@
 }
 
 .fact-card:hover {
-  background: rgba(200,151,58,0.08);
+  background: rgba(200,151,58,0.06);
 }
 
 .fact-card__image {
@@ -131,7 +131,7 @@
   font-family: var(--font-display);
   font-size: 1.2rem;
   font-weight: 400;
-  color: var(--cream);
+  color: var(--forest-deep);
   line-height: 1.3;
 }
 

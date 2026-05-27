@@ -9,14 +9,14 @@
 }
 .hero__bg {
   position: absolute; inset: 0; z-index: 0;
-  background: linear-gradient(to bottom, rgba(10,25,14,0.45) 0%, rgba(10,25,14,0.65) 100%),
+  background: linear-gradient(to bottom, rgba(248,244,236,0.72) 0%, rgba(248,244,236,0.95) 100%),
     url('https://images.unsplash.com/photo-1545251142-f48bff9f5afe?w=1800&q=80') center/cover no-repeat;
   animation: kenBurns 20s ease-in-out infinite alternate;
   transform-origin: center;
 }
 .hero__content {
   position: relative; z-index: 2; text-align: center;
-  color: var(--white); max-width: 860px; padding: 0 32px;
+  color: var(--forest-deep); max-width: 860px; padding: 0 32px;
 }
 .hero__badge {
   display: inline-flex; align-items: center; gap: 8px;
@@ -31,14 +31,14 @@
   text-shadow: 0 2px 20px rgba(0,0,0,0.3);
 }
 .hero__subtitle {
-  font-size: clamp(1rem,2vw,1.2rem); color: rgba(255,255,255,0.82);
+  font-size: clamp(1rem,2vw,1.2rem); color: rgba(13,34,24,0.78);
   max-width: 580px; margin: 0 auto 40px; font-weight: 300;
 }
 .hero__actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
 .hero__scroll-indicator {
   position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
   z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 8px;
-  color: rgba(255,255,255,0.55); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: rgba(13,34,24,0.45); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
 }
 .scroll-line {
   width: 1px; height: 40px;
@@ -60,7 +60,8 @@
   color: var(--gold-light); font-weight: 700; line-height: 1;
   margin-bottom: 8px;
 }
-.stat-label { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255,255,255,0.5); }
+.stats-strip { background: var(--cream); }
+.stat-label { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(13,34,24,0.52); }
 
 /* ── INTRO ── */
 .intro { padding: 110px 0; background: var(--bg); }
@@ -106,15 +107,15 @@
 .features-content { position: relative; z-index: 2; text-align: center; }
 .features-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-top: 52px; }
 .feature-card {
-  background: rgba(255,255,255,0.05); backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.92); backdrop-filter: blur(8px);
+  border: 1px solid rgba(13,34,24,0.08);
   border-radius: 12px; padding: 0; text-align: left; overflow: hidden;
   transition: transform 0.35s var(--ease), background 0.35s, box-shadow 0.35s;
 }
 .feature-card:hover {
   transform: translateY(-6px);
-  background: rgba(255,255,255,0.09);
-  box-shadow: 0 16px 48px rgba(0,0,0,0.3);
+  background: rgba(255,255,255,0.98);
+  box-shadow: 0 16px 48px rgba(17,24,39,0.14);
 }
 .feature-card__image {
   aspect-ratio: 16/10;
@@ -137,7 +138,40 @@
   font-family: var(--font-display); font-size: 1.3rem; color: var(--gold-light);
   margin-bottom: 10px;
 }
-.feature-card p { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.7; }
+.feature-card p { font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
+
+/* Make feature overlay light on light theme */
+.features-overlay { background: rgba(248,244,236,0.70); }
+
+/* Dark theme overrides for hero + feature cards */
+[data-theme="dark"] .hero__bg {
+  background: linear-gradient(to bottom, rgba(10,25,14,0.45) 0%, rgba(10,25,14,0.65) 100%),
+    url('https://images.unsplash.com/photo-1545251142-f48bff9f5afe?w=1800&q=80') center/cover no-repeat;
+}
+
+[data-theme="dark"] .hero__content { color: var(--white); }
+
+[data-theme="dark"] .hero__subtitle { color: rgba(255,255,255,0.82); }
+
+[data-theme="dark"] .hero__scroll-indicator { color: rgba(255,255,255,0.55); }
+
+[data-theme="dark"] .stats-strip { background: var(--forest-deep); }
+
+[data-theme="dark"] .stat-label { color: rgba(255,255,255,0.5); }
+
+[data-theme="dark"] .features-overlay { background: rgba(10,26,15,0.88); }
+
+[data-theme="dark"] .feature-card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.07);
+}
+
+[data-theme="dark"] .feature-card:hover {
+  background: rgba(255,255,255,0.09);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.3);
+}
+
+[data-theme="dark"] .feature-card p { color: rgba(255,255,255,0.6); }
 
 /* ── PACKAGES SECTION ── */
 .packages-section { padding: 110px 0; background: var(--surface-2); }

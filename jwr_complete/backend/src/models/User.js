@@ -18,7 +18,17 @@ module.exports = (sequelize, DataTypes) => {
     },
     password_hash: {
       type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    google_id: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      unique: true,
+    },
+    auth_provider: {
+      type: DataTypes.STRING(20),
       allowNull: false,
+      defaultValue: 'local',
     },
     first_name: {
       type: DataTypes.STRING(100),

@@ -200,7 +200,7 @@ export default function Footer() {
         <div className="footer__bottom">
           <div className="container">
             <div className="footer__bottom-inner">
-              <p>© 2026 Jungle World Resort. All rights reserved.</p>
+              <p>(c) 2026 Jungle World Resort. All rights reserved.</p>
               <p>Sauraha, Chitwan National Park, Nepal</p>
             </div>
           </div>

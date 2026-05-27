@@ -49,6 +49,11 @@ router.post('/register', registerRules, validate, authController.register);
 // POST /api/auth/login
 router.post('/login', loginRules, validate, authController.login);
 
+// POST /api/auth/google — guest sign-in with Google (booking)
+router.post('/google', [
+  body('credential').notEmpty().withMessage('Google credential token is required'),
+], validate, authController.googleLogin);
+
 // POST /api/auth/refresh
 router.post('/refresh', authController.refresh);
 

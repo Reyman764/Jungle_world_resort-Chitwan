@@ -266,7 +266,7 @@
 
 /* ── V2 GALLERY LIGHTBOX ── */
 .gallery-img-wrap { position: relative; overflow: hidden; border-radius: 8px; cursor: zoom-in; }
-.gallery-img-wrap::after { content: '🔍'; position: absolute; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; font-size: 2rem; opacity: 0; transition: opacity 0.3s; }
+.gallery-img-wrap::after { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.10); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
 .gallery-img-wrap:hover::after { opacity: 1; }
 
 /* ── V2 LIGHTBOX METADATA ── */

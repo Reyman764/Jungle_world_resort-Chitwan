@@ -65,9 +65,9 @@ export default function Tariff() {
               <thead>
                 <tr>
                   <th>Package</th>
-                  <th>🌍 Foreigner</th>
-                  <th>🇮🇳 SAARC</th>
-                  <th>🇳🇵 Nepali</th>
+                  <th>Foreigner</th>
+                  <th>SAARC</th>
+                  <th>Nepali</th>
                   <th></th>
                 </tr>
               </thead>
@@ -105,7 +105,7 @@ export default function Tariff() {
               </p>
               <div className="incl-excl">
                 <div>
-                  <h4 style={{ color:'var(--forest-light)', marginBottom:'12px', fontSize:'13px', textTransform:'uppercase', letterSpacing:'0.1em' }}>✅ Includes</h4>
+                  <h4 style={{ color:'var(--forest-light)', marginBottom:'12px', fontSize:'13px', textTransform:'uppercase', letterSpacing:'0.1em' }}>Includes</h4>
                   {includes.slice(0,3).map((item, i) => <p key={i} style={{ fontSize:'13px', color:'var(--text-secondary)', marginBottom:'6px' }}>• {item}</p>)}
                 </div>
               </div>
@@ -120,7 +120,7 @@ export default function Tariff() {
 
               <label className="calc-label">Guest Category</label>
               <div className="calc-cat-group">
-                {[['foreigner','🌍 Foreigner'],['saarc','🇮🇳 SAARC'],['nepali','🇳🇵 Nepali']].map(([val, label]) => (
+                {[['foreigner','Foreigner'],['saarc','SAARC'],['nepali','Nepali']].map(([val, label]) => (
                   <button key={val} className={`calc-cat-btn ${calcCat === val ? 'active' : ''}`} onClick={() => setCalcCat(val)}>{label}</button>
                 ))}
               </div>
@@ -152,7 +152,7 @@ export default function Tariff() {
               </div>
 
               <Link to="/contact" className="btn-primary" style={{ width:'100%', justifyContent:'center', marginTop:'16px' }}>
-                <span>📅 Book This Package</span>
+                <span>Book This Package</span>
               </Link>
             </div>
           </div>
@@ -183,7 +183,16 @@ export default function Tariff() {
               <h3 className="section-title" style={{ fontSize:'1.6rem' }}>What's Included</h3>
               <span className="section-divider left" />
               <ul className="incl-list">
-                {includes.map((item, i) => <li key={i}><span className="incl-icon">✓</span>{item}</li>)}
+                {includes.map((item, i) => (
+                  <li key={i}>
+                    <span className="incl-icon" aria-hidden="true">
+                      <svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true">
+                        <polyline points="3,8 6.5,11.5 13,4.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
+                    {item}
+                  </li>
+                ))}
               </ul>
             </div>
             <div className="reveal reveal-delay-2">
@@ -191,7 +200,17 @@ export default function Tariff() {
               <h3 className="section-title" style={{ fontSize:'1.6rem' }}>Not Included</h3>
               <span className="section-divider left" />
               <ul className="excl-list">
-                {excludes.map((item, i) => <li key={i}><span className="excl-icon">×</span>{item}</li>)}
+                {excludes.map((item, i) => (
+                  <li key={i}>
+                    <span className="excl-icon" aria-hidden="true">
+                      <svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true">
+                        <line x1="4" y1="4" x2="12" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        <line x1="12" y1="4" x2="4" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                    </span>
+                    {item}
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
