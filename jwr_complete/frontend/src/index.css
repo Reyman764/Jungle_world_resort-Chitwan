@@ -2,7 +2,8 @@
    JUNGLE WORLD RESORT — V2 ENHANCED DESIGN SYSTEM
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Raleway:wght@300;400;500;600;700&family=Crimson+Pro:ital,wght@0,400;1,400&display=swap');
+/* Google Fonts are loaded via <link> in index.html for better performance */
+/* @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Raleway:wght@300;400;500;600;700&family=Crimson+Pro:ital,wght@0,400;1,400&display=swap'); */
 @import './dark-mode.css';
 @import './premium-enhancements.css';
 
@@ -60,6 +61,7 @@ html { scroll-behavior: smooth; }
 body {
   font-family: var(--font-body); color: var(--text-primary); background: var(--bg);
   line-height: 1.7; overflow-x: hidden; -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility;
   transition: background 0.4s ease, color 0.4s ease; position: relative;
 }
 body::after {
@@ -495,3 +497,41 @@ a:focus-visible, button:focus-visible {
   transform: scale(1.4);
 }
 
+
+/* ── DARK MODE FONT CONTRAST FIXES ── */
+/* Ensures Cormorant Garamond and other display fonts are crisp in dark mode */
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6 {
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+[data-theme="dark"] .act-card__name,
+[data-theme="dark"] .pkg-card__name,
+[data-theme="dark"] .pkg-detail__name {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .act-card__desc,
+[data-theme="dark"] .pkg-card__desc,
+[data-theme="dark"] p {
+  color: var(--text-secondary);
+}
+
+/* Fix tag--duration in dark mode */
+[data-theme="dark"] .tag--duration {
+  color: var(--text-secondary);
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.12);
+}
+
+/* Fix highlight-tag in dark mode */
+[data-theme="dark"] .highlight-tag {
+  color: var(--gold-light);
+  background: rgba(200,151,58,0.10);
+  border-color: rgba(200,151,58,0.25);
+}

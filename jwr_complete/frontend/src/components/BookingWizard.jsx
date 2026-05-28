@@ -100,7 +100,7 @@ const PACKAGES = [
     prices: { foreigner: 120, saarc: 6000, nepali: 5000 },
     currency: { foreigner: 'USD', saarc: 'INR', nepali: 'NPR' },
     includes: ['Welcome drink & cultural show', 'Elephant bathing', 'Jeep safari', 'Canoe safari', 'All meals'],
-    img: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=600&q=80',
+    img: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?auto=format&fit=crop&w=600&q=80',
   },
   {
     id: 'closeup',
@@ -110,7 +110,7 @@ const PACKAGES = [
     prices: { foreigner: 190, saarc: 9500, nepali: 8500 },
     currency: { foreigner: 'USD', saarc: 'INR', nepali: 'NPR' },
     includes: ['All 1N/2D activities', 'Guided jungle walk', 'Bird watching', 'Sunset canoe', 'All meals'],
-    img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
+    img: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=600&q=80',
   },
   {
     id: 'explore',
@@ -121,7 +121,7 @@ const PACKAGES = [
     prices: { foreigner: 250, saarc: 15000, nepali: 12500 },
     currency: { foreigner: 'USD', saarc: 'INR', nepali: 'NPR' },
     includes: ['All prior activities', 'Elephant back safari', 'Sunrise jungle drive', 'Farewell dinner', 'Airport transfers'],
-    img: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80',
+    img: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=600&q=80',
   },
 ]
 
@@ -660,7 +660,7 @@ export default function BookingWizard({ preselect }) {
                     aria-pressed={pkg?.id === p.id}
                   >
                     <div className="pkg-card-pick__img">
-                      <img src={p.img} alt={p.name} loading="lazy" />
+                      <img src={p.img} alt={p.name} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
                       {p.popular && <span className="pkg-pop-badge">Most Popular</span>}
                       <span className="pkg-dur-badge">{p.badge}</span>
                     </div>
@@ -1149,7 +1149,7 @@ export default function BookingWizard({ preselect }) {
             {pkg ? (
               <>
                 <div className="sidebar-pkg">
-                  <img src={pkg.img} alt={pkg.name} className="sidebar-pkg__img" />
+                  <img src={pkg.img} alt={pkg.name} className="sidebar-pkg__img" referrerPolicy="no-referrer-when-downgrade" />
                   <div className="sidebar-pkg__info">
                     <h4>{pkg.name}</h4>
                     <p>{pkg.duration}</p>

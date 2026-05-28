@@ -48,7 +48,7 @@ export default function Tariff() {
       <PageHero
         title="Tariff & Rates"
         subtitle="Transparent pricing for every traveller"
-        bgImage="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600&q=80"
+        bgImage="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1600&q=80"
         breadcrumbs={[{ label:'Tariff' }]}
       />
 

@@ -5,9 +5,9 @@ import CountdownTimer from '../components/CountdownTimer'
 import './Packages.css'
 
 const packages = [
-  { id:1, name:'Chitwan at a Glance', duration:'1 Night · 2 Days', price:'USD 120', priceINR:'INR 6,000', priceNPR:'NPR 5,000', img:'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=900&q=80', badge:'1N · 2D', urgency:'2 rooms left', includes:['Welcome drink & cultural program','Elephant bathing (if available)','Jeep safari in National Park','Canoe safari on Rapti River','Tharu village walk','All meals (breakfast, lunch, dinner)'], desc:'A quick yet immersive escape. Perfect for weekend warriors who want to experience the essence of Chitwan without a long stay.' },
-  { id:2, name:'Close Up Chitwan', duration:'2 Nights · 3 Days', price:'USD 190', priceINR:'INR 9,500', priceNPR:'NPR 8,500', img:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=900&q=80', badge:'2N · 3D', discount:'15% Off', includes:['All Day 1 activities','Guided jungle walk at dawn','Bird watching with naturalist','Sunset canoe ride','Cultural village dinner experience','All meals included'], desc:'A more intimate look at Chitwan. Two nights give you time to slow down, breathe the forest air, and connect with nature.' },
-  { id:3, name:'Explore Chitwan', duration:'3 Nights · 4 Days', price:'USD 250', priceINR:'INR 15,000', priceNPR:'NPR 12,500', img:'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=900&q=80', badge:'3N · 4D', popular:true, includes:['All activities from Day 1 & 2','Elephant back safari (optional)','Naturalist-led jungle drives','Sunset viewpoint trek','Farewell Tharu cultural dinner','All meals + airport transfers'], desc:'The full measure of Chitwan — four days shaped by the forest, guided by naturalists who know every trail and waterhole.' },
+  { id:1, name:'Chitwan at a Glance', duration:'1 Night · 2 Days', price:'USD 120', priceINR:'INR 6,000', priceNPR:'NPR 5,000', img:'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?auto=format&fit=crop&w=900&q=80', badge:'1N · 2D', urgency:'2 rooms left', includes:['Welcome drink & cultural program','Elephant bathing (if available)','Jeep safari in National Park','Canoe safari on Rapti River','Tharu village walk','All meals (breakfast, lunch, dinner)'], desc:'A quick yet immersive escape. Perfect for weekend warriors who want to experience the essence of Chitwan without a long stay.' },
+  { id:2, name:'Close Up Chitwan', duration:'2 Nights · 3 Days', price:'USD 190', priceINR:'INR 9,500', priceNPR:'NPR 8,500', img:'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=900&q=80', badge:'2N · 3D', discount:'15% Off', includes:['All Day 1 activities','Guided jungle walk at dawn','Bird watching with naturalist','Sunset canoe ride','Cultural village dinner experience','All meals included'], desc:'A more intimate look at Chitwan. Two nights give you time to slow down, breathe the forest air, and connect with nature.' },
+  { id:3, name:'Explore Chitwan', duration:'3 Nights · 4 Days', price:'USD 250', priceINR:'INR 15,000', priceNPR:'NPR 12,500', img:'https://sweethomechitwan.com/wp-content/uploads/2025/01/j2.jpg', badge:'3N · 4D', popular:true, includes:['All activities from Day 1 & 2','Elephant back safari (optional)','Naturalist-led jungle drives','Sunset viewpoint trek','Farewell Tharu cultural dinner','All meals + airport transfers'], desc:'The full measure of Chitwan — four days shaped by the forest, guided by naturalists who know every trail and waterhole.' },
 ]
 
 export default function Packages() {
@@ -18,7 +18,7 @@ export default function Packages() {
       <PageHero
         title="Stays in the Wild"
         subtitle="Three stays. One wilderness."
-        bgImage="https://images.unsplash.com/photo-1516426122078-c23e76319801?w=1600&q=80"
+        bgImage="https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1600&q=80"
         breadcrumbs={[{ label:'Packages' }]}
       />
 
@@ -60,6 +60,7 @@ export default function Packages() {
                     sizes="(max-width: 768px) 100vw, 50vw"
                     alt={`${pkg.name} — ${pkg.duration}`}
                     loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                   {pkg.popular && <div className="pkg-detail__popular" aria-label="Signature stay package">Signature Stay</div>}
@@ -120,6 +121,7 @@ export default function Packages() {
                       src={pkg.img}
                       alt={`${pkg.name} package`}
                       loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   </div>

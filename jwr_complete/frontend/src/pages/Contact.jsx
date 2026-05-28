@@ -28,7 +28,7 @@ export default function Contact() {
       <PageHero
         title="Book Your Stay"
         subtitle="Plan, personalise and confirm in minutes"
-        bgImage="https://images.unsplash.com/photo-1591825729269-caeb344f6df2?w=1600&q=80"
+        bgImage="https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1600&q=80"
       />
 
       <section id="booking-section" className="booking-section">

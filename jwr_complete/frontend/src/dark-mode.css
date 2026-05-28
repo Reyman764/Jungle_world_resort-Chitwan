@@ -609,3 +609,100 @@
   color: #ede8df;
   border-color: rgba(237,232,223,0.55);
 }
+
+/* ── About Chitwan: restore gold quote in dark mode ── */
+[data-theme="dark"] .about-intro__quote { color: var(--gold-light); }
+
+/* ══════════════════════════════════════════════════════════════
+   BOOKING WIZARD — Complete dark mode overrides
+   All forest-deep (#0d2218) text replaced with readable light colours
+   ══════════════════════════════════════════════════════════════ */
+
+/* Panel headers & step titles */
+[data-theme="dark"] .wizard__panel-header h2,
+[data-theme="dark"] .wizard__panel-header h3,
+[data-theme="dark"] .wizard__step-title,
+[data-theme="dark"] .pb-title,
+[data-theme="dark"] .bw-section-title {
+  color: var(--text-primary);
+}
+
+/* Package card picks — titles, prices */
+[data-theme="dark"] .pkg-card-pick {
+  background: var(--surface);
+  border-color: rgba(200,151,58,0.15);
+}
+[data-theme="dark"] .pkg-card-pick.selected {
+  border-color: var(--gold-rich);
+  background: rgba(200,151,58,0.06);
+}
+[data-theme="dark"] .pkg-card-pick__body h4 {
+  color: var(--text-primary);
+}
+[data-theme="dark"] .pkg-price {
+  color: var(--gold-light);
+}
+[data-theme="dark"] .pkg-from,
+[data-theme="dark"] .pkg-per {
+  color: var(--text-light);
+}
+[data-theme="dark"] .pkg-mini-includes li {
+  color: var(--text-secondary);
+}
+
+/* Sidebar summary */
+[data-theme="dark"] .sidebar-pkg__name,
+[data-theme="dark"] .sidebar-pkg__title,
+[data-theme="dark"] .sidebar-teaser strong,
+[data-theme="dark"] .sidebar-teaser h4 {
+  color: var(--text-primary);
+}
+[data-theme="dark"] .sidebar-teaser {
+  color: var(--text-secondary);
+}
+
+/* Review / summary rows */
+[data-theme="dark"] .review-row strong,
+[data-theme="dark"] .review-label,
+[data-theme="dark"] .success-row strong {
+  color: var(--text-primary);
+}
+[data-theme="dark"] .review-row,
+[data-theme="dark"] .success-row {
+  color: var(--text-secondary);
+}
+
+/* Form labels, field headings */
+[data-theme="dark"] .field-label,
+[data-theme="dark"] .form-label,
+[data-theme="dark"] label {
+  color: var(--text-primary);
+}
+
+/* Departure hint */
+[data-theme="dark"] .departure-hint strong {
+  color: var(--text-primary);
+}
+
+/* Verification section */
+[data-theme="dark"] .verif-section__title {
+  color: var(--text-primary);
+}
+
+/* Countdown units */
+[data-theme="dark"] .countdown-unit {
+  color: var(--text-primary);
+}
+
+/* Generic: any remaining forest-deep text inside the wizard */
+[data-theme="dark"] .wizard h1,
+[data-theme="dark"] .wizard h2,
+[data-theme="dark"] .wizard h3,
+[data-theme="dark"] .wizard h4,
+[data-theme="dark"] .wizard h5 {
+  color: var(--text-primary);
+}
+[data-theme="dark"] .wizard p,
+[data-theme="dark"] .wizard li {
+  color: var(--text-secondary);
+}

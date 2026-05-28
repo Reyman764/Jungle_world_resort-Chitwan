@@ -15,6 +15,7 @@ const LazyImage = ({
   aspectRatio,
   onClick,
   loading = 'lazy',
+  referrerPolicy = 'no-referrer-when-downgrade',
 }) => {
   const [isLoaded, setIsLoaded] = useState(false)
   const [isInView, setIsInView] = useState(false)
@@ -73,6 +74,7 @@ const LazyImage = ({
           sizes={sizes}
           alt={alt || ''}
           loading={loading}
+          referrerPolicy={referrerPolicy}
           onLoad={() => setIsLoaded(true)}
           style={{
             width: '100%',

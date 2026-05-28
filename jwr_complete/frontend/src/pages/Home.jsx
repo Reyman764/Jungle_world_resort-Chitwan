@@ -3,16 +3,16 @@ import { Link } from 'react-router-dom'
 import './Home.css'
 
 const packages = [
-  { id:1, name:'Explore Chitwan', duration:'3 Nights · 4 Days', price:'USD 250', desc:'A deep dive into the wilderness. Jungle drives, canoe safari, elephant bathing, cultural village tour and much more.', img:'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80', badge:'3N · 4D', highlight:true },
-  { id:2, name:'Chitwan at a Glance', duration:'1 Night · 2 Days', price:'USD 120', desc:'A quick yet immersive getaway. Ideal for those with limited time who still want to experience the magic of Chitwan.', img:'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=800&q=80', badge:'1N · 2D' },
-  { id:3, name:'Close Up Chitwan', duration:'2 Nights · 3 Days', price:'USD 190', desc:'Get closer to nature with extended jungle walks, bird watching at dawn, and a sunset canoe ride.', img:'https://images.unsplash.com/photo-1577721058720-c0fe5fbeef01?w=800&q=80', badge:'2N · 3D' },
+  { id:1, name:'Explore Chitwan', duration:'3 Nights · 4 Days', price:'USD 250', desc:'A deep dive into the wilderness. Jungle drives, canoe safari, elephant bathing, cultural village tour and much more.', img:'https://3sistersadventuretrek.com/images/tourpackage/chitwan-jungle-safari-pokhara-kathmandu-nepalese-3sisters-adventuretrekking-3to4days.jpg', badge:'3N · 4D', highlight:true },
+  { id:2, name:'Chitwan at a Glance', duration:'1 Night · 2 Days', price:'USD 120', desc:'A quick yet immersive getaway. Ideal for those with limited time who still want to experience the magic of Chitwan.', img:'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?auto=format&fit=crop&w=800&q=80', badge:'1N · 2D' },
+  { id:3, name:'Close Up Chitwan', duration:'2 Nights · 3 Days', price:'USD 190', desc:'Get closer to nature with extended jungle walks, bird watching at dawn, and a sunset canoe ride.', img:'https://sweethomechitwan.com/wp-content/uploads/2025/01/j2.jpg', badge:'2N · 3D' },
 ]
 
 const activities = [
-  { name:'Jungle Safari', desc:'Thrilling jeep safaris through the core zone of Chitwan — home to tigers, rhinos, and leopards.', img:'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=600&q=80' },
-  { name:'Canoe Riding', desc:'Glide silently along the Rapti River, spotting gharials, marsh muggers and kingfishers.', img:'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?w=600&q=80' },
-  { name:'Elephant Bathing', desc:'A rare chance to interact with the gentle giants — bathe and bond with resident elephants.', img:'https://images.unsplash.com/photo-1551969014-7d2c4cddf0b6?w=600&q=80' },
-  { name:'Bird Watching', desc:'Chitwan hosts 544+ bird species. Dawn walks with expert naturalist guides are a birder\'s paradise.', img:'https://images.unsplash.com/photo-1444464666168-49d633b86797?w=600&q=80' },
+  { name:'Jungle Safari', desc:'Thrilling jeep safaris through the core zone of Chitwan — home to tigers, rhinos, and leopards.', img:'https://www.junglesafariresort.com/images/jeep_safari03.jpg' },
+  { name:'Canoe Riding', desc:'Glide silently along the Rapti River, spotting gharials, marsh muggers and kingfishers.', img:'https://www.junglesafariresort.com/images/canoe_ride03.jpg' },
+  { name:'Elephant Bathing', desc:'A rare chance to interact with the gentle giants — bathe and bond with resident elephants.', img:'https://media.evendo.com/locations-resized/DestinationDetails/original/ffe9e933-67c3-4a94-a433-e17b9271aeaa' },
+  { name:'Bird Watching', desc:'Chitwan hosts 544+ bird species. Dawn walks with expert naturalist guides are a birder\'s paradise.', img:'https://images.unsplash.com/photo-1444464666168-49d633b86797?auto=format&fit=crop&w=600&q=80' },
 ]
 
 const stats = [
@@ -89,7 +89,7 @@ export default function Home() {
             muted
             loop
             playsInline
-            poster="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1920&q=85"
+            poster="https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1920&q=85"
           >
             <source src="/videos/jungle-intro.webm" type="video/webm" />
             <source src="/videos/jungle-intro.mp4" type="video/mp4" />
@@ -144,7 +144,7 @@ export default function Home() {
               <div className="intro__image-stack">
                 <div className="intro__img intro__img--main">
                   <img
-                    src="https://images.unsplash.com/photo-1591825729269-caeb344f6df2?w=700&q=80"
+                    src="https://jungleworldchitwan.com/storage/ss-image/July2024/P9YVmQYAekaMiR5AVC68.JPG"
                     alt="Jungle World Resort aerial view showing lush green surroundings"
                     loading="lazy"
                     style={{ aspectRatio: '4/3', objectFit: 'cover', width: '100%' }}
@@ -152,7 +152,7 @@ export default function Home() {
                 </div>
                 <div className="intro__img intro__img--accent">
                   <img
-                    src="https://images.unsplash.com/photo-1545179605-1296651e9d43?w=400&q=80"
+                    src="https://jungleworldchitwan.com/storage/ss-image/July2024/W8bbWxMJNa8NiXwvAOpn.JPG"
                     alt="Resort swimming pool surrounded by tropical vegetation"
                     loading="lazy"
                     style={{ aspectRatio: '1/1', objectFit: 'cover', width: '100%' }}
@@ -202,16 +202,16 @@ export default function Home() {
           <span className="section-divider center reveal reveal-delay-2" />
           <div className="features-grid">
             {[
-              { img:'https://images.unsplash.com/photo-1522241450660-60e93e77e6e5?w=600&q=80', alt:'Deluxe eco cottage at Jungle World Resort', title:'Deluxe Eco Cottages', desc:'24-hour AC cottages with attached bath, blending luxury with nature.' },
-              { img:'https://images.unsplash.com/photo-1577721058720-c0fe5fbeef01?w=600&q=80', alt:'Guided jungle walk through sal forest', title:'Guided Jungle Walks', desc:'Expert naturalists lead you through the forest on foot — safe and thrilling.' },
-              { img:'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80', alt:'Fresh local and international cuisine', title:'Local & International Cuisine', desc:'Fresh meals prepared daily featuring local Tharu recipes and favorites.' },
-              { img:'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=600&q=80', alt:'Wildlife encounter in Chitwan National Park', title:'Wildlife Encounters', desc:'One-horned rhinos, Bengal tigers, gharials and 544+ bird species await.' },
-              { img:'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?w=600&q=80', alt:'Canoe safari on the Rapti River at dawn', title:'River Canoe Safaris', desc:'Glide along the Rapti River at dawn for crocodile and birding sessions.' },
-              { img:'https://images.unsplash.com/photo-1545679652-6f1db7d77e3b?w=600&q=80', alt:'Tharu cultural stick dance performance', title:'Tharu Cultural Program', desc:'Authentic Tharu stick dance performances by local artists each evening.' },
+              { img:'https://jungleworldchitwan.com/storage/ss-image/July2024/Z6JzV7Lle9MQuzPZ4R3p.JPG', alt:'Deluxe eco cottage at Jungle World Resort', title:'Deluxe Eco Cottages', desc:'24-hour AC cottages with attached bath, blending luxury with nature.' },
+              { img:'https://www.junglesafariresort.com/images/jungle_walk01.jpg', alt:'Guided jungle walk through sal forest', title:'Guided Jungle Walks', desc:'Expert naturalists lead you through the forest on foot — safe and thrilling.' },
+              { img:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8VC_su3MZkfO8kWUey_jeHm9Pb8HWXOcz_A&s', alt:'Fresh local and international cuisine', title:'Local & International Cuisine', desc:'Fresh meals prepared daily featuring local Tharu recipes and favorites.' },
+              { img:'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?auto=format&fit=crop&w=600&q=80', alt:'Wildlife encounter in Chitwan National Park', title:'Wildlife Encounters', desc:'One-horned rhinos, Bengal tigers, gharials and 544+ bird species await.' },
+              { img:'https://www.junglesafariresort.com/images/canoe_ride03.jpg', alt:'Canoe safari on the Rapti River at dawn', title:'River Canoe Safaris', desc:'Glide along the Rapti River at dawn for crocodile and birding sessions.' },
+              { img:'https://kasararesort.com/wp-content/themes/yootheme/cache/40/niti-dancing-6fbbd0dd-405e1eea.webp', alt:'Tharu cultural stick dance performance', title:'Tharu Cultural Program', desc:'Authentic Tharu stick dance performances by local artists each evening.' },
             ].map((f, i) => (
               <div key={i} className={`feature-card glossy-card reveal reveal-delay-${(i % 4) + 1}`}>
                 <div className="feature-card__image">
-                  <img src={f.img} alt={f.alt} loading="lazy" />
+                  <img src={f.img} alt={f.alt} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
                 </div>
                 <div className="feature-card__body">
                   <h3>{f.title}</h3>

@@ -5,18 +5,18 @@ import './Gallery.css'
 const categories = ['All', 'Wildlife', 'Resort', 'Activities', 'Landscape']
 
 const photos = [
-  { id: 1, src: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&q=80', thumb: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=400&q=75', cat: 'Wildlife', caption: 'Wild elephants at golden hour', size: 'large' },
-  { id: 2, src: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=800&q=80', thumb: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400&q=75', cat: 'Wildlife', caption: 'Bengal tiger on the prowl' },
-  { id: 3, src: 'https://images.unsplash.com/photo-1591825729269-caeb344f6df2?w=800&q=80', thumb: 'https://images.unsplash.com/photo-1591825729269-caeb344f6df2?w=400&q=75', cat: 'Resort', caption: 'Resort aerial view' },
-  { id: 4, src: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?w=800&q=80', thumb: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?w=400&q=75', cat: 'Landscape', caption: 'Dawn mist on the river', size: 'large' },
-  { id: 5, src: 'https://images.unsplash.com/photo-1577721058720-c0fe5fbeef01?w=800&q=80', thumb: 'https://images.unsplash.com/photo-1577721058720-c0fe5fbeef01?w=400&q=75', cat: 'Activities', caption: 'Jeep safari through the grassland' },
-  { id: 6, src: 'https://images.unsplash.com/photo-1551969014-7d2c4cddf0b6?w=800&q=80', thumb: 'https://images.unsplash.com/photo-1551969014-7d2c4cddf0b6?w=400&q=75', cat: 'Activities', caption: 'Elephant bathing experience' },
-  { id: 7, src: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80', thumb: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=75', cat: 'Landscape', caption: 'Sal forest in morning light' },
-  { id: 8, src: 'https://images.unsplash.com/photo-1444464666168-49d633b86797?w=800&q=80', thumb: 'https://images.unsplash.com/photo-1444464666168-49d633b86797?w=400&q=75', cat: 'Wildlife', caption: 'Indian roller — one of 544+ species' },
-  { id: 9, src: 'https://images.unsplash.com/photo-1545179605-1296651e9d43?w=800&q=80', thumb: 'https://images.unsplash.com/photo-1545179605-1296651e9d43?w=400&q=75', cat: 'Resort', caption: 'Poolside at sunset', size: 'large' },
-  { id: 10, src: 'https://images.unsplash.com/photo-1545679652-6f1db7d77e3b?w=800&q=80', thumb: 'https://images.unsplash.com/photo-1545679652-6f1db7d77e3b?w=400&q=75', cat: 'Activities', caption: 'Tharu cultural evening' },
-  { id: 11, src: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80', thumb: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=75', cat: 'Landscape', caption: 'Himalayan panorama from Chitwan' },
-  { id: 12, src: 'https://images.unsplash.com/photo-1522241450660-60e93e77e6e5?w=800&q=80', thumb: 'https://images.unsplash.com/photo-1522241450660-60e93e77e6e5?w=400&q=75', cat: 'Resort', caption: 'Deluxe jungle cottage' },
+  { id: 1, src: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=800&q=80', thumb: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=400&q=75', cat: 'Wildlife', caption: 'Wild elephants at golden hour', size: 'large' },
+  { id: 2, src: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?auto=format&fit=crop&w=800&q=80', thumb: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?auto=format&fit=crop&w=400&q=75', cat: 'Wildlife', caption: 'Bengal tiger on the prowl' },
+  { id: 3, src: 'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=800&q=80', thumb: 'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=400&q=75', cat: 'Resort', caption: 'Resort aerial view' },
+  { id: 4, src: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?auto=format&fit=crop&w=800&q=80', thumb: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?auto=format&fit=crop&w=400&q=75', cat: 'Landscape', caption: 'Dawn mist on the river', size: 'large' },
+  { id: 5, src: 'https://images.unsplash.com/photo-1504432375440-27cd62bfbc01?auto=format&fit=crop&w=800&q=80', thumb: 'https://images.unsplash.com/photo-1504432375440-27cd62bfbc01?auto=format&fit=crop&w=400&q=75', cat: 'Activities', caption: 'Jeep safari through the grassland' },
+  { id: 6, src: 'https://images.unsplash.com/photo-1474811415660-c7ea8e20fcba?auto=format&fit=crop&w=800&q=80', thumb: 'https://images.unsplash.com/photo-1474811415660-c7ea8e20fcba?auto=format&fit=crop&w=400&q=75', cat: 'Activities', caption: 'Elephant bathing experience' },
+  { id: 7, src: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=800&q=80', thumb: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=400&q=75', cat: 'Landscape', caption: 'Sal forest in morning light' },
+  { id: 8, src: 'https://images.unsplash.com/photo-1444464666168-49d633b86797?auto=format&fit=crop&w=800&q=80', thumb: 'https://images.unsplash.com/photo-1444464666168-49d633b86797?auto=format&fit=crop&w=400&q=75', cat: 'Wildlife', caption: 'Indian roller — one of 544+ species' },
+  { id: 9, src: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80', thumb: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=400&q=75', cat: 'Resort', caption: 'Poolside at sunset', size: 'large' },
+  { id: 10, src: 'https://images.unsplash.com/photo-1526470608268-f674ce90ebd4?auto=format&fit=crop&w=800&q=80', thumb: 'https://images.unsplash.com/photo-1526470608268-f674ce90ebd4?auto=format&fit=crop&w=400&q=75', cat: 'Activities', caption: 'Tharu cultural evening' },
+  { id: 11, src: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=80', thumb: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=400&q=75', cat: 'Landscape', caption: 'Himalayan panorama from Chitwan' },
+  { id: 12, src: 'https://images.unsplash.com/photo-1520250297-d9b7f1ebb14c?auto=format&fit=crop&w=800&q=80', thumb: 'https://images.unsplash.com/photo-1520250297-d9b7f1ebb14c?auto=format&fit=crop&w=400&q=75', cat: 'Resort', caption: 'Deluxe jungle cottage' },
 ]
 
 export default function Gallery() {
@@ -59,7 +59,7 @@ export default function Gallery() {
       <PageHero
         title="Gallery"
         subtitle="Light, water, and wildlife — moments from the forest"
-        bgImage="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80"
+        bgImage="https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1600&q=80"
         breadcrumbs={[{ label:"Gallery" }]}
       />
 
@@ -104,6 +104,7 @@ export default function Gallery() {
                   sizes="(max-width: 768px) 100vw, 33vw"
                   alt={photo.caption}
                   loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
                 />
                 <div className="gallery-item__overlay" aria-hidden="true">
                   <div className="gallery-item__caption">{photo.caption}</div>
@@ -135,7 +136,7 @@ export default function Gallery() {
           <div className="lightbox-inner" onClick={e => e.stopPropagation()}>
             <button className="lightbox-close" onClick={closeLightbox} aria-label="Close lightbox">✕</button>
             <button className="lightbox-nav lightbox-nav--prev" onClick={() => navigate(-1)} aria-label="Previous photo">‹</button>
-            <img src={lightbox.src} alt={lightbox.caption} />
+            <img src={lightbox.src} alt={lightbox.caption} referrerPolicy="no-referrer-when-downgrade" />
             <div className="lightbox-caption">
               <span>{lightbox.caption}</span>
               <span className="lightbox-cat">{lightbox.cat}</span>
