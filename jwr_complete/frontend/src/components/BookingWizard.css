@@ -1101,16 +1101,101 @@
 [data-theme="dark"] .cat-card.selected {
   background: rgba(200,151,58,0.08);
 }
+[data-theme="dark"] .cat-card strong {
+  color: var(--text-primary);
+}
+[data-theme="dark"] .cat-card > div > span {
+  color: var(--text-secondary);
+}
+[data-theme="dark"] .guest-label {
+  color: var(--text-secondary);
+}
+[data-theme="dark"] .cat-price {
+  color: var(--text-primary);
+}
 [data-theme="dark"] .guest-counters {
   background: var(--surface-2);
   border-color: var(--border-color);
+}
+[data-theme="dark"] .guest-counter-row {
+  border-color: var(--border-color);
+}
+[data-theme="dark"] .guest-counter-info strong {
+  color: var(--text-primary);
+}
+[data-theme="dark"] .guest-counter-info span {
+  color: var(--text-secondary);
 }
 [data-theme="dark"] .counter__btn {
   background: var(--surface-3, #1a2d1f);
   color: var(--text-primary);
 }
+[data-theme="dark"] .counter__val {
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
 [data-theme="dark"] .wizard__sidebar {
   background: var(--surface-2);
+}
+[data-theme="dark"] .wizard__panel-header h3 {
+  color: var(--text-primary);
+}
+[data-theme="dark"] .wizard__panel-header p {
+  color: var(--text-secondary);
+}
+[data-theme="dark"] .wizard__step-tag {
+  color: var(--gold-light);
+}
+[data-theme="dark"] .wizard__step-label {
+  color: var(--text-secondary);
+}
+[data-theme="dark"] .wizard__step-dot {
+  color: var(--text-secondary);
+  border-color: rgba(255,255,255,0.12);
+}
+[data-theme="dark"] .pkg-card-pick__body h4,
+[data-theme="dark"] .pkg-card-pick__price-row .pkg-price,
+[data-theme="dark"] .pkg-card-pick__price-row .pkg-from,
+[data-theme="dark"] .pkg-card-pick__price-row .pkg-per,
+[data-theme="dark"] .pb-row--total,
+[data-theme="dark"] .sidebar-pkg__info h4,
+[data-theme="dark"] .sidebar-pkg__info p,
+[data-theme="dark"] .sg-row,
+[data-theme="dark"] .sg-row span:last-child,
+[data-theme="dark"] .pb-row,
+[data-theme="dark"] .pb-row em,
+[data-theme="dark"] .pb-note,
+[data-theme="dark"] .sidebar-teaser strong,
+[data-theme="dark"] .sidebar-empty p,
+[data-theme="dark"] .review-edit,
+[data-theme="dark"] .review-row,
+[data-theme="dark"] .review-row strong,
+[data-theme="dark"] .review-row em {
+  color: var(--text-primary);
+}
+[data-theme="dark"] .review-edit {
+  background: transparent;
+  border-color: var(--border-color);
+}
+[data-theme="dark"] .review-row em,
+[data-theme="dark"] .pb-row em,
+[data-theme="dark"] .sidebar-empty p,
+[data-theme="dark"] .cat-card > div > span,
+[data-theme="dark"] .guest-label {
+  color: var(--text-secondary);
+}
+[data-theme="dark"] .sidebar-teaser {
+  background: var(--surface);
+  border-color: var(--border-color);
+}
+[data-theme="dark"] .sidebar-pkg {
+  border-color: var(--border-color);
+}
+[data-theme="dark"] .sidebar-guests {
+  border-color: var(--border-color);
+}
+[data-theme="dark"] .sidebar-empty__icon {
+  opacity: 0.45;
 }
 [data-theme="dark"] .price-breakdown {
   background: var(--surface);
@@ -1129,6 +1214,17 @@
   border-color: var(--border-color);
   color: var(--text-primary);
 }
+[data-theme="dark"] .form-group input::placeholder,
+[data-theme="dark"] .form-group textarea::placeholder,
+[data-theme="dark"] .form-group input::-webkit-input-placeholder,
+[data-theme="dark"] .form-group textarea::-webkit-input-placeholder,
+[data-theme="dark"] .form-group input:-ms-input-placeholder,
+[data-theme="dark"] .form-group textarea:-ms-input-placeholder,
+[data-theme="dark"] .form-group input::-ms-input-placeholder,
+[data-theme="dark"] .form-group textarea::-ms-input-placeholder {
+  color: var(--text-primary) !important;
+  opacity: 1 !important;
+}
 [data-theme="dark"] .form-group input:focus,
 [data-theme="dark"] .form-group textarea:focus {
   background: var(--surface);
@@ -1137,11 +1233,11 @@
   border-color: var(--border-color);
   color: var(--text-secondary);
 }
-[data-theme="dark"] .sidebar-teaser {
-  background: var(--surface);
-  border-color: var(--border-color);
+[data-theme="dark"] .wizard__nav-back:hover {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
 }
-[data-theme="dark"] .sidebar-guests {
+[data-theme="dark"] .wizard__nav {
   border-color: var(--border-color);
 }
 [data-theme="dark"] .pb-divider,
@@ -1724,8 +1820,70 @@
 [data-theme="dark"] .verif-card--done {
   background: rgba(45, 90, 61, 0.12);
 }
+[data-theme="dark"] .verif-card--optional {
+  background: rgba(255, 255, 255, 0.08);
+}
 [data-theme="dark"] .verif-step-pill {
   background: var(--surface-2);
+  border-color: var(--border-color);
+}
+[data-theme="dark"] .auth-divider {
+  color: var(--text-secondary);
+}
+[data-theme="dark"] .auth-divider::before,
+[data-theme="dark"] .auth-divider::after {
+  background: rgba(255,255,255,0.08);
+}
+[data-theme="dark"] .google-signin__loading,
+[data-theme="dark"] .google-signin__missing,
+[data-theme="dark"] .google-profile span,
+[data-theme="dark"] .verif-card__label,
+[data-theme="dark"] .verif-card__otp-label,
+[data-theme="dark"] .verif-card__success span,
+[data-theme="dark"] .verif-hint,
+[data-theme="dark"] .verif-skip,
+[data-theme="dark"] .verif-dev-hint,
+[data-theme="dark"] .verif-error {
+  color: var(--text-secondary);
+}
+[data-theme="dark"] .google-signin__missing code {
+  background: rgba(255,255,255,0.08);
+  color: var(--text-primary);
+}
+[data-theme="dark"] .google-profile strong,
+[data-theme="dark"] .verif-section__title,
+[data-theme="dark"] .verif-section__title > div > span,
+[data-theme="dark"] .verif-section__title > div > p,
+[data-theme="dark"] .verif-badge,
+[data-theme="dark"] .verif-card__email strong,
+[data-theme="dark"] .verif-card__success strong,
+[data-theme="dark"] .verif-card__optional-header strong,
+[data-theme="dark"] .verif-card__optional-header span,
+[data-theme="dark"] .verif-btn--primary,
+[data-theme="dark"] .verified-pill,
+[data-theme="dark"] .review-verified,
+[data-theme="dark"] .sg-row--verify span:last-child {
+  color: var(--text-primary);
+}
+[data-theme="dark"] .verif-card__label {
+  color: var(--text-secondary) !important;
+}
+[data-theme="dark"] .verif-card__email strong {
+  color: var(--text-primary) !important;
+}
+[data-theme="dark"] .verif-btn--secondary {
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+[data-theme="dark"] .verif-btn--ghost {
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+}
+[data-theme="dark"] .verif-btn--text {
+  color: var(--text-secondary);
+}
+[data-theme="dark"] .verif-dev-hint {
+  background: rgba(255,255,255,0.08);
   border-color: var(--border-color);
 }
 [data-theme="dark"] .otp-digit {

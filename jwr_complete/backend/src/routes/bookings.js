@@ -19,7 +19,8 @@ const bookingRules = [
     .normalizeEmail(),
   body('guest_phone')
     .optional({ nullable: true, checkFalsy: true })
-    .isMobilePhone('any').withMessage('Invalid phone number'),
+    .customSanitizer(val => (val ? val.replace(/[\s\-\(\)\.]/g, '') : val))
+    .isMobilePhone('any', { strictMode: false }).withMessage('Invalid phone number'),
   body('guest_category')
     .isIn(['foreigner', 'saarc', 'nepali']).withMessage('Invalid guest category'),
   body('check_in_date')

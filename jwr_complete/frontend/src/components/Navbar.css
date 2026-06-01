@@ -262,6 +262,14 @@
   color: var(--gold-light);
 }
 
+[data-theme="dark"] .navbar__cta {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .navbar__cta:hover {
+  color: var(--gold-light);
+}
+
 .navbar__cta:hover::before {
   transform: scaleX(1);
   transform-origin: left center;

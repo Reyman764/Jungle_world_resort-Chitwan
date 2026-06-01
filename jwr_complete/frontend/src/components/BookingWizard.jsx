@@ -192,7 +192,7 @@ function PriceBreakdown({ pkg, category, adults, children, compact }) {
 export default function BookingWizard({ preselect }) {
   const [step, setStep]         = useState(0)
   const [pkg, setPkg]           = useState(preselect ? PACKAGES.find(p => p.id === preselect) || null : null)
-  const [category, setCategory] = useState('foreigner')
+  const [category, setCategory] = useState('nepali')
   const [adults, setAdults]     = useState(2)
   const [children, setChildren] = useState(0)
   const [form, setForm]         = useState({
@@ -214,12 +214,6 @@ export default function BookingWizard({ preselect }) {
     emailError:    '',
     emailResendIn: 0,
     devOtp:        null,
-    phoneSent:     false,
-    phoneOtp:      '',
-    phoneVerified: false,
-    phoneSkipped:  false,
-    phoneLoading:  false,
-    phoneError:    '',
     token:         null,
     authMethod:    null,
     googleProfile: null,
@@ -445,49 +439,6 @@ export default function BookingWizard({ preselect }) {
     }
   }
 
-  const handleSendPhoneOtp = async () => {
-    const phone = form.phone.trim()
-    if (!phone) return
-    // Phone OTP requires a session_id from the legacy /api/verify flow.
-    // When emailVerified was achieved via /api/otp, sessionId is null — skip gracefully.
-    if (!verif.sessionId) {
-      setVerif(v => ({ ...v, phoneSkipped: true }))
-      return
-    }
-    setVerif(v => ({ ...v, phoneLoading: true, phoneError: '' }))
-    try {
-      const r = await fetch(`${apiUrl}/api/verify/send-phone-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: verif.sessionId, phone }),
-      })
-      const d = await r.json()
-      if (!r.ok) throw new Error(d.error || 'Failed to send OTP')
-      setVerif(v => ({ ...v, phoneLoading: false, phoneSent: true, phoneError: '' }))
-    } catch (err) {
-      setVerif(v => ({ ...v, phoneLoading: false, phoneError: err.message }))
-    }
-  }
-
-  const handleVerifyPhoneOtp = async (code) => {
-    const otp = (code || verif.phoneOtp).trim()
-    if (otp.length !== 6) {
-      setVerif(v => ({ ...v, phoneError: 'Enter all 6 digits.' })); return
-    }
-    setVerif(v => ({ ...v, phoneLoading: true, phoneError: '' }))
-    try {
-      const r = await fetch(`${apiUrl}/api/verify/confirm-phone-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: verif.sessionId, otp }),
-      })
-      const d = await r.json()
-      if (!r.ok) throw new Error(d.error || 'Incorrect code')
-      setVerif(v => ({ ...v, phoneLoading: false, phoneVerified: true, token: d.verification_token, phoneError: '' }))
-    } catch (err) {
-      setVerif(v => ({ ...v, phoneLoading: false, phoneError: err.message }))
-    }
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -507,7 +458,7 @@ export default function BookingWizard({ preselect }) {
         package_slug:       pkg.id,
         guest_name:         form.name.trim(),
         guest_email:        form.email.trim(),
-        guest_phone:        form.phone.trim() || null,
+        guest_phone:        form.phone.trim().replace(/[\s\-\(\)\.]/g, '') || null,
         guest_category:     category,
         check_in_date:      form.arrival,
         check_out_date:     form.departure || computedDeparture || null,
@@ -680,7 +631,7 @@ export default function BookingWizard({ preselect }) {
                       </ul>
                       <div className="pkg-card-pick__price-row">
                         <span className="pkg-from">From</span>
-                        <span className="pkg-price">NPR {p.prices.foreigner.toLocaleString()}</span>
+                        <span className="pkg-price">{fmtPrice(p.prices[category])}</span>
                         <span className="pkg-per">/ person</span>
                       </div>
                     </div>
@@ -970,60 +921,6 @@ export default function BookingWizard({ preselect }) {
                   )}
                 </div>
 
-                {/* Optional phone verification */}
-                {verif.emailVerified && form.phone.trim() && !verif.phoneSkipped && (
-                  <div className={`verif-card verif-card--optional ${verif.phoneVerified ? 'verif-card--done' : ''}`}>
-                    <div className="verif-card__optional-header">
-                      <span>Optional</span>
-                      <strong>Verify phone for faster WhatsApp updates</strong>
-                    </div>
-                    {!verif.phoneVerified ? (
-                      <>
-                        {!verif.phoneSent ? (
-                          <button
-                            type="button"
-                            className="verif-btn verif-btn--secondary"
-                            onClick={handleSendPhoneOtp}
-                            disabled={verif.phoneLoading}
-                          >
-                            {verif.phoneLoading ? <span className="verif-spinner" /> : `Send SMS to ${form.phone}`}
-                          </button>
-                        ) : (
-                          <>
-                            <OtpDigits
-                              value={verif.phoneOtp}
-                              onChange={code => setVerif(v => ({ ...v, phoneOtp: code, phoneError: '' }))}
-                              onComplete={handleVerifyPhoneOtp}
-                              disabled={verif.phoneLoading}
-                              autoFocus
-                            />
-                            <button
-                              type="button"
-                              className="verif-btn verif-btn--primary"
-                              onClick={() => handleVerifyPhoneOtp()}
-                              disabled={verif.phoneLoading || verif.phoneOtp.length !== 6}
-                              style={{ marginTop: '12px' }}
-                            >
-                              {verif.phoneLoading ? <span className="verif-spinner" /> : 'Confirm phone'}
-                            </button>
-                          </>
-                        )}
-                        {verif.phoneError && <p className="verif-error" role="alert">{verif.phoneError}</p>}
-                        <button
-                          type="button"
-                          className="verif-skip"
-                          onClick={() => setVerif(v => ({ ...v, phoneSkipped: true }))}
-                        >
-                          Skip — email verification is enough
-                        </button>
-                      </>
-                    ) : (
-                      <div className="verif-card__success verif-card__success--compact">
-                        <span>Phone verified</span>
-                      </div>
-                    )}
-                  </div>
-                )}
 
                 {errors.emailVerify && (
                   <p className="field-error verif-section__error" role="alert">{errors.emailVerify}</p>
@@ -1080,7 +977,7 @@ export default function BookingWizard({ preselect }) {
                       </span>
                     </strong>
                   </div>
-                  {form.phone && <div className="review-row"><span>Phone</span><strong>{form.phone}{verif.phoneVerified ? ' (verified)' : ''}</strong></div>}
+                  {form.phone && <div className="review-row"><span>Phone</span><strong>{form.phone}</strong></div>}
                   <div className="review-row"><span>Arrival</span><strong>{formatDisplayDate(form.arrival)}</strong></div>
                   {form.departure && <div className="review-row"><span>Departure</span><strong>{formatDisplayDate(form.departure)}</strong></div>}
                   {form.requests && <div className="review-row review-row--requests"><span>Requests</span><em>{form.requests}</em></div>}

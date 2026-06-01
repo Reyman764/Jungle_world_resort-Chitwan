@@ -97,7 +97,33 @@ async function dispatchEmail(payload) {
     }
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
     try {
-      await sgMail.send(payload);
+      // Build the SendGrid message with anti-spam / deliverability headers
+      const sgPayload = {
+        to:      payload.to,
+        from:    payload.from,
+        subject: payload.subject,
+        html:    payload.html,
+        text:    payload.text,
+        // Reply-To prevents "via sendgrid.net" appearing in Gmail
+        replyTo: process.env.SENDGRID_FROM_EMAIL,
+        // Mail settings that improve deliverability
+        mailSettings: {
+          sandboxMode: { enable: false },
+        },
+        // Tracking – disable open/click tracking to reduce spam score
+        trackingSettings: {
+          clickTracking:     { enable: false, enableText: false },
+          openTracking:      { enable: false },
+          subscriptionTracking: { enable: false },
+        },
+        // Custom headers improve inbox placement
+        headers: {
+          'X-Priority':        '3',
+          'X-Mailer':          'Jungle World Resort Booking System',
+          'List-Unsubscribe':  `<mailto:${process.env.SENDGRID_FROM_EMAIL}?subject=unsubscribe>`,
+        },
+      };
+      await sgMail.send(sgPayload);
       return { provider: 'sendgrid', delivered: true };
     } catch (sgErr) {
       console.error('[mailer] SendGrid error:', formatSendGridError(sgErr));
@@ -190,7 +216,7 @@ function buildOtpContent(otp, name) {
   const text = `Hello ${name},\n\nYour Jungle World Resort verification code is: ${otp}\n\nThis code expires in 10 minutes.\n\nIf you did not request this, please ignore this email.\n\n– Jungle World Resort`;
 
   return {
-    subject: `${otp} is your Jungle World Resort verification code`,
+    subject: `Jungle World Resort – Your verification code`,
     html,
     text,
   };
@@ -217,7 +243,7 @@ async function sendOtpEmail(to, otp, name = 'Guest') {
 
 // ─────────────────────────────────────────────────────────
 // BOOKING OTP template — used by /api/otp routes
-// Matches the spec: 56px gold code, 🔐 subject, security warning
+// Matches the spec: 56px gold code, clean subject, security warning
 // ─────────────────────────────────────────────────────────
 
 function buildBookingOtpContent(otp) {
@@ -249,7 +275,7 @@ function buildBookingOtpContent(otp) {
                   </p>
                   <h1 style="margin:8px 0 0;color:#ffffff;font-size:24px;font-weight:700;
                              letter-spacing:-0.3px;">
-                    🔐 Booking Verification Code
+                    Booking Verification Code
                   </h1>
                 </td>
               </tr>
@@ -360,7 +386,7 @@ function buildBookingOtpContent(otp) {
 </html>`;
 
   const text = [
-    '🔐 Your Jungle World Resort Booking Code',
+    'Your Jungle World Resort Booking Code',
     '',
     `Your verification code is: ${otp}`,
     '',
@@ -378,7 +404,7 @@ function buildBookingOtpContent(otp) {
   ].join('\n');
 
   return {
-    subject: '🔐 Your Jungle World Resort Booking Code',
+    subject: 'Jungle World Resort – Booking verification code',
     html,
     text,
   };
