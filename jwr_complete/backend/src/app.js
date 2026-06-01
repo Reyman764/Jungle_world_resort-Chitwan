@@ -63,11 +63,11 @@ app.use('/api/auth/google',   authLimiter);
 // ── Health Check ──────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   res.json({
-    status: 'OK',
-    service: 'Jungle World Resort API',
-    version: '2.0.0',
+    status:      'OK',
+    service:     'Jungle World Resort API',
+    version:     '2.0.0',
     environment: process.env.NODE_ENV,
-    timestamp: new Date().toISOString(),
+    timestamp:   new Date().toISOString(),
   });
 });
 
@@ -78,16 +78,16 @@ app.get('/api/health/email', (req, res) => {
     configured: isEmailConfigured(),
     sendgrid: {
       configured: hasSendGrid(),
-      from: hasSendGrid() ? from : null,
-      hint: hasSendGrid()
+      from:       hasSendGrid() ? from : null,
+      hint:       hasSendGrid()
         ? null
         : 'Set SENDGRID_API_KEY and SENDGRID_FROM_EMAIL in .env — see docs/SENDGRID_SETUP.md',
     },
     smtp: {
       configured: hasSmtp(),
-      host: hasSmtp() ? process.env.SMTP_HOST : null,
-      user: hasSmtp() ? process.env.SMTP_USER : null,
-      hint: hasSmtp()
+      host:       hasSmtp() ? process.env.SMTP_HOST : null,
+      user:       hasSmtp() ? process.env.SMTP_USER : null,
+      hint:       hasSmtp()
         ? null
         : 'Set SMTP_HOST, SMTP_USER, SMTP_PASS in .env — see docs/GMAIL_SMTP_SETUP.md',
     },
@@ -97,17 +97,18 @@ app.get('/api/health/email', (req, res) => {
 
 // ── API Routes ────────────────────────────────────────────
 app.use('/api/auth',     require('./routes/auth'));
-app.use('/api/verify',   require('./routes/verify'));        // ✅ OTP email/phone verification
-app.use('/api/bookings', require('./routes/bookings'));      // ✅ FIXED: was commented out
-app.use('/api/admin',    require('./routes/admin'));         // ✅ Admin dashboard routes
+app.use('/api/verify',   require('./routes/verify'));        // ✅ existing email/phone OTP (session-based)
+app.use('/api/otp',      require('./routes/otp'));           // ✅ NEW: booking OTP via SendGrid
+app.use('/api/bookings', require('./routes/bookings'));      // ✅ booking submission
+app.use('/api/admin',    require('./routes/admin'));         // ✅ admin dashboard
 // app.use('/api/packages',  require('./routes/packages'));  // add when ready
 // app.use('/api/payments',  require('./routes/payments'));  // add when ready
 
 // ── 404 Handler ───────────────────────────────────────────
 app.use((req, res) => {
   res.status(404).json({
-    error: 'Route not found',
-    path: req.originalUrl,
+    error:  'Route not found',
+    path:   req.originalUrl,
     method: req.method,
   });
 });
@@ -123,7 +124,7 @@ app.use((err, req, res, next) => {
   if (err.name === 'TokenExpiredError')  return res.status(401).json({ error: 'Token expired' });
   if (err.name === 'SequelizeValidationError') {
     return res.status(422).json({
-      error: 'Validation failed',
+      error:   'Validation failed',
       details: err.errors.map(e => ({ field: e.path, message: e.message })),
     });
   }

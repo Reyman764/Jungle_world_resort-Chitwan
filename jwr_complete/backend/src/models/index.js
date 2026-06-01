@@ -29,8 +29,8 @@ if (process.env.DATABASE_URL) {
     process.env.DB_USER || 'jungle_user',
     process.env.DB_PASSWORD || '',
     {
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT) || 5432,
+      host:    process.env.DB_HOST || 'localhost',
+      port:    parseInt(process.env.DB_PORT) || 5432,
       dialect: 'postgres',
       logging: process.env.NODE_ENV === 'development' ? console.log : false,
     }
@@ -38,12 +38,13 @@ if (process.env.DATABASE_URL) {
 }
 
 // ── Import Models ─────────────────────────────────────────
-const User                = require('./User')(sequelize, DataTypes);
-const Package             = require('./Package')(sequelize, DataTypes);
-const Booking             = require('./Booking')(sequelize, DataTypes);
-const Payment             = require('./Payment')(sequelize, DataTypes);
-const Review              = require('./Review')(sequelize, DataTypes);
-const VerificationSession = require('./VerificationSession')(sequelize, DataTypes);
+const User                 = require('./User')(sequelize, DataTypes);
+const Package              = require('./Package')(sequelize, DataTypes);
+const Booking              = require('./Booking')(sequelize, DataTypes);
+const Payment              = require('./Payment')(sequelize, DataTypes);
+const Review               = require('./Review')(sequelize, DataTypes);
+const VerificationSession  = require('./VerificationSession')(sequelize, DataTypes);
+const VerificationToken    = require('./VerificationToken')(sequelize, DataTypes);   // ← NEW
 
 // ── Associations ──────────────────────────────────────────
 
@@ -77,4 +78,5 @@ module.exports = {
   Payment,
   Review,
   VerificationSession,
+  VerificationToken,   // ← NEW
 };

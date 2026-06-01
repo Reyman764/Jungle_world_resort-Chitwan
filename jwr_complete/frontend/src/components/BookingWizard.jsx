@@ -382,25 +382,26 @@ export default function BookingWizard({ preselect }) {
     setVerif(v => ({ ...v, emailLoading: true, emailError: '', emailOtp: '', devOtp: null }))
     startResendCountdown()
     try {
-      const r = await fetch(`${apiUrl}/api/verify/send-email-otp`, {
+      // Uses the new /api/otp/send-code endpoint (SendGrid-powered, email-based lookup)
+      const r = await fetch(`${apiUrl}/api/otp/send-code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name: form.name.trim() || 'Guest' }),
+        body: JSON.stringify({ email }),
       })
       const d = await r.json().catch(() => ({}))
       if (!r.ok) throw new Error(d.error || 'Failed to send verification code')
       setVerif(v => ({
         ...v,
         emailLoading: false,
-        emailSent: true,
-        sessionId: d.session_id,
-        authMethod: 'otp',
-        emailError: '',
+        emailSent:   true,
+        sessionId:   null,   // new /api/otp routes use email-based lookup, no session_id
+        authMethod:  'otp',
+        emailError:  '',
         devOtp: isDev && d.dev_otp ? d.dev_otp : null,
       }))
       setEmailCheck({
-        status: 'valid',
-        message: d.email_sent
+        status:  'valid',
+        message: d.success
           ? 'Verification code sent — check your inbox and spam folder.'
           : 'Email not configured on server — use the dev code below or add SendGrid to backend .env.',
       })
@@ -411,31 +412,32 @@ export default function BookingWizard({ preselect }) {
   }
 
   const handleVerifyEmailOtp = async (code) => {
-    const otp = (code || verif.emailOtp).trim()
+    const otp   = (code || verif.emailOtp).trim()
+    const email = form.email.trim().toLowerCase()
     if (otp.length !== 6) {
       setVerif(v => ({ ...v, emailError: 'Enter all 6 digits.' })); return
     }
-    if (!verif.sessionId) {
-      setVerif(v => ({ ...v, emailError: 'Session expired. Request a new code.' })); return
-    }
     setVerif(v => ({ ...v, emailLoading: true, emailError: '' }))
     try {
-      const r = await fetch(`${apiUrl}/api/verify/confirm-email-otp`, {
+      // Uses the new /api/otp/verify-code endpoint (email + code, no session_id needed)
+      const r = await fetch(`${apiUrl}/api/otp/verify-code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: verif.sessionId, otp }),
+        body: JSON.stringify({ email, code: otp }),
       })
       const d = await r.json()
       if (!r.ok) throw new Error(d.error || 'Incorrect code')
+      // Persist the verification token in sessionStorage for this tab's lifetime
+      try { sessionStorage.setItem('jwr_verification_token', d.verification_token) } catch (_) {}
       setVerif(v => ({
         ...v,
-        emailLoading: false,
+        emailLoading:  false,
         emailVerified: true,
-        emailOtp: otp,
-        token: d.verification_token,
-        authMethod: 'otp',
-        emailError: '',
-        devOtp: null,
+        emailOtp:      otp,
+        token:         d.verification_token,
+        authMethod:    'otp',
+        emailError:    '',
+        devOtp:        null,
       }))
       setErrors(prev => ({ ...prev, emailVerify: '' }))
     } catch (err) {
@@ -446,6 +448,12 @@ export default function BookingWizard({ preselect }) {
   const handleSendPhoneOtp = async () => {
     const phone = form.phone.trim()
     if (!phone) return
+    // Phone OTP requires a session_id from the legacy /api/verify flow.
+    // When emailVerified was achieved via /api/otp, sessionId is null — skip gracefully.
+    if (!verif.sessionId) {
+      setVerif(v => ({ ...v, phoneSkipped: true }))
+      return
+    }
     setVerif(v => ({ ...v, phoneLoading: true, phoneError: '' }))
     try {
       const r = await fetch(`${apiUrl}/api/verify/send-phone-otp`, {
