@@ -1,11 +1,12 @@
 import React, { useEffect, useState, lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route, useLocation, Link } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import SkipLink from './components/SkipLink'
 import ParticleBackground from './components/ParticleBackground'
 import FloatingBookBtn from './components/FloatingBookBtn'
 import ProtectedRoute from './components/ProtectedRoute'
+import LeafIntro from './components/LeafIntro'
 
 // Public pages
 const Home         = lazy(() => import('./pages/Home'))
@@ -17,7 +18,7 @@ const Contact      = lazy(() => import('./pages/Contact'))
 const Gallery      = lazy(() => import('./pages/Gallery'))
 const StaffLogin   = lazy(() => import('./pages/StaffLogin'))
 
-// Admin pages (lazy — not shipped to guests until needed)
+// Admin (lazy)
 const AdminDashboard = lazy(() => import('./admin/AdminDashboard'))
 
 function PageLoader() {
@@ -70,9 +71,6 @@ function ScrollTopBtn() {
   )
 }
 
-/**
- * Layout wrapping all PUBLIC pages (navbar, footer, particles, etc.)
- */
 function PublicLayout({ theme, toggleTheme }) {
   return (
     <>
@@ -102,6 +100,11 @@ function PublicLayout({ theme, toggleTheme }) {
 export default function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem('jwrTheme') || 'light')
 
+  // Show leaf intro once per browser session
+  const [showIntro, setShowIntro] = useState(
+    () => !sessionStorage.getItem('jwr_intro_seen')
+  )
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
     localStorage.setItem('jwrTheme', theme)
@@ -109,20 +112,25 @@ export default function App() {
 
   const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark')
 
+  const handleIntroComplete = () => {
+    sessionStorage.setItem('jwr_intro_seen', '1')
+    setShowIntro(false)
+  }
+
   return (
     <BrowserRouter>
       <SkipLink />
       <ScrollToTop />
       <ScrollReveal />
 
+      {/* Leaf intro — shown once per session on first load */}
+      {showIntro && <LeafIntro onComplete={handleIntroComplete} />}
+
       <Suspense fallback={<PageLoader />}>
         <Routes>
-          {/* ── Protected admin routes (no Navbar / Footer) ── */}
           <Route element={<ProtectedRoute />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
           </Route>
-
-          {/* ── Public site (all other routes) ── */}
           <Route path="/*" element={<PublicLayout theme={theme} toggleTheme={toggleTheme} />} />
         </Routes>
       </Suspense>
