@@ -4,14 +4,14 @@ import PageHero from '../components/PageHero'
 import './Tariff.css'
 
 const tariffData = [
-  { package:'Chitwan at a Glance', foreigner:'USD 120', saarc:'INR 6,000', nepali:'NPR 5,000', fVal:120, sVal:6000, nVal:5000 },
-  { package:'Close Up Chitwan', foreigner:'USD 190', saarc:'INR 9,500', nepali:'NPR 8,500', fVal:190, sVal:9500, nVal:8500 },
-  { package:'Explore Chitwan', foreigner:'USD 250', saarc:'INR 15,000', nepali:'NPR 12,500', fVal:250, sVal:15000, nVal:12500 },
+  { package:'Chitwan at a Glance', foreigner:'NPR 15,960', saarc:'NPR 9,600', nepali:'NPR 5,000', fVal:15960, sVal:9600, nVal:5000 },
+  { package:'Close Up Chitwan', foreigner:'NPR 25,270', saarc:'NPR 15,200', nepali:'NPR 8,500', fVal:25270, sVal:15200, nVal:8500 },
+  { package:'Explore Chitwan', foreigner:'NPR 33,250', saarc:'NPR 24,000', nepali:'NPR 12,500', fVal:33250, sVal:24000, nVal:12500 },
 ]
 const roomRates = [
-  { type:'Single Room', price:'USD 30' },
-  { type:'Double Room', price:'USD 35' },
-  { type:'Triple Room', price:'USD 45' },
+  { type:'Single Room', price:'NPR 3,990' },
+  { type:'Double Room', price:'NPR 4,655' },
+  { type:'Triple Room', price:'NPR 5,985' },
 ]
 const includes = [
   'Accommodation in 24 hr AC Deluxe Cottage with attached bathroom',
@@ -37,7 +37,6 @@ export default function Tariff() {
 
   const selected = tariffData[calcPkg]
   const unitPrice = calcCat === 'foreigner' ? selected.fVal : calcCat === 'saarc' ? selected.sVal : selected.nVal
-  const currency = calcCat === 'foreigner' ? 'USD' : calcCat === 'saarc' ? 'INR' : 'NPR'
   const total = unitPrice * calcPax
   const vatAmount = Math.round(total * 0.13)
   const serviceAmount = Math.round(total * 0.10)
@@ -134,20 +133,20 @@ export default function Tariff() {
 
               <div className="calc-result">
                 <div className="calc-line">
-                  <span>Base ({calcPax} × {currency} {unitPrice.toLocaleString()})</span>
-                  <span>{currency} {total.toLocaleString()}</span>
+                  <span>Base ({calcPax} × NPR {unitPrice.toLocaleString()})</span>
+                  <span>NPR {total.toLocaleString()}</span>
                 </div>
                 <div className="calc-line">
                   <span>Service Charge (10%)</span>
-                  <span>{currency} {serviceAmount.toLocaleString()}</span>
+                  <span>NPR {serviceAmount.toLocaleString()}</span>
                 </div>
                 <div className="calc-line">
                   <span>VAT (13%)</span>
-                  <span>{currency} {vatAmount.toLocaleString()}</span>
+                  <span>NPR {vatAmount.toLocaleString()}</span>
                 </div>
                 <div className="calc-total">
                   <span>Total Estimate</span>
-                  <span className="calc-total-amount">{currency} {grandTotal.toLocaleString()}</span>
+                  <span className="calc-total-amount">NPR {grandTotal.toLocaleString()}</span>
                 </div>
               </div>
 

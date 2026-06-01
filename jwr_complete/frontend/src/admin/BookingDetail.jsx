@@ -30,6 +30,8 @@ export default function BookingDetail({ bookingId, onClose, onUpdate }) {
   const [loading, setLoading] = useState(true)
   const [saving,  setSaving]  = useState(false)
   const [toast,   setToast]   = useState(null)   // { type: 'success'|'error', msg }
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   // Editable fields
   const [status,        setStatus]        = useState('')
@@ -88,7 +90,32 @@ export default function BookingDetail({ bookingId, onClose, onUpdate }) {
     }
   }
 
-  // Prevent body scroll while modal open
+  async function handleDeleteGuest() {
+    if (!booking?.guest_email) return
+    setDeleting(true)
+    try {
+      const res = await fetch(`${API}/api/admin/users/${booking.user_id || booking.guest_email}`, {
+        method: 'DELETE',
+        headers: authHeader(),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        showToast('success', `Guest account for ${booking.guest_name} has been deleted.`)
+        setShowDeleteConfirm(false)
+        setTimeout(() => { if (onUpdate) onUpdate(); onClose() }, 1800)
+      } else {
+        showToast('error', data.error || 'Failed to delete guest account')
+        setShowDeleteConfirm(false)
+      }
+    } catch {
+      showToast('error', 'Network error — please try again')
+      setShowDeleteConfirm(false)
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+
   useEffect(() => {
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = '' }
@@ -145,13 +172,13 @@ export default function BookingDetail({ bookingId, onClose, onUpdate }) {
 
               {/* Pricing */}
               <div className="detail-section">
-                <div className="detail-section__title">Pricing ({booking.currency})</div>
-                <DetailRow label="Base Price"      value={`$${Number(booking.base_price).toFixed(2)}`} />
-                <DetailRow label="Service Charge"  value={`$${Number(booking.service_charge).toFixed(2)}`} />
-                <DetailRow label="VAT"             value={`$${Number(booking.vat).toFixed(2)}`} />
-                <DetailRow label="Total Price"     value={`$${Number(booking.total_price).toFixed(2)}`} valueClass="price" />
-                <DetailRow label="Paid Amount"     value={`$${Number(booking.paid_amount).toFixed(2)}`} />
-                <DetailRow label="Balance Due"     value={`$${Number(booking.balance_due).toFixed(2)}`} />
+                <div className="detail-section__title">Pricing (NPR)</div>
+                <DetailRow label="Base Price"      value={`NPR ${Number(booking.base_price).toLocaleString()}`} />
+                <DetailRow label="Service Charge"  value={`NPR ${Number(booking.service_charge).toLocaleString()}`} />
+                <DetailRow label="VAT"             value={`NPR ${Number(booking.vat).toLocaleString()}`} />
+                <DetailRow label="Total Price"     value={`NPR ${Number(booking.total_price).toLocaleString()}`} valueClass="price" />
+                <DetailRow label="Paid Amount"     value={`NPR ${Number(booking.paid_amount).toLocaleString()}`} />
+                <DetailRow label="Balance Due"     value={`NPR ${Number(booking.balance_due).toLocaleString()}`} />
               </div>
 
               {/* Current Status */}
@@ -161,7 +188,7 @@ export default function BookingDetail({ bookingId, onClose, onUpdate }) {
                 <DetailRow label="Payment Status"  value={<PayBadge   status={booking.payment_status} />} />
                 <DetailRow label="Payment Method"  value={booking.payment_method || '—'} />
                 <DetailRow label="Booking Source"  value={booking.source || 'direct'} />
-                <DetailRow label="Created"         value={new Date(booking.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} />
+                <DetailRow label="Created"         value={booking.created_at ? new Date(booking.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'} />
                 {booking.admin_notes && (
                   <DetailRow label="Internal Notes" value={booking.admin_notes} />
                 )}
@@ -196,7 +223,7 @@ export default function BookingDetail({ bookingId, onClose, onUpdate }) {
                   </div>
 
                   <div className="edit-form-group">
-                    <label className="edit-form-label">Paid Amount (USD)</label>
+                    <label className="edit-form-label">Paid Amount (NPR)</label>
                     <input
                       type="number"
                       min="0"
@@ -230,6 +257,19 @@ export default function BookingDetail({ bookingId, onClose, onUpdate }) {
 
             {/* Footer */}
             <div className="modal-footer">
+              {/* Delete Guest — only available after checked out */}
+              {booking.status === 'checked_out' && (
+                <button
+                  className="modal-delete-btn"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  title="Remove guest account from system after checkout"
+                >
+                  <svg viewBox="0 0 16 16" fill="none" width="13" height="13">
+                    <path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 9h8l1-9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Delete Guest
+                </button>
+              )}
               <button className="modal-cancel-btn" onClick={onClose}>
                 Close
               </button>
@@ -249,6 +289,43 @@ export default function BookingDetail({ bookingId, onClose, onUpdate }) {
                 )}
               </button>
             </div>
+
+            {/* Delete Confirmation Dialog */}
+            {showDeleteConfirm && (
+              <div className="delete-confirm-overlay">
+                <div className="delete-confirm-box">
+                  <div className="delete-confirm-icon">⚠️</div>
+                  <h3 className="delete-confirm-title">Delete Guest Account?</h3>
+                  <p className="delete-confirm-msg">
+                    This will permanently delete the guest account for <strong>{booking.guest_name}</strong> ({booking.guest_email}).
+                    Their booking records will be preserved. This action cannot be undone.
+                  </p>
+                  <div className="delete-confirm-actions">
+                    <button
+                      className="modal-cancel-btn"
+                      onClick={() => setShowDeleteConfirm(false)}
+                      disabled={deleting}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="modal-delete-confirm-btn"
+                      onClick={handleDeleteGuest}
+                      disabled={deleting}
+                    >
+                      {deleting ? (
+                        <>
+                          <div className="admin-spinner admin-spinner--sm" style={{ borderTopColor: '#fff', borderColor: 'rgba(255,255,255,0.3)' }} />
+                          Deleting…
+                        </>
+                      ) : (
+                        'Yes, Delete Guest'
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>

@@ -56,7 +56,7 @@ export default function FloatingBookBtn() {
         </span>
         <div className="float-btn__text">
           <span className="float-btn__label">Book Your Stay</span>
-          <span className="float-btn__sub">From USD 120 · No card needed</span>
+          <span className="float-btn__sub">From NPR 5,000 · No card needed</span>
         </div>
       </button>
       <button

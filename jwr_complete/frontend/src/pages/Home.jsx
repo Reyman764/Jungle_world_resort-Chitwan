@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom'
 import './Home.css'
 
 const packages = [
-  { id:1, name:'Explore Chitwan', duration:'3 Nights · 4 Days', price:'USD 250', desc:'A deep dive into the wilderness. Jungle drives, canoe safari, elephant bathing, cultural village tour and much more.', img:'https://3sistersadventuretrek.com/images/tourpackage/chitwan-jungle-safari-pokhara-kathmandu-nepalese-3sisters-adventuretrekking-3to4days.jpg', badge:'3N · 4D', highlight:true },
-  { id:2, name:'Chitwan at a Glance', duration:'1 Night · 2 Days', price:'USD 120', desc:'A quick yet immersive getaway. Ideal for those with limited time who still want to experience the magic of Chitwan.', img:'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?auto=format&fit=crop&w=800&q=80', badge:'1N · 2D' },
-  { id:3, name:'Close Up Chitwan', duration:'2 Nights · 3 Days', price:'USD 190', desc:'Get closer to nature with extended jungle walks, bird watching at dawn, and a sunset canoe ride.', img:'https://sweethomechitwan.com/wp-content/uploads/2025/01/j2.jpg', badge:'2N · 3D' },
+  { id:1, name:'Explore Chitwan', duration:'3 Nights · 4 Days', price:'NPR 33,250', desc:'A deep dive into the wilderness. Jungle drives, canoe safari, elephant bathing, cultural village tour and much more.', img:'https://3sistersadventuretrek.com/images/tourpackage/chitwan-jungle-safari-pokhara-kathmandu-nepalese-3sisters-adventuretrekking-3to4days.jpg', badge:'3N · 4D', highlight:true },
+  { id:2, name:'Chitwan at a Glance', duration:'1 Night · 2 Days', price:'NPR 15,960', desc:'A quick yet immersive getaway. Ideal for those with limited time who still want to experience the magic of Chitwan.', img:'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?auto=format&fit=crop&w=800&q=80', badge:'1N · 2D' },
+  { id:3, name:'Close Up Chitwan', duration:'2 Nights · 3 Days', price:'NPR 25,270', desc:'Get closer to nature with extended jungle walks, bird watching at dawn, and a sunset canoe ride.', img:'https://sweethomechitwan.com/wp-content/uploads/2025/01/j2.jpg', badge:'2N · 3D' },
 ]
 
 const activities = [

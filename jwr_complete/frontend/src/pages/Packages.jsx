@@ -5,9 +5,9 @@ import CountdownTimer from '../components/CountdownTimer'
 import './Packages.css'
 
 const packages = [
-  { id:1, name:'Chitwan at a Glance', duration:'1 Night · 2 Days', price:'USD 120', priceINR:'INR 6,000', priceNPR:'NPR 5,000', img:'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?auto=format&fit=crop&w=900&q=80', badge:'1N · 2D', urgency:'2 rooms left', includes:['Welcome drink & cultural program','Elephant bathing (if available)','Jeep safari in National Park','Canoe safari on Rapti River','Tharu village walk','All meals (breakfast, lunch, dinner)'], desc:'A quick yet immersive escape. Perfect for weekend warriors who want to experience the essence of Chitwan without a long stay.' },
-  { id:2, name:'Close Up Chitwan', duration:'2 Nights · 3 Days', price:'USD 190', priceINR:'INR 9,500', priceNPR:'NPR 8,500', img:'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=900&q=80', badge:'2N · 3D', discount:'15% Off', includes:['All Day 1 activities','Guided jungle walk at dawn','Bird watching with naturalist','Sunset canoe ride','Cultural village dinner experience','All meals included'], desc:'A more intimate look at Chitwan. Two nights give you time to slow down, breathe the forest air, and connect with nature.' },
-  { id:3, name:'Explore Chitwan', duration:'3 Nights · 4 Days', price:'USD 250', priceINR:'INR 15,000', priceNPR:'NPR 12,500', img:'https://sweethomechitwan.com/wp-content/uploads/2025/01/j2.jpg', badge:'3N · 4D', popular:true, includes:['All activities from Day 1 & 2','Elephant back safari (optional)','Naturalist-led jungle drives','Sunset viewpoint trek','Farewell Tharu cultural dinner','All meals + airport transfers'], desc:'The full measure of Chitwan — four days shaped by the forest, guided by naturalists who know every trail and waterhole.' },
+  { id:1, name:'Chitwan at a Glance', duration:'1 Night · 2 Days', price:'NPR 15,960', priceINR:'NPR 9,600', priceNPR:'NPR 5,000', img:'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?auto=format&fit=crop&w=900&q=80', badge:'1N · 2D', urgency:'2 rooms left', includes:['Welcome drink & cultural program','Elephant bathing (if available)','Jeep safari in National Park','Canoe safari on Rapti River','Tharu village walk','All meals (breakfast, lunch, dinner)'], desc:'A quick yet immersive escape. Perfect for weekend warriors who want to experience the essence of Chitwan without a long stay.' },
+  { id:2, name:'Close Up Chitwan', duration:'2 Nights · 3 Days', price:'NPR 25,270', priceINR:'NPR 15,200', priceNPR:'NPR 8,500', img:'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=900&q=80', badge:'2N · 3D', discount:'15% Off', includes:['All Day 1 activities','Guided jungle walk at dawn','Bird watching with naturalist','Sunset canoe ride','Cultural village dinner experience','All meals included'], desc:'A more intimate look at Chitwan. Two nights give you time to slow down, breathe the forest air, and connect with nature.' },
+  { id:3, name:'Explore Chitwan', duration:'3 Nights · 4 Days', price:'NPR 33,250', priceINR:'NPR 24,000', priceNPR:'NPR 12,500', img:'https://sweethomechitwan.com/wp-content/uploads/2025/01/j2.jpg', badge:'3N · 4D', popular:true, includes:['All activities from Day 1 & 2','Elephant back safari (optional)','Naturalist-led jungle drives','Sunset viewpoint trek','Farewell Tharu cultural dinner','All meals + airport transfers'], desc:'The full measure of Chitwan — four days shaped by the forest, guided by naturalists who know every trail and waterhole.' },
 ]
 
 export default function Packages() {
@@ -93,7 +93,7 @@ export default function Packages() {
                     </ul>
                   </div>
                   <div className="pkg-detail__pricing">
-                    {[['Foreigner', pkg.price], ['SAARC', pkg.priceINR], ['Nepali', pkg.priceNPR]].map(([label, amt]) => (
+                    {[['International (NPR)', pkg.price], ['SAARC (NPR)', pkg.priceINR], ['Nepali (NPR)', pkg.priceNPR]].map(([label, amt]) => (
                       <div key={label} className="price-tier">
                         <span className="price-label">{label}</span>
                         <span className="price-amount">{amt}</span>
@@ -128,7 +128,7 @@ export default function Packages() {
                   {pkg.popular && <div className="compare-popular">Most Popular</div>}
                   <h3>{pkg.name}</h3>
                   <div className="compare-price">{pkg.price}</div>
-                  <div className="compare-price-sub">{pkg.priceINR} · {pkg.priceNPR}</div>
+                  <div className="compare-price-sub">SAARC: {pkg.priceINR} · Nepali: {pkg.priceNPR}</div>
                   <div className="compare-duration">{pkg.duration}</div>
                   <Link to="/contact" className="btn-primary" style={{ fontSize:'11px', padding:'10px 20px', marginTop:'12px' }} aria-label={`Book ${pkg.name}`}>
                     <span>Book</span>

@@ -902,3 +902,50 @@
   color: var(--adm-text-faint);
   font-size: 12.5px;
 }
+
+/* ── DELETE GUEST BUTTON ────────────────────────────────── */
+.modal-delete-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600;
+  background: transparent; color: #dc2626;
+  border: 1.5px solid #dc2626; cursor: pointer;
+  transition: all 0.2s; margin-right: auto;
+}
+.modal-delete-btn:hover {
+  background: #dc2626; color: #fff;
+}
+
+/* ── DELETE CONFIRMATION DIALOG ─────────────────────────── */
+.delete-confirm-overlay {
+  position: absolute; inset: 0; z-index: 20;
+  background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 12px;
+}
+.delete-confirm-box {
+  background: #fff; border-radius: 12px; padding: 32px 28px;
+  max-width: 420px; width: 90%; text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+}
+.delete-confirm-icon { font-size: 36px; margin-bottom: 12px; }
+.delete-confirm-title {
+  font-size: 18px; font-weight: 700; color: #1a1a1a; margin: 0 0 12px;
+}
+.delete-confirm-msg {
+  font-size: 14px; color: #555; line-height: 1.6; margin: 0 0 24px;
+}
+.delete-confirm-msg strong { color: #1a1a1a; }
+.delete-confirm-actions {
+  display: flex; gap: 12px; justify-content: center;
+}
+.modal-delete-confirm-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 24px; border-radius: 6px; font-size: 13px; font-weight: 600;
+  background: #dc2626; color: #fff; border: none; cursor: pointer;
+  transition: background 0.2s;
+}
+.modal-delete-confirm-btn:hover { background: #b91c1c; }
+.modal-delete-confirm-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── MODAL card needs position:relative for overlay ─────── */
+.modal-card { position: relative; }

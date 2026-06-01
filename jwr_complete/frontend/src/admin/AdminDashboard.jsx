@@ -158,8 +158,8 @@ const res  = await fetch(`${API}/api/admin?${q}`, { headers: authHeader() })
             />
             <StatCard
               label="Total Revenue"
-              value={stats ? `$${Number(stats.total_revenue).toLocaleString()}` : undefined}
-              sub={stats ? `$${Number(stats.revenue_this_month).toLocaleString()} this month` : ''}
+              value={stats ? `NPR ${Number(stats.total_revenue).toLocaleString()}` : undefined}
+              sub={stats ? `NPR ${Number(stats.revenue_this_month).toLocaleString()} this month` : ''}
               accent="#2563eb"
             />
           </div>
@@ -270,7 +270,7 @@ const res  = await fetch(`${API}/api/admin?${q}`, { headers: authHeader() })
                       <td>{b.check_in_date}</td>
                       <td style={{ textTransform: 'capitalize' }}>{b.guest_category}</td>
                       <td><StatusBadge status={b.status} /></td>
-                      <td className="amount">${Number(b.total_price || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td className="amount">NPR {Number(b.total_price || 0).toLocaleString()}</td>
                       <td>
                         <button
                           className="admin-view-btn"

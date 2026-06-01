@@ -97,8 +97,7 @@ const PACKAGES = [
     name: 'Chitwan at a Glance',
     duration: '1 Night · 2 Days',
     badge: '1N · 2D',
-    prices: { foreigner: 120, saarc: 6000, nepali: 5000 },
-    currency: { foreigner: 'USD', saarc: 'INR', nepali: 'NPR' },
+    prices: { foreigner: 15960, saarc: 9600, nepali: 5000 },
     includes: ['Welcome drink & cultural show', 'Elephant bathing', 'Jeep safari', 'Canoe safari', 'All meals'],
     img: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?auto=format&fit=crop&w=600&q=80',
   },
@@ -107,8 +106,7 @@ const PACKAGES = [
     name: 'Close Up Chitwan',
     duration: '2 Nights · 3 Days',
     badge: '2N · 3D',
-    prices: { foreigner: 190, saarc: 9500, nepali: 8500 },
-    currency: { foreigner: 'USD', saarc: 'INR', nepali: 'NPR' },
+    prices: { foreigner: 25270, saarc: 15200, nepali: 8500 },
     includes: ['All 1N/2D activities', 'Guided jungle walk', 'Bird watching', 'Sunset canoe', 'All meals'],
     img: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=600&q=80',
   },
@@ -118,30 +116,28 @@ const PACKAGES = [
     duration: '3 Nights · 4 Days',
     badge: '3N · 4D',
     popular: true,
-    prices: { foreigner: 250, saarc: 15000, nepali: 12500 },
-    currency: { foreigner: 'USD', saarc: 'INR', nepali: 'NPR' },
+    prices: { foreigner: 33250, saarc: 24000, nepali: 12500 },
     includes: ['All prior activities', 'Elephant back safari', 'Sunrise jungle drive', 'Farewell dinner', 'Airport transfers'],
     img: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=600&q=80',
   },
 ]
 
 const CATEGORIES = [
-  { id: 'foreigner', label: 'International', desc: 'Outside SAARC countries', currency: 'USD' },
-  { id: 'saarc',     label: 'SAARC',         desc: 'India, Bangladesh, Sri Lanka…', currency: 'INR' },
-  { id: 'nepali',    label: 'Nepali',         desc: 'Nepalese nationals', currency: 'NPR' },
+  { id: 'foreigner', label: 'International', desc: 'Outside SAARC countries' },
+  { id: 'saarc',     label: 'SAARC',         desc: 'India, Bangladesh, Sri Lanka…' },
+  { id: 'nepali',    label: 'Nepali',         desc: 'Nepalese nationals' },
 ]
 
 const STEPS = ['Package', 'Guests', 'Details', 'Review']
 const isDev = import.meta.env.DEV
 
-function fmtPrice(amount, currency) {
-  return `${currency} ${amount.toLocaleString()}`
+function fmtPrice(amount) {
+  return `NPR ${Number(amount).toLocaleString()}`
 }
 
 function PriceBreakdown({ pkg, category, adults, children, compact }) {
   if (!pkg) return null
   const unitPrice  = pkg.prices[category]
-  const cur        = pkg.currency[category]
   const childPrice = Math.round(unitPrice * 0.5)
   const base       = unitPrice * adults + childPrice * children
   const service    = Math.round(base * 0.10)
@@ -150,7 +146,7 @@ function PriceBreakdown({ pkg, category, adults, children, compact }) {
 
   if (compact) return (
     <div className="price-compact">
-      <span className="price-compact__total">{fmtPrice(grand, cur)}</span>
+      <span className="price-compact__total">{fmtPrice(grand)}</span>
       <span className="price-compact__label">total est.</span>
     </div>
   )
@@ -160,32 +156,32 @@ function PriceBreakdown({ pkg, category, adults, children, compact }) {
       <div className="pb-title">Price Breakdown</div>
       <div className="pb-rows">
         <div className="pb-row">
-          <span>{adults} Adult{adults > 1 ? 's' : ''} × {fmtPrice(unitPrice, cur)}</span>
-          <span>{fmtPrice(unitPrice * adults, cur)}</span>
+          <span>{adults} Adult{adults > 1 ? 's' : ''} × {fmtPrice(unitPrice)}</span>
+          <span>{fmtPrice(unitPrice * adults)}</span>
         </div>
         {children > 0 && (
           <div className="pb-row">
-            <span>{children} Child{children > 1 ? 'ren' : ''} × {fmtPrice(childPrice, cur)} <em>(50%)</em></span>
-            <span>{fmtPrice(childPrice * children, cur)}</span>
+            <span>{children} Child{children > 1 ? 'ren' : ''} × {fmtPrice(childPrice)} <em>(50%)</em></span>
+            <span>{fmtPrice(childPrice * children)}</span>
           </div>
         )}
         <div className="pb-divider" />
         <div className="pb-row pb-row--sub">
           <span>Subtotal</span>
-          <span>{fmtPrice(base, cur)}</span>
+          <span>{fmtPrice(base)}</span>
         </div>
         <div className="pb-row pb-row--sub">
           <span>Service charge (10%)</span>
-          <span>{fmtPrice(service, cur)}</span>
+          <span>{fmtPrice(service)}</span>
         </div>
         <div className="pb-row pb-row--sub">
           <span>VAT (13%)</span>
-          <span>{fmtPrice(vat, cur)}</span>
+          <span>{fmtPrice(vat)}</span>
         </div>
         <div className="pb-divider" />
         <div className="pb-row pb-row--total">
           <span>Total Estimate</span>
-          <span>{fmtPrice(grand, cur)}</span>
+          <span>{fmtPrice(grand)}</span>
         </div>
       </div>
       <p className="pb-note">Prices per person · twin/triple sharing</p>
@@ -498,7 +494,6 @@ export default function BookingWizard({ preselect }) {
       const service     = Math.round(base * 0.10)
       const vatAmt      = Math.round(base * 0.13)
       const total       = base + service + vatAmt
-      const currency    = pkg.currency[category]
 
       const payload = {
         package_slug:       pkg.id,
@@ -511,7 +506,7 @@ export default function BookingWizard({ preselect }) {
         num_adults:         adults,
         num_children:       children,
         special_requests:   form.requests.trim() || null,
-        currency,
+        currency:           'NPR',
         base_price:         base,
         service_charge:     service,
         vat:                vatAmt,
@@ -557,7 +552,6 @@ export default function BookingWizard({ preselect }) {
   /* ── Submitted state ── */
   if (sent) {
     const unitPrice = pkg.prices[category]
-    const cur       = pkg.currency[category]
     const childP    = Math.round(unitPrice * 0.5)
     const base      = unitPrice * adults + childP * children
     const grand     = base + Math.round(base * 0.10) + Math.round(base * 0.13)
@@ -590,7 +584,7 @@ export default function BookingWizard({ preselect }) {
           {form.departure && (
             <div className="success-row"><span>Departure</span><strong>{formatDisplayDate(form.departure)}</strong></div>
           )}
-          <div className="success-row"><span>Estimate</span><strong>{fmtPrice(grand, cur)}</strong></div>
+          <div className="success-row"><span>Estimate</span><strong>{fmtPrice(grand)}</strong></div>
           <div className="success-row success-row--verified">
             <span>Email</span>
             <strong className="verified-pill">Verified</strong>
@@ -678,7 +672,7 @@ export default function BookingWizard({ preselect }) {
                       </ul>
                       <div className="pkg-card-pick__price-row">
                         <span className="pkg-from">From</span>
-                        <span className="pkg-price">USD {p.prices.foreigner}</span>
+                        <span className="pkg-price">NPR {p.prices.foreigner.toLocaleString()}</span>
                         <span className="pkg-per">/ person</span>
                       </div>
                     </div>
@@ -721,7 +715,7 @@ export default function BookingWizard({ preselect }) {
                       </div>
                       {pkg && (
                         <span className="cat-price">
-                          {cat.currency} {pkg.prices[cat.id].toLocaleString()}
+                          NPR {pkg.prices[cat.id].toLocaleString()}
                         </span>
                       )}
                     </button>
@@ -1206,7 +1200,7 @@ export default function BookingWizard({ preselect }) {
                 </div>
                 <p>Select a package to see your price estimate here.</p>
                 <div className="sidebar-teaser">
-                  <div>From <strong>USD 120</strong> per person</div>
+                  <div>From <strong>NPR 15,960</strong> per person</div>
                   <div>All meals included</div>
                   <div>No upfront payment</div>
                 </div>
