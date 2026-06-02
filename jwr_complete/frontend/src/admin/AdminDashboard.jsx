@@ -15,6 +15,11 @@ function StatusBadge({ status }) {
   return <span className={cls}>{status || 'draft'}</span>
 }
 
+function PayBadge({ status }) {
+  const cls = `status-badge pay-${status || 'pending'}`
+  return <span className={cls}>{status || 'pending'}</span>
+}
+
 function StatCard({ label, value, sub, icon, accent }) {
   return (
     <div className="stat-card" style={{ '--stat-accent': accent }}>
@@ -49,12 +54,14 @@ export default function AdminDashboard() {
   const [selectedId, setSelectedId] = useState(null)
 
   // ── Load stats ──────────────────────────────────────────
-  useEffect(() => {
-fetch(`${API}/api/admin/stats`, { headers: authHeader() })     
+  const loadStats = useCallback(() => {
+    fetch(`${API}/api/admin/stats`, { headers: authHeader() })
       .then(r => r.json())
       .then(d => { if (!d.error) setStats(d); else setStatsErr(d.error) })
       .catch(() => setStatsErr('Could not load stats'))
   }, [])
+
+  useEffect(() => { loadStats() }, [loadStats])
 
   // ── Load bookings ────────────────────────────────────────
   const loadBookings = useCallback(async (filters = applied, pg = 1) => {
@@ -68,7 +75,7 @@ fetch(`${API}/api/admin/stats`, { headers: authHeader() })
       if (filters.search)    q.set('search',    filters.search)
       q.set('page', pg)
 
-const res  = await fetch(`${API}/api/admin?${q}`, { headers: authHeader() }) 
+      const res = await fetch(`${API}/api/admin?${q}`, { headers: authHeader() })
       const data = await res.json()
 
       if (res.ok) {
@@ -158,8 +165,8 @@ const res  = await fetch(`${API}/api/admin?${q}`, { headers: authHeader() })
             />
             <StatCard
               label="Total Revenue"
-              value={stats ? `NPR ${Number(stats.total_revenue).toLocaleString()}` : undefined}
-              sub={stats ? `NPR ${Number(stats.revenue_this_month).toLocaleString()} this month` : ''}
+              value={stats ? `NPR ${Math.round(Number(stats.total_revenue)).toLocaleString()}` : undefined}
+              sub={stats ? `NPR ${Math.round(Number(stats.confirmed_revenue || 0)).toLocaleString()} active · NPR ${Math.round(Number(stats.revenue_this_month)).toLocaleString()} this month` : ''}
               accent="#2563eb"
             />
           </div>
@@ -257,7 +264,8 @@ const res  = await fetch(`${API}/api/admin?${q}`, { headers: authHeader() })
                     <th>Check-in</th>
                     <th>Category</th>
                     <th>Status</th>
-                    <th>Amount</th>
+                    <th>Payment</th>
+                    <th>Booking Total</th>
                     <th>Action</th>
                   </tr>
                 </thead>
@@ -270,7 +278,8 @@ const res  = await fetch(`${API}/api/admin?${q}`, { headers: authHeader() })
                       <td>{b.check_in_date}</td>
                       <td style={{ textTransform: 'capitalize' }}>{b.guest_category}</td>
                       <td><StatusBadge status={b.status} /></td>
-                      <td className="amount">NPR {Number(b.total_price || 0).toLocaleString()}</td>
+                      <td><PayBadge status={b.payment_status} /></td>
+                      <td className="amount">NPR {Math.round(Number(b.total_price || 0)).toLocaleString()}</td>
                       <td>
                         <button
                           className="admin-view-btn"
@@ -314,7 +323,7 @@ const res  = await fetch(`${API}/api/admin?${q}`, { headers: authHeader() })
         <BookingDetail
           bookingId={selectedId}
           onClose={() => setSelectedId(null)}
-          onUpdate={() => loadBookings(applied, page)}
+          onUpdate={() => { loadBookings(applied, page); loadStats(); }}
         />
       )}
     </div>

@@ -3,7 +3,7 @@
 const bcrypt  = require('bcryptjs');
 const jwt     = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
-const { User, Package, Booking } = require('../models');
+const { User, Package, Booking, BookingAuditLog } = require('../models');
 const { generateBookingReference } = require('../utils/bookingRef');
 
 /**
@@ -16,6 +16,14 @@ const SLUG_MAP = {
   'closeup': 'close-up-chitwan',
   'explore': 'explore-chitwan',
 };
+
+function getClientIp(req) {
+  return (
+    (req.headers['x-forwarded-for'] || '').split(',')[0].trim() ||
+    req.socket?.remoteAddress ||
+    null
+  );
+}
 
 /**
  * POST /api/bookings
@@ -167,7 +175,7 @@ async function createBooking(req, res, next) {
       num_adults:        adults,
       num_children:      children,
       special_requests:  special_requests || null,
-      currency:          currency || 'USD',
+      currency:          currency || 'NPR',
       base_price:        basePrice,
       service_charge:    serviceCharge,
       vat:               vatAmount,
@@ -180,7 +188,40 @@ async function createBooking(req, res, next) {
       source:            'direct',
     });
 
-    // ── 8. Respond ────────────────────────────────────────────
+    // ── 8. Record initial audit history ───────────────────────
+    try {
+      await BookingAuditLog.create({
+        booking_id:      booking.id,
+        changed_by_id:   user.id,
+        changed_by:      guest_name.trim(),
+        changed_by_role: 'guest',
+        action:          'BOOKING_CREATED',
+        field_name:      'booking',
+        old_value:       null,
+        new_value:       'Booking request submitted',
+        ip_address:      getClientIp(req),
+        user_agent:      req.headers['user-agent'] || null,
+        metadata: {
+          booking_reference: booking.booking_reference,
+          guest_email: booking.guest_email,
+          package_name: pkg.name,
+          check_in_date: booking.check_in_date,
+          check_out_date: booking.check_out_date,
+          num_adults: booking.num_adults,
+          num_children: booking.num_children,
+          currency: booking.currency,
+          total_price: Number(booking.total_price).toFixed(2),
+          paid_amount: Number(booking.paid_amount).toFixed(2),
+          refund_amount: '0.00',
+          payment_status: booking.payment_status,
+          revenue_after: '0.00',
+        },
+      });
+    } catch (auditErr) {
+      console.warn(`[AUDIT] Booking creation log failed: ${auditErr.message}`);
+    }
+
+    // ── 9. Respond ────────────────────────────────────────────
     return res.status(201).json({
       success:           true,
       booking_reference: booking.booking_reference,

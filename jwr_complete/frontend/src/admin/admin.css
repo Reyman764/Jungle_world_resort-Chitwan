@@ -362,7 +362,7 @@
 .admin-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 800px;
+  min-width: 900px;
 }
 
 .admin-table thead tr {
@@ -949,3 +949,261 @@
 
 /* ── MODAL card needs position:relative for overlay ─────── */
 .modal-card { position: relative; }
+
+/* ════════════════════════════════════════════════════════════════
+   AUDIT LOG TIMELINE
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Section wrapper ── */
+.audit-section {
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 4px;
+  background: var(--surface, #fff);
+}
+
+/* ── Collapsible toggle header ── */
+.audit-section__toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px;
+  background: var(--surface-alt, #f8fafb);
+  border: none;
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: var(--text-primary, #111827);
+  transition: background 0.15s;
+}
+.audit-section__toggle:hover {
+  background: var(--surface-hover, #f0f4f7);
+}
+.audit-section__title {
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary, #374151);
+  display: flex;
+  align-items: center;
+}
+.audit-section__count {
+  margin-left: auto;
+  background: var(--bg-subtle, #e9f0f5);
+  color: var(--text-secondary, #374151);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.audit-section__chevron {
+  font-size: 0.6rem;
+  color: var(--text-muted, #9ca3af);
+  margin-left: 6px;
+}
+
+/* ── Timeline container ── */
+.audit-timeline {
+  padding: 0 18px 18px 18px;
+  position: relative;
+}
+.audit-timeline::before {
+  content: '';
+  position: absolute;
+  left: 30px;
+  top: 8px;
+  bottom: 18px;
+  width: 2px;
+  background: var(--border, #e5e7eb);
+}
+
+/* ── Single audit entry ── */
+.audit-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 0 4px 0;
+  position: relative;
+}
+.audit-entry + .audit-entry {
+  border-top: 1px dashed var(--border-light, #f0f0f0);
+}
+
+/* Dot on the timeline */
+.audit-entry__dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+  position: relative;
+  z-index: 1;
+  border: 2px solid var(--surface, #fff);
+  box-shadow: 0 0 0 2px var(--border, #e5e7eb);
+}
+
+.audit-entry__body {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Row 1: icon + action + timestamp */
+.audit-entry__header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.audit-entry__icon {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+.audit-entry__action {
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--text-primary, #111827);
+}
+.audit-entry__time {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: var(--text-muted, #9ca3af);
+  white-space: nowrap;
+}
+
+/* Row 2: field name + old → new */
+.audit-entry__detail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 5px;
+  flex-wrap: wrap;
+}
+.audit-entry__field {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary, #6b7280);
+  background: var(--bg-subtle, #f3f4f6);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+.audit-entry__change {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.audit-val {
+  font-size: 0.78rem;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-weight: 500;
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.audit-val--old {
+  background: #fef2f2;
+  color: #991b1b;
+  text-decoration: line-through;
+  text-decoration-color: #fca5a5;
+}
+.audit-val--new {
+  background: #f0fdf4;
+  color: #166534;
+}
+.audit-arrow {
+  color: var(--text-muted, #9ca3af);
+  font-size: 0.78rem;
+}
+
+/* Row 3: who changed it */
+.audit-entry__by {
+  margin-top: 4px;
+  font-size: 0.72rem;
+  color: var(--text-muted, #9ca3af);
+}
+.audit-entry__by strong {
+  color: var(--text-secondary, #374151);
+}
+.audit-role-badge {
+  display: inline-block;
+  margin-left: 5px;
+  font-size: 0.67rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #ede9fe;
+  color: #5b21b6;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.audit-ip,
+.audit-revenue {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 0.67rem;
+  font-weight: 600;
+  color: #475569;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.audit-revenue {
+  color: #166534;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+/* Loading / empty states inside timeline */
+.audit-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 0 4px 0;
+  font-size: 0.8rem;
+  color: var(--text-muted, #9ca3af);
+}
+.audit-empty {
+  padding: 18px 0 4px 0;
+  font-size: 0.8rem;
+  color: var(--text-muted, #9ca3af);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.audit-empty__sub {
+  font-size: 0.72rem;
+  opacity: 0.75;
+}
+
+/* ── Payment status hint banner ── */
+.payment-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 12px;
+  padding: 10px 13px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 7px;
+  font-size: 0.75rem;
+  color: #1e40af;
+  line-height: 1.5;
+}
+.payment-hint__icon {
+  flex-shrink: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* ── Refund amount row highlight ── */
+.refund-amount {
+  color: #dc2626 !important;
+  font-weight: 600;
+}

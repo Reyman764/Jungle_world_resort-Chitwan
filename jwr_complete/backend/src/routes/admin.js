@@ -6,6 +6,7 @@ const {
   getBookings,
   getBookingById,
   updateBooking,
+  getAuditLogs,
   getDashboardStats,
 } = require('../controllers/adminController');
 
@@ -13,9 +14,10 @@ const {
 router.use(authenticateToken);
 router.use(requireRole(['admin', 'manager', 'staff']));
 
-router.get('/',       getBookings);
-router.get('/stats',  getDashboardStats);
-router.get('/:id',    getBookingById);
-router.patch('/:id',  updateBooking);
+router.get('/',                   getBookings);
+router.get('/stats',              getDashboardStats);
+router.get('/:id/audit-logs',     getAuditLogs);   // ← NEW: audit history
+router.get('/:id',                getBookingById);
+router.patch('/:id',              updateBooking);
 
 module.exports = router;

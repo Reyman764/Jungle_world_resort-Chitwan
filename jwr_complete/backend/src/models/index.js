@@ -45,6 +45,7 @@ const Payment              = require('./Payment')(sequelize, DataTypes);
 const Review               = require('./Review')(sequelize, DataTypes);
 const VerificationSession  = require('./VerificationSession')(sequelize, DataTypes);
 const VerificationToken    = require('./VerificationToken')(sequelize, DataTypes);   // ← NEW
+const BookingAuditLog      = require('./BookingAuditLog')(sequelize, DataTypes);
 
 // ── Associations ──────────────────────────────────────────
 
@@ -68,6 +69,14 @@ Review.belongsTo(Booking, { foreignKey: 'booking_id', as: 'booking' });
 User.hasMany(Review, { foreignKey: 'user_id', as: 'reviews' });
 Review.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 
+// Booking → AuditLogs (one-to-many)
+Booking.hasMany(BookingAuditLog, { foreignKey: 'booking_id', as: 'audit_logs' });
+BookingAuditLog.belongsTo(Booking, { foreignKey: 'booking_id', as: 'booking' });
+
+// User → AuditLogs (one-to-many, nullable)
+User.hasMany(BookingAuditLog, { foreignKey: 'changed_by_id', as: 'audit_logs' });
+BookingAuditLog.belongsTo(User, { foreignKey: 'changed_by_id', as: 'changer' });
+
 // ── Export ────────────────────────────────────────────────
 module.exports = {
   sequelize,
@@ -78,5 +87,6 @@ module.exports = {
   Payment,
   Review,
   VerificationSession,
-  VerificationToken,   // ← NEW
+  VerificationToken,
+  BookingAuditLog,
 };
