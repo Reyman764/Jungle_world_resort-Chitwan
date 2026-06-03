@@ -722,7 +722,7 @@
 [data-tooltip]::before {
   content:      attr(data-tooltip);
   background:   rgba(13,34,24,0.96);
-  color:        var(--cream);
+  color:        var(--text-on-dark);
   font-size:    12px;
   font-family:  var(--font-body);
   font-weight:  500;

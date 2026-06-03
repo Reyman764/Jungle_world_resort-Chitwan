@@ -13,9 +13,16 @@
   --forest-deep: #0d2218; --forest-mid: #1a3a2a; --forest-light: #2d5a3d; --forest-pale: #4a7c5c;
   --gold-rich: #c8973a; --gold-light: #ddb86a; --gold-pale: #f0d99a;
   --cream: #f8f4ec; --cream-dark: #ede8dc; --sand: #d4c5a4; --earth: #8b6f47;
-  --charcoal: #1c1c1c; --text-dark: #2a2a2a; --text-mid: #4a4a4a; --text-light: #7a7a7a; --white: #ffffff;
+  --charcoal: #1c1c1c; --text-dark: #2a2a2a; --text-mid: #4a4a4a; --text-light: #6b6b6b; --white: #ffffff;
   --bg: var(--cream); --surface: var(--white); --surface-2: var(--cream-dark);
   --border-color: rgba(0,0,0,0.08); --text-primary: var(--text-dark); --text-secondary: var(--text-mid);
+  --text-heading: var(--forest-deep);
+  --text-on-dark: #f8f4ec;
+  --text-on-dark-muted: rgba(248, 244, 236, 0.78);
+  --text-on-dark-subtle: rgba(248, 244, 236, 0.62);
+  --text-nav: rgba(13, 34, 24, 0.72);
+  --text-nav-active: var(--forest-deep);
+  --text-topbar: rgba(13, 34, 24, 0.68);
   --font-display: 'Cormorant Garamond', Georgia, serif;
   --font-body: 'Raleway', sans-serif;
   --font-serif: 'Crimson Pro', Georgia, serif;
@@ -26,25 +33,29 @@
 }
 
 [data-theme="dark"] {
-  --bg:        #060d08;
-  --surface:   #0c1710;
-  --surface-2: #101c13;
-  --surface-3: #152019;
+  --bg:        #0d2218;
+  --surface:   #122a1c;
+  --surface-2: #1a3a2a;
+  --surface-3: #1f422e;
 
   /* Semantic aliases so sections work correctly */
-  --cream:      #060d08;
-  --cream-dark: #0c1710;
-  --white:      #0c1710;   /* card backgrounds */
+  --cream:      #122a1c;
+  --cream-dark: #1a3a2a;
+  --white:      #122a1c;
 
   /* Borders — subtle gold tint */
   --border-color: rgba(200,151,58,0.14);
 
   /* Text — warm ivory hierarchy (WCAG AA compliant) */
-  --text-primary:   #ede8df;   /* 14.8:1 — keep */
-  --text-secondary: #c9bfb5;   /* 5.8:1  — was #9e968c (3.1:1 fail) */
-  --text-dark:      #ede8df;   /* keep */
-  --text-mid:       #c9bfb5;   /* 5.8:1  — was #9e968c (3.1:1 fail) */
-  --text-light:     #9a9289;   /* 4.2:1  — was #635d55 (1.8:1 invisible) */
+  --text-primary:   #ede8df;
+  --text-secondary: #d4ccc3;
+  --text-dark:      #ede8df;
+  --text-mid:       #d4ccc3;
+  --text-light:     #b5ada4;
+  --text-heading:   var(--text-primary);
+  --text-nav:       rgba(237, 232, 223, 0.85);
+  --text-nav-active:#f5f1ea;
+  --text-topbar:    rgba(237, 232, 223, 0.80);
 
   /* Gold — brighter so accents pop on dark backgrounds */
   --gold-light: #f0d99a;   /* 6.8:1 — was #ddb86a (5.2:1, looked dull) */
@@ -63,6 +74,36 @@ body {
   line-height: 1.7; overflow-x: hidden; -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility;
   transition: background 0.4s ease, color 0.4s ease; position: relative;
+}
+
+[data-theme="dark"] body {
+  background-color: var(--forest-deep);
+  background-image:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(45, 90, 61, 0.45) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 90% 90%, rgba(200, 151, 58, 0.10) 0%, transparent 60%);
+}
+
+[data-theme="dark"] body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 60px,
+      rgba(45, 90, 61, 0.05) 60px,
+      rgba(45, 90, 61, 0.05) 61px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 60px,
+      rgba(45, 90, 61, 0.05) 60px,
+      rgba(45, 90, 61, 0.05) 61px
+    );
 }
 body::after {
   content: ''; position: fixed; inset: 0;
@@ -98,7 +139,7 @@ button { cursor: pointer; font-family: var(--font-body); border: none; backgroun
 .section-tag::before { content: ''; display: inline-block; width: 24px; height: 1px; background: var(--gold-rich); }
 .gradient-text { background: linear-gradient(135deg, var(--gold-rich) 0%, var(--forest-light) 50%, var(--gold-light) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 .section-title { font-family: var(--font-display); font-size: clamp(2rem,4vw,3rem); font-weight: 600; color: var(--text-primary); line-height: 1.2; margin-bottom: 16px; }
-.section-title.light { color: var(--cream); }
+.section-title.light { color: var(--text-on-dark); }
 .section-divider { display: block; width: 60px; height: 2px; background: linear-gradient(90deg, var(--gold-rich), var(--gold-light)); margin-bottom: 28px; }
 .section-divider.center { margin-left: auto; margin-right: auto; }
 .section-divider.left { margin-left: 0; }
@@ -293,8 +334,7 @@ button { cursor: pointer; font-family: var(--font-body); border: none; backgroun
   gap: 16px;
 }
 [data-theme="dark"] .pkg-countdown-bar {
-  background: linear-gradient(135deg, #060d08, #0a1b0f);
-  border-bottom: 1px solid rgba(200,151,58,0.15);
+  background: linear-gradient(135deg, #0d2218, #1a3a2a);
 }
 
 /* ── PHASE 4: Countdown timer styles ── */
@@ -321,8 +361,8 @@ button { cursor: pointer; font-family: var(--font-body); border: none; backgroun
   display: flex;
   align-items: baseline;
   gap: 2px;
-  background: rgba(200,151,58,0.12);
-  border: 1px solid rgba(200,151,58,0.25);
+  background: rgba(200,151,58,0.18);
+  border: 1px solid rgba(200,151,58,0.35);
   border-radius: 6px;
   padding: 4px 8px;
 }
@@ -330,7 +370,7 @@ button { cursor: pointer; font-family: var(--font-body); border: none; backgroun
   font-family: var(--font-display);
   font-size: 18px;
   font-weight: 600;
-  color: var(--gold-rich);
+  color: var(--gold-light);
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }

@@ -1207,3 +1207,212 @@
   color: #dc2626 !important;
   font-weight: 600;
 }
+
+/* ── Admin tabs & package manager ── */
+.admin-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.admin-tab {
+  padding: 10px 20px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.admin-tab:hover {
+  border-color: #1a4731;
+  color: #1a4731;
+}
+
+.admin-tab--active {
+  background: #1a4731;
+  border-color: #1a4731;
+  color: #fff;
+}
+
+.admin-packages {
+  margin-bottom: 40px;
+}
+
+.admin-promo-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+}
+
+.admin-promo-card h4 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  color: #111827;
+}
+
+.admin-promo-hint {
+  margin: 0 0 16px;
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+.admin-promo-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.admin-promo-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 180px;
+}
+
+.admin-promo-fields label span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.admin-promo-fields input {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.88rem;
+}
+
+.admin-pkg-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.admin-pkg-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.admin-pkg-card__head {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.admin-pkg-card__badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #1a4731;
+  background: #ecfdf5;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.admin-pkg-card__popular {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #b45309;
+  background: #fffbeb;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.admin-pkg-field label,
+.admin-pkg-prices label,
+.admin-pkg-badges label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-pkg-field span,
+.admin-pkg-prices label span,
+.admin-pkg-badges label span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.admin-pkg-field input,
+.admin-pkg-prices input,
+.admin-pkg-badges input {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.88rem;
+}
+
+.admin-pkg-prices {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.admin-pkg-prices--discount {
+  border-top: 1px dashed #e5e7eb;
+  padding-top: 12px;
+}
+
+.admin-pkg-discount-title {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+.admin-pkg-badges {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.admin-pkg-save {
+  margin-top: 4px;
+  align-self: flex-start;
+}
+
+.admin-msg {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+}
+
+.admin-msg--ok {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.admin-msg--err {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+@media (max-width: 640px) {
+  .admin-pkg-prices,
+  .admin-pkg-badges {
+    grid-template-columns: 1fr;
+  }
+}

@@ -2,6 +2,8 @@
 
 const { Op } = require('sequelize');
 const { Booking, Package, User, BookingAuditLog, sequelize, Sequelize } = require('../models');
+const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 const BOOKING_STATUSES = new Set([
   'draft',
@@ -417,6 +419,34 @@ async function updateBooking(req, res, next) {
         await BookingAuditLog.bulkCreate(auditEntries, { transaction });
       }
 
+      // Auto-anonymize guest account when booking is cancelled
+      if (changedUpdates.status === 'cancelled') {
+        try {
+          const user = await User.findByPk(booking.user_id, { transaction });
+          if (user && !['admin', 'staff'].includes(user.role)) {
+            const newEmail = `deleted-${user.id}@deleted.jwr`;
+            const randomPass = crypto.randomBytes(16).toString('hex');
+            const hashed = await bcrypt.hash(randomPass, 10);
+            await user.update({
+              email: newEmail,
+              first_name: 'Deleted',
+              last_name: 'User',
+              password_hash: hashed,
+              phone: null,
+              nationality: null,
+              profile_picture_url: null,
+              is_verified: false,
+              refresh_token: null,
+              password_reset_token: null,
+              password_reset_expires: null,
+            }, { transaction });
+          }
+        } catch (e) {
+          // don't fail the booking update for anonymization problems
+          console.error('[admin][auto-anonymize] failed to anonymize user', e);
+        }
+      }
+
       refreshed = await Booking.findByPk(req.params.id, {
         include: [{ model: Package, as: 'package', attributes: ['id', 'name', 'slug'] }],
         transaction,
@@ -529,11 +559,72 @@ async function getDashboardStats(req, res, next) {
   }
 }
 
+async function deleteUser(req, res, next) {
+  try {
+    const idOrEmail = req.params.id;
+    if (!idOrEmail) return res.status(400).json({ error: 'Missing user identifier' });
+
+    let user;
+    if (idOrEmail.includes('@')) {
+      user = await User.findOne({ where: { email: idOrEmail } });
+    } else {
+      user = await User.findByPk(idOrEmail);
+    }
+
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    if (['admin', 'staff'].includes(user.role)) {
+      return res.status(403).json({ error: 'Cannot delete staff or admin accounts' });
+    }
+
+    await sequelize.transaction(async (transaction) => {
+      // 1. Anonymize the user account
+      const newEmail = `deleted-${user.id}@deleted.jwr`;
+      const randomPass = crypto.randomBytes(16).toString('hex');
+      const hashed = await bcrypt.hash(randomPass, 10);
+
+      await user.update({
+        email: newEmail,
+        first_name: 'Deleted',
+        last_name: 'User',
+        password_hash: hashed,
+        phone: null,
+        nationality: null,
+        profile_picture_url: null,
+        is_verified: false,
+        refresh_token: null,
+        password_reset_token: null,
+        password_reset_expires: null,
+      }, { transaction });
+
+      // 2. Anonymize guest details on all bookings belonging to this user
+      //    so the admin dashboard no longer displays PII
+      await Booking.update(
+        {
+          guest_name:  'Deleted Guest',
+          guest_email: newEmail,
+          guest_phone: null,
+          guest_nationality: null,
+        },
+        {
+          where: { user_id: user.id },
+          transaction,
+        }
+      );
+    });
+
+    return res.json({ success: true, message: 'Guest account and booking details anonymized' });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   getBookings,
   getBookingById,
   updateBooking,
   getAuditLogs,
   getDashboardStats,
+  deleteUser,
   paymentRevenueFromValues,
 };

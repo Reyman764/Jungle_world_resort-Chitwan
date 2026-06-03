@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './admin.css'
 import BookingDetail from './BookingDetail'
+import PackageManager from './PackageManager'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
@@ -52,6 +53,7 @@ export default function AdminDashboard() {
 
   // Modal
   const [selectedId, setSelectedId] = useState(null)
+  const [activeTab, setActiveTab] = useState('bookings')
 
   // ── Load stats ──────────────────────────────────────────
   const loadStats = useCallback(() => {
@@ -139,6 +141,30 @@ export default function AdminDashboard() {
       <main className="admin-content">
         <h1 className="admin-page-title">Dashboard</h1>
         <p className="admin-page-sub">BOOKING MANAGEMENT · JUNGLE WORLD RESORT, CHITWAN</p>
+
+        <div className="admin-tabs">
+          <button
+            type="button"
+            className={`admin-tab${activeTab === 'bookings' ? ' admin-tab--active' : ''}`}
+            onClick={() => setActiveTab('bookings')}
+          >
+            Bookings
+          </button>
+          {(user.role === 'admin' || user.role === 'manager') && (
+            <button
+              type="button"
+              className={`admin-tab${activeTab === 'packages' ? ' admin-tab--active' : ''}`}
+              onClick={() => setActiveTab('packages')}
+            >
+              Packages &amp; Pricing
+            </button>
+          )}
+        </div>
+
+        {activeTab === 'packages' ? (
+          <PackageManager />
+        ) : (
+        <>
 
         {/* Stats */}
         {statsErr ? (
@@ -316,6 +342,8 @@ export default function AdminDashboard() {
             </div>
           )}
         </div>
+        </>
+        )}
       </main>
 
       {/* Booking Detail Modal */}

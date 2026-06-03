@@ -8,6 +8,7 @@ const {
   updateBooking,
   getAuditLogs,
   getDashboardStats,
+  deleteUser,
 } = require('../controllers/adminController');
 
 // All admin routes require authentication + staff/admin/manager role
@@ -19,5 +20,8 @@ router.get('/stats',              getDashboardStats);
 router.get('/:id/audit-logs',     getAuditLogs);   // ← NEW: audit history
 router.get('/:id',                getBookingById);
 router.patch('/:id',              updateBooking);
+
+// DELETE /api/admin/users/:id — anonymize (dev-friendly) guest account
+router.delete('/users/:id',      deleteUser);
 
 module.exports = router;

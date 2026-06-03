@@ -51,7 +51,7 @@
 /* Breadcrumbs */
 .page-hero__content .breadcrumbs {
   margin-bottom: 14px;
-  color: rgba(255,255,255,0.50);
+  color: rgba(255, 255, 255, 0.72);
   font-size: 12px;
   letter-spacing: 0.06em;
 }
@@ -63,7 +63,7 @@
   color: var(--gold-pale);
 }
 .page-hero__content .breadcrumbs__sep {
-  color: rgba(255,255,255,0.30);
+  color: rgba(255, 255, 255, 0.45);
   margin: 0 4px;
 }
 
@@ -95,7 +95,7 @@
   font-family: var(--font-serif);
   font-style: italic;
   font-size: clamp(1rem, 1.8vw, 1.15rem);
-  color: rgba(255,255,255,0.72);
+  color: rgba(255, 255, 255, 0.82);
   margin-top: 4px;
   max-width: 500px;
   line-height: 1.6;

@@ -46,6 +46,7 @@ const Review               = require('./Review')(sequelize, DataTypes);
 const VerificationSession  = require('./VerificationSession')(sequelize, DataTypes);
 const VerificationToken    = require('./VerificationToken')(sequelize, DataTypes);   // ← NEW
 const BookingAuditLog      = require('./BookingAuditLog')(sequelize, DataTypes);
+const SiteSetting          = require('./SiteSetting')(sequelize, DataTypes);
 
 // ── Associations ──────────────────────────────────────────
 
@@ -89,4 +90,5 @@ module.exports = {
   VerificationSession,
   VerificationToken,
   BookingAuditLog,
+  SiteSetting,
 };

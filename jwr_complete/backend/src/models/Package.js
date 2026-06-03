@@ -73,6 +73,32 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
+    short_id: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+      unique: true,
+      comment: 'Frontend key: glance, closeup, explore',
+    },
+    discount_label: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    urgency_text: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    price_foreigner_discount: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+    },
+    price_saarc_discount: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+    },
+    price_nepali_discount: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+    },
   }, {
     tableName: 'packages',
     timestamps: true,

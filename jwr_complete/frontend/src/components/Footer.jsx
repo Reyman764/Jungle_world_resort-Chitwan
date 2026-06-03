@@ -125,6 +125,11 @@ export default function Footer() {
           {/* Brand column */}
           <div className="footer__brand">
             <div className="footer__logo">
+              <img
+                src="/images/logo/jwr-logo.png"
+                alt="Jungle World Resort Logo"
+                style={{ width: '80px', height: 'auto', objectFit: 'contain', marginBottom: '8px' }}
+              />
               <span className="footer__logo-text">Jungle World Resort</span>
               <span className="footer__logo-sub">Chitwan National Park, Nepal</span>
             </div>
@@ -162,23 +167,20 @@ export default function Footer() {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="15" height="15"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
                 <div>
                   <strong>Resort</strong><br/>
-                  Sauraha, Chitwan National Park
-                </div>
-              </div>
-              <div className="contact-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="15" height="15"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
-                <div>
-                  <strong>Office</strong><br/>
-                  Thamel, Kathmandu, Nepal
+                  Sauraha, Chitwan - Nepal
                 </div>
               </div>
               <div className="contact-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="15" height="15"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81"/></svg>
-                <div>056-580068 / 580100<br/>+977 9851198992</div>
+                <div>+9779701098631 / 9844559003</div>
               </div>
               <div className="contact-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="15" height="15"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                <div>info@jungleworldresort.com</div>
+                <div>jungleworldresort.gm@gmail.com</div>
+              </div>
+              <div className="contact-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="15" height="15"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <div>jungleworldresort.com</div>
               </div>
             </div>
           </div>

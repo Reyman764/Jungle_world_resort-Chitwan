@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import GoogleSignIn from './GoogleSignIn'
+import { usePackages } from '../hooks/usePackages'
 import './BookingWizard.css'
 
 const PACKAGE_NIGHTS = { glance: 1, closeup: 2, explore: 3 }
@@ -90,38 +91,7 @@ function OtpDigits({ value, onChange, onComplete, disabled, autoFocus }) {
   )
 }
 
-/* ── Pricing Data ── */
-const PACKAGES = [
-  {
-    id: 'glance',
-    name: 'Chitwan at a Glance',
-    duration: '1 Night · 2 Days',
-    badge: '1N · 2D',
-    prices: { foreigner: 15960, saarc: 9600, nepali: 5000 },
-    includes: ['Welcome drink & cultural show', 'Elephant bathing', 'Jeep safari', 'Canoe safari', 'All meals'],
-    img: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    id: 'closeup',
-    name: 'Close Up Chitwan',
-    duration: '2 Nights · 3 Days',
-    badge: '2N · 3D',
-    prices: { foreigner: 25270, saarc: 15200, nepali: 8500 },
-    includes: ['All 1N/2D activities', 'Guided jungle walk', 'Bird watching', 'Sunset canoe', 'All meals'],
-    img: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    id: 'explore',
-    name: 'Explore Chitwan',
-    duration: '3 Nights · 4 Days',
-    badge: '3N · 4D',
-    popular: true,
-    prices: { foreigner: 33250, saarc: 24000, nepali: 12500 },
-    includes: ['All prior activities', 'Elephant back safari', 'Sunrise jungle drive', 'Farewell dinner', 'Airport transfers'],
-    img: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=600&q=80',
-  },
-]
-
+/* ── Guest categories ── */
 const CATEGORIES = [
   { id: 'foreigner', label: 'International', desc: 'Outside SAARC countries' },
   { id: 'saarc',     label: 'SAARC',         desc: 'India, Bangladesh, Sri Lanka…' },
@@ -190,8 +160,9 @@ function PriceBreakdown({ pkg, category, adults, children, compact }) {
 }
 
 export default function BookingWizard({ preselect }) {
+  const { packages: PACKAGES, loading: packagesLoading } = usePackages()
   const [step, setStep]         = useState(0)
-  const [pkg, setPkg]           = useState(preselect ? PACKAGES.find(p => p.id === preselect) || null : null)
+  const [pkg, setPkg]           = useState(null)
   const [category, setCategory] = useState('nepali')
   const [adults, setAdults]     = useState(2)
   const [children, setChildren] = useState(0)
@@ -232,6 +203,13 @@ export default function BookingWizard({ preselect }) {
   useEffect(() => () => {
     if (resendTimerRef.current) clearInterval(resendTimerRef.current)
   }, [])
+
+  useEffect(() => {
+    if (preselect && PACKAGES.length && !pkg) {
+      const found = PACKAGES.find(p => p.id === preselect)
+      if (found) setPkg(found)
+    }
+  }, [preselect, PACKAGES, pkg])
 
   /* Auto-set departure from package length when arrival is chosen */
   useEffect(() => {
@@ -519,8 +497,8 @@ export default function BookingWizard({ preselect }) {
       <div className="wizard-success">
         <div className="wizard-success__icon">
           <svg viewBox="0 0 48 48" fill="none" width="48" height="48" aria-hidden="true">
-            <circle cx="24" cy="24" r="22" stroke="var(--forest-light)" strokeWidth="2"/>
-            <polyline points="14,25 21,32 34,17" stroke="var(--forest-light)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <circle cx="24" cy="24" r="22" stroke="var(--gold-rich)" strokeWidth="2"/>
+            <polyline points="14,25 21,32 34,17" stroke="var(--gold-light)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
         <span className="wizard-success__badge">Request received</span>
@@ -604,7 +582,9 @@ export default function BookingWizard({ preselect }) {
                 <p>Select the adventure that suits your schedule and spirit.</p>
               </div>
               <div className="pkg-cards">
-                {PACKAGES.map(p => (
+                {packagesLoading ? (
+                  <p style={{ color: 'var(--text-secondary)', padding: '12px 0' }}>Loading packages…</p>
+                ) : PACKAGES.map(p => (
                   <button
                     key={p.id}
                     type="button"

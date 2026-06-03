@@ -38,7 +38,7 @@
   font-family: var(--font-display);
   font-size: 22px;
   font-weight: 400;
-  color: var(--cream);
+  color: var(--text-on-dark);
   letter-spacing: 0.02em;
   line-height: 1.2;
 }
@@ -56,7 +56,7 @@
 .footer__about {
   font-family: var(--font-serif);
   font-size: 14.5px;
-  color: rgba(248,244,236,0.55);
+  color: var(--text-on-dark-muted);
   line-height: 1.8;
   font-style: italic;
   margin-bottom: 24px;
@@ -74,7 +74,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(248,244,236,0.6);
+  color: var(--text-on-dark-muted);
   text-decoration: none;
   transition: all 0.3s ease;
 }
@@ -82,7 +82,7 @@
 .social-btn:hover {
   background: var(--gold-rich);
   border-color: var(--gold-rich);
-  color: var(--white);
+  color: var(--forest-deep);
 }
 
 .footer__heading {
@@ -108,7 +108,7 @@
   font-family: var(--font-body);
   font-size: 13px;
   font-weight: 400;
-  color: rgba(248,244,236,0.55);
+  color: var(--text-on-dark-muted);
   text-decoration: none;
   letter-spacing: 0.04em;
   transition: color 0.2s, padding-left 0.2s;
@@ -130,7 +130,7 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  color: rgba(248,244,236,0.55);
+  color: var(--text-on-dark-muted);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -142,7 +142,7 @@
 }
 
 .contact-item strong {
-  color: rgba(248,244,236,0.8);
+  color: var(--text-on-dark);
   font-weight: 600;
   font-size: 12px;
   letter-spacing: 0.04em;
@@ -151,7 +151,7 @@
 
 .footer__newsletter-text {
   font-size: 13px;
-  color: rgba(248,244,236,0.5);
+  color: var(--text-on-dark-muted);
   line-height: 1.7;
   margin-bottom: 18px;
 }
@@ -166,7 +166,7 @@
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(200,151,58,0.25);
   border-right: none;
-  color: var(--cream);
+  color: var(--text-on-dark);
   font-family: var(--font-body);
   font-size: 13px;
   padding: 12px 16px;
@@ -175,7 +175,7 @@
 }
 
 .footer__newsletter input::placeholder {
-  color: rgba(248,244,236,0.3);
+  color: var(--text-on-dark-subtle);
 }
 
 .footer__newsletter input:focus {
@@ -185,7 +185,7 @@
 .footer__newsletter button {
   background: var(--gold-rich);
   border: none;
-  color: var(--white);
+  color: var(--forest-deep);
   width: 46px;
   
   display: flex;
@@ -211,7 +211,7 @@
   padding: 18px 0;
   font-family: var(--font-body);
   font-size: 12px;
-  color: rgba(248,244,236,0.35);
+  color: var(--text-on-dark-subtle);
   letter-spacing: 0.04em;
 }
 

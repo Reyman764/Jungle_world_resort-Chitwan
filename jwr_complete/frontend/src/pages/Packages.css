@@ -91,7 +91,7 @@
   font-family: var(--font-display);
   font-size: clamp(2rem, 3.5vw, 2.8rem);
   font-weight: 400;
-  color: var(--forest-deep);
+  color: var(--text-heading);
   margin-bottom: 16px;
   line-height: 1.2;
 }
@@ -174,7 +174,7 @@
   font-family: var(--font-display);
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--forest-deep);
+  color: var(--text-heading);
 }
 
 .pkg-detail__actions {
@@ -201,7 +201,7 @@
 }
 
 .pkg-note__box strong {
-  color: var(--forest-deep);
+  color: var(--text-heading);
 }
 
 @media (max-width: 900px) {
@@ -241,4 +241,4 @@
 .compare-price-sub { font-size: 11px; color: var(--text-light); margin: 2px 0 6px; }
 .compare-duration { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-light); }
 .check-yes { color: #4a9d4a; font-weight: 700; }
-.check-no { color: var(--text-light); opacity: 0.4; }
+.check-no { color: var(--text-light); opacity: 0.55; }

@@ -11,6 +11,11 @@ require('dotenv').config();
 
 const app = express();
 
+// Dev helper: print rate-limit settings so it's clear what dev mode uses
+if (process.env.NODE_ENV !== 'production') {
+  console.log(`[dev] RATE_LIMIT_WINDOW_MS=${process.env.RATE_LIMIT_WINDOW_MS}, RATE_LIMIT_MAX=${process.env.RATE_LIMIT_MAX}, RATE_LIMIT_MAX_DEV=${process.env.RATE_LIMIT_MAX_DEV}`);
+}
+
 // ── Security Middleware ────────────────────────────────────
 app.use(helmet());
 app.use(compression());
@@ -42,23 +47,55 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // ── Rate Limiting ─────────────────────────────────────────
-const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-  max: parseInt(process.env.RATE_LIMIT_MAX) || 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Too many requests, please try again later.' },
-});
-app.use('/api/', limiter);
+// Apply strict rate limits only in production. In development we avoid
+// aggressive limits so hot-reloads / multiple tabs don't lock out the dev.
+if (process.env.NODE_ENV === 'production') {
+  const limiter = rateLimit({
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
+    max: parseInt(process.env.RATE_LIMIT_MAX) || 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many requests, please try again later.' },
+  });
+  app.use('/api/', limiter);
 
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  message: { error: 'Too many auth attempts, please try again in 15 minutes.' },
-});
-app.use('/api/auth/login',    authLimiter);
-app.use('/api/auth/register', authLimiter);
-app.use('/api/auth/google',   authLimiter);
+  const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: { error: 'Too many auth attempts, please try again in 15 minutes.' },
+  });
+  app.use('/api/auth/login',    authLimiter);
+  app.use('/api/auth/register', authLimiter);
+  app.use('/api/auth/google',   authLimiter);
+} else {
+  // Development: use a very permissive limiter to avoid accidental lockouts
+  const devLimiter = rateLimit({
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
+    max: parseInt(process.env.RATE_LIMIT_MAX_DEV) || 1000,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many requests, please try again later.' },
+  });
+  app.use('/api/', devLimiter);
+  // expose limiter for dev debugging (e.g., reset counters)
+  app.locals.devLimiter = devLimiter;
+}
+
+// Development helper: reset limiter for an IP
+if (process.env.NODE_ENV !== 'production') {
+  app.post('/api/dev/reset-rate-limit', express.json(), (req, res) => {
+    try {
+      const ip = (req.body && req.body.ip) || req.ip || req.socket.remoteAddress
+      if (!app.locals.devLimiter || !app.locals.devLimiter.resetKey) {
+        return res.status(500).json({ error: 'Rate limiter not available' })
+      }
+      app.locals.devLimiter.resetKey(ip)
+      return res.json({ success: true, ip })
+    } catch (err) {
+      return res.status(500).json({ error: err.message })
+    }
+  })
+}
 
 // ── Health Check ──────────────────────────────────────────
 app.get('/api/health', (req, res) => {
@@ -100,8 +137,9 @@ app.use('/api/auth',     require('./routes/auth'));
 app.use('/api/verify',   require('./routes/verify'));        // ✅ existing email/phone OTP (session-based)
 app.use('/api/otp',      require('./routes/otp'));           // ✅ NEW: booking OTP via SendGrid
 app.use('/api/bookings', require('./routes/bookings'));      // ✅ booking submission
+app.use('/api/packages',  require('./routes/packages'));   // ✅ public packages
+app.use('/api/admin/packages', require('./routes/adminPackages')); // ✅ package management
 app.use('/api/admin',    require('./routes/admin'));         // ✅ admin dashboard
-// app.use('/api/packages',  require('./routes/packages'));  // add when ready
 // app.use('/api/payments',  require('./routes/payments'));  // add when ready
 
 // ── 404 Handler ───────────────────────────────────────────

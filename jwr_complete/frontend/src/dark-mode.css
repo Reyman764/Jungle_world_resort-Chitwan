@@ -21,12 +21,8 @@
 [data-theme="dark"] .section-title.light     { color: rgba(237,232,223,0.9); }
 
 /* ── Navbar ────────────────────────────────────────────────── */
-[data-theme="dark"] .logo-text__main { color: #ede8df; }
+[data-theme="dark"] .logo-text__main { color: var(--text-on-dark); }
 [data-theme="dark"] .logo-text__sub  { color: var(--gold-light); }
-
-[data-theme="dark"] .nav-link              { color: rgba(237,232,223,0.60); }
-[data-theme="dark"] .nav-link:hover,
-[data-theme="dark"] .nav-link.active       { color: #ede8df; }
 
 [data-theme="dark"] .theme-toggle {
   background:   rgba(200,151,58,0.10);
@@ -473,14 +469,14 @@
 [data-theme="dark"] .section-tag { color: var(--gold-rich); }
 
 /* ── Breadcrumbs ───────────────────────────────────────────── */
-[data-theme="dark"] .breadcrumbs   { color: rgba(237,232,223,0.45); }
+[data-theme="dark"] .breadcrumbs   { color: var(--text-light); }
 [data-theme="dark"] .breadcrumbs a,
 [data-theme="dark"] .breadcrumbs__link { color: var(--gold-rich); }
 
 /* ── Stats strip ───────────────────────────────────────────── */
 [data-theme="dark"] .stats-strip { background: var(--surface-2); }
 [data-theme="dark"] .stat-value  { color: var(--gold-light); }
-[data-theme="dark"] .stat-label  { color: rgba(237,232,223,0.45); }
+[data-theme="dark"] .stat-label  { color: rgba(237,232,223,0.72); }
 
 /* ── Table badge ───────────────────────────────────────────── */
 [data-theme="dark"] .table-badge {
@@ -565,13 +561,65 @@
 
 /* ── Package countdown bar ── */
 [data-theme="dark"] .pkg-countdown-bar {
-  background: linear-gradient(135deg, #040b06, #081108);
+  background: linear-gradient(135deg, #0d2218, #1a3a2a);
+  border-bottom: 1px solid rgba(200, 151, 58, 0.18);
 }
 
 /* ── Countdown units ── */
 [data-theme="dark"] .countdown-unit {
-  background: rgba(200,151,58,0.10);
-  border-color: rgba(200,151,58,0.20);
+  background: rgba(200, 151, 58, 0.14);
+  border-color: rgba(200, 151, 58, 0.38);
+}
+
+[data-theme="dark"] .countdown-num,
+[data-theme="dark"] .countdown-sym,
+[data-theme="dark"] .countdown-label {
+  color: var(--gold-light);
+}
+
+[data-theme="dark"] .success-summary {
+  background: var(--surface-2);
+  border-color: rgba(200, 151, 58, 0.2);
+}
+
+[data-theme="dark"] .success-row {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .success-row strong {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .wizard-success__icon svg circle,
+[data-theme="dark"] .wizard-success__icon svg polyline {
+  stroke: var(--gold-light);
+}
+
+[data-theme="dark"] .wizard-success__icon {
+  background: rgba(200, 151, 58, 0.12);
+  border: 1px solid rgba(200, 151, 58, 0.25);
+}
+
+[data-theme="dark"] .success-ref p {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+[data-theme="dark"] .success-next-steps li {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .pkg-detail__includes li svg,
+[data-theme="dark"] .intro__feature svg,
+[data-theme="dark"] .contact-card__icon svg {
+  color: var(--gold-light);
+  stroke: var(--gold-light);
+}
+
+[data-theme="dark"] .theme-btn svg,
+[data-theme="dark"] .navbar__staff-link svg,
+[data-theme="dark"] .navbar__cta svg {
+  color: inherit;
+  stroke: currentColor;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -714,4 +762,119 @@
 [data-theme="dark"] .wizard p,
 [data-theme="dark"] .wizard li {
   color: var(--text-secondary);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GLOBAL TEXT CONTRAST — fixes remapped --cream / --white tokens
+   and hardcoded low-opacity text across the site
+   ══════════════════════════════════════════════════════════════ */
+
+/* Hero sections — never use remapped surface tokens for overlay text */
+[data-theme="dark"] .hero__content,
+[data-theme="dark"] .hero__content h1,
+[data-theme="dark"] .hero__content p {
+  color: var(--text-on-dark);
+}
+
+[data-theme="dark"] .hero__subtitle {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+[data-theme="dark"] .hero__scroll-indicator {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+/* Page hero breadcrumbs — bump faded text */
+.page-hero__content .breadcrumbs {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* Muted labels site-wide in dark mode */
+[data-theme="dark"] .from,
+[data-theme="dark"] .per,
+[data-theme="dark"] .testimonial-country,
+[data-theme="dark"] .price-label,
+[data-theme="dark"] .compare-price-sub,
+[data-theme="dark"] .compare-duration,
+[data-theme="dark"] .room-card__type,
+[data-theme="dark"] .room-card__per,
+[data-theme="dark"] .room-price small,
+[data-theme="dark"] .compare-price-sub,
+[data-theme="dark"] .pkg-from,
+[data-theme="dark"] .pkg-per {
+  color: var(--text-light);
+}
+
+[data-theme="dark"] .check-no {
+  color: var(--text-light);
+  opacity: 0.65;
+}
+
+/* Breadcrumbs & stat labels — were too faint */
+[data-theme="dark"] .breadcrumbs {
+  color: var(--text-light);
+}
+
+[data-theme="dark"] .stat-label {
+  color: rgba(237, 232, 223, 0.72);
+}
+
+[data-theme="dark"] .feature-card p {
+  color: var(--text-secondary);
+}
+
+/* Tooltip — cream remaps to near-black in dark mode */
+[data-theme="dark"] [data-tooltip]::before {
+  color: var(--text-on-dark);
+}
+
+/* Tariff cream text on dark banner sections */
+[data-theme="dark"] .tariff-hero__note,
+[data-theme="dark"] .tariff-banner__text {
+  color: var(--text-on-dark-muted);
+}
+
+/* Contact responsive panel headings */
+[data-theme="dark"] .contact-info__heading,
+[data-theme="dark"] .rp-item strong {
+  color: var(--text-primary);
+}
+
+/* Staff login page */
+[data-theme="dark"] .staff-login__title,
+[data-theme="dark"] .staff-login__subtitle {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .staff-login__subtitle {
+  color: var(--text-secondary);
+}
+
+/* Floating book button — dark text on gold button is correct in both themes */
+[data-theme="dark"] .float-btn__label,
+[data-theme="dark"] .float-btn__sub {
+  color: var(--forest-deep);
+}
+
+[data-theme="light"] .breadcrumbs,
+[data-theme="light"] .from,
+[data-theme="light"] .per,
+[data-theme="light"] .testimonial-country,
+[data-theme="light"] .compare-price-sub,
+[data-theme="light"] .compare-duration,
+[data-theme="light"] .room-price small {
+  color: var(--text-light);
+}
+
+[data-theme="light"] .nav-link {
+  color: var(--text-nav);
+}
+
+[data-theme="light"] .nav-link:hover,
+[data-theme="light"] .nav-link--active {
+  color: var(--text-nav-active);
+}
+
+[data-theme="light"] .topbar__item {
+  color: var(--text-topbar);
 }

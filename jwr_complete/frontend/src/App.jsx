@@ -20,6 +20,7 @@ const StaffLogin   = lazy(() => import('./pages/StaffLogin'))
 
 // Admin (lazy)
 const AdminDashboard = lazy(() => import('./admin/AdminDashboard'))
+const AuditLogs = lazy(() => import('./admin/AuditLogs'))
 
 function PageLoader() {
   return (
@@ -130,6 +131,7 @@ export default function App() {
         <Routes>
           <Route element={<ProtectedRoute />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/bookings/:id/audit-logs" element={<AuditLogs />} />
           </Route>
           <Route path="/*" element={<PublicLayout theme={theme} toggleTheme={toggleTheme} />} />
         </Routes>

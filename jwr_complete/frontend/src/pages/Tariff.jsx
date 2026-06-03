@@ -47,7 +47,7 @@ export default function Tariff() {
       <PageHero
         title="Tariff & Rates"
         subtitle="Transparent pricing for every traveller"
-        bgImage="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1600&q=80"
+        bgImage="/images/gallery/resort-pool-day2.jpg"
         breadcrumbs={[{ label:'Tariff' }]}
       />
 

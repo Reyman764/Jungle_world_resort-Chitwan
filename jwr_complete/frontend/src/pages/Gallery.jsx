@@ -5,18 +5,19 @@ import './Gallery.css'
 const categories = ['All', 'Wildlife', 'Resort', 'Activities', 'Landscape']
 
 const photos = [
-  { id: 1, src: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=800&q=80', thumb: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=400&q=75', cat: 'Wildlife', caption: 'Wild elephants at golden hour', size: 'large' },
-  { id: 2, src: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?auto=format&fit=crop&w=800&q=80', thumb: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?auto=format&fit=crop&w=400&q=75', cat: 'Wildlife', caption: 'Bengal tiger on the prowl' },
-  { id: 3, src: 'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=800&q=80', thumb: 'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=400&q=75', cat: 'Resort', caption: 'Resort aerial view' },
-  { id: 4, src: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?auto=format&fit=crop&w=800&q=80', thumb: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?auto=format&fit=crop&w=400&q=75', cat: 'Landscape', caption: 'Dawn mist on the river', size: 'large' },
-  { id: 5, src: 'https://images.unsplash.com/photo-1504432375440-27cd62bfbc01?auto=format&fit=crop&w=800&q=80', thumb: 'https://images.unsplash.com/photo-1504432375440-27cd62bfbc01?auto=format&fit=crop&w=400&q=75', cat: 'Activities', caption: 'Jeep safari through the grassland' },
-  { id: 6, src: 'https://images.unsplash.com/photo-1474811415660-c7ea8e20fcba?auto=format&fit=crop&w=800&q=80', thumb: 'https://images.unsplash.com/photo-1474811415660-c7ea8e20fcba?auto=format&fit=crop&w=400&q=75', cat: 'Activities', caption: 'Elephant bathing experience' },
-  { id: 7, src: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=800&q=80', thumb: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=400&q=75', cat: 'Landscape', caption: 'Sal forest in morning light' },
-  { id: 8, src: 'https://images.unsplash.com/photo-1444464666168-49d633b86797?auto=format&fit=crop&w=800&q=80', thumb: 'https://images.unsplash.com/photo-1444464666168-49d633b86797?auto=format&fit=crop&w=400&q=75', cat: 'Wildlife', caption: 'Indian roller — one of 544+ species' },
-  { id: 9, src: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80', thumb: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=400&q=75', cat: 'Resort', caption: 'Poolside at sunset', size: 'large' },
-  { id: 10, src: 'https://images.unsplash.com/photo-1526470608268-f674ce90ebd4?auto=format&fit=crop&w=800&q=80', thumb: 'https://images.unsplash.com/photo-1526470608268-f674ce90ebd4?auto=format&fit=crop&w=400&q=75', cat: 'Activities', caption: 'Tharu cultural evening' },
-  { id: 11, src: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=80', thumb: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=400&q=75', cat: 'Landscape', caption: 'Himalayan panorama from Chitwan' },
-  { id: 12, src: 'https://images.unsplash.com/photo-1520250297-d9b7f1ebb14c?auto=format&fit=crop&w=800&q=80', thumb: 'https://images.unsplash.com/photo-1520250297-d9b7f1ebb14c?auto=format&fit=crop&w=400&q=75', cat: 'Resort', caption: 'Deluxe jungle cottage' },
+  { id: 1, src: '/images/gallery/resort-01.jpg', thumb: '/images/gallery/resort-01.jpg', cat: 'Resort', caption: 'Jungle World Resort grounds', size: 'large' },
+  { id: 2, src: '/images/gallery/resort-02.jpg', thumb: '/images/gallery/resort-02.jpg', cat: 'Resort', caption: 'Resort surroundings at Chitwan' },
+  { id: 3, src: '/images/gallery/resort-03.jpg', thumb: '/images/gallery/resort-03.jpg', cat: 'Resort', caption: 'Jungle World Resort landscape' },
+  { id: 4, src: '/images/gallery/resort-04.jpg', thumb: '/images/gallery/resort-04.jpg', cat: 'Resort', caption: 'Resort view in the morning light', size: 'large' },
+  { id: 5, src: '/images/gallery/resort-05.jpg', thumb: '/images/gallery/resort-05.jpg', cat: 'Resort', caption: 'Evening ambience at Jungle World' },
+  { id: 6, src: '/images/gallery/resort-06.jpg', thumb: '/images/gallery/resort-06.jpg', cat: 'Resort', caption: 'Night atmosphere at the resort' },
+  { id: 7, src: '/images/gallery/resort-07.jpg', thumb: '/images/gallery/resort-07.jpg', cat: 'Resort', caption: 'Jungle World Resort at night' },
+  { id: 8, src: '/images/gallery/resort-08.jpg', thumb: '/images/gallery/resort-08.jpg', cat: 'Resort', caption: 'Resort gardens and pathways' },
+  { id: 9, src: '/images/gallery/resort-09.jpg', thumb: '/images/gallery/resort-09.jpg', cat: 'Resort', caption: 'Relaxing spaces at Jungle World', size: 'large' },
+  { id: 10, src: '/images/gallery/resort-10.jpg', thumb: '/images/gallery/resort-10.jpg', cat: 'Resort', caption: 'The beauty of Jungle World Resort' },
+  { id: 11, src: '/images/gallery/resort-pool-night.jpg', thumb: '/images/gallery/resort-pool-night.jpg', cat: 'Resort', caption: 'Swimming pool glowing at night', size: 'large' },
+  { id: 12, src: '/images/gallery/resort-pool-day1.jpg', thumb: '/images/gallery/resort-pool-day1.jpg', cat: 'Resort', caption: 'Resort swimming pool surrounded by palms' },
+  { id: 13, src: '/images/gallery/resort-pool-day2.jpg', thumb: '/images/gallery/resort-pool-day2.jpg', cat: 'Resort', caption: 'Crystal clear pool with jungle backdrop' },
 ]
 
 export default function Gallery() {
@@ -59,7 +60,7 @@ export default function Gallery() {
       <PageHero
         title="Gallery"
         subtitle="Light, water, and wildlife — moments from the forest"
-        bgImage="https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1600&q=80"
+        bgImage="/images/gallery/resort-pool-day1.jpg"
         breadcrumbs={[{ label:"Gallery" }]}
       />
 

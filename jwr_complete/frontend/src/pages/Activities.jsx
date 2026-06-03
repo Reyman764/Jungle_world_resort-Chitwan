@@ -25,7 +25,7 @@ export default function Activities() {
       <PageHero
         title="In the Field"
         subtitle="Six ways to know the forest"
-        bgImage="https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1600&q=80"
+        bgImage="/images/gallery/resort-pool-day1.jpg"
         breadcrumbs={[{ label:'Activities' }]}
       />
 

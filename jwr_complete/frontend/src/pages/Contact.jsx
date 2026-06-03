@@ -1,34 +1,45 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import PageHero from '../components/PageHero'
 import BookingWizard from '../components/BookingWizard'
+import { resolvePreselect } from '../hooks/usePackages'
 import './Contact.css'
 
 const contactCards = [
   {
     icon: (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>),
-    heading: 'Resort', lines: ['Sauraha, Chitwan National Park', 'Chitwan, Nepal'],
-  },
-  {
-    icon: (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>),
-    heading: 'Kathmandu Office', lines: ['Thamel, Kathmandu', 'Nepal'],
+    heading: 'Resort', lines: ['Sauraha, Chitwan - Nepal'],
   },
   {
     icon: (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012.18 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.16a16 16 0 006.93 6.93l1.52-1.52a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>),
-    heading: 'Phone', lines: ['056-580068 / 580100', '+977 9851198992 (Bhuwan)', '9851176509 (Kanchan)'],
+    heading: 'Phone', lines: ['+9779701098631', '9844559003'],
   },
   {
     icon: (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>),
-    heading: 'Email', lines: ['info@jungleworldresort.com', 'jungleworldchitwan@gmail.com'],
+    heading: 'Email', lines: ['jungleworldresort.gm@gmail.com'],
+  },
+  {
+    icon: (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>),
+    heading: 'Web', lines: ['jungleworldresort.com'],
   },
 ]
 
 export default function Contact() {
+  const preselect = resolvePreselect(
+    typeof window !== 'undefined' ? sessionStorage.getItem('jwrPreselect') : null
+  )
+
+  useEffect(() => {
+    return () => {
+      try { sessionStorage.removeItem('jwrPreselect') } catch { /* ignore */ }
+    }
+  }, [])
+
   return (
     <main>
       <PageHero
         title="Book Your Stay"
         subtitle="Plan, personalise and confirm in minutes"
-        bgImage="https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1600&q=80"
+        bgImage="/images/gallery/resort-pool-day1.jpg"
       />
 
       <section id="booking-section" className="booking-section">
@@ -42,7 +53,7 @@ export default function Contact() {
           </p>
         </div>
         <div className="container booking-wizard-wrap">
-          <BookingWizard />
+          <BookingWizard preselect={preselect} />
         </div>
       </section>
 

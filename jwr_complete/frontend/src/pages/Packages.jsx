@@ -2,29 +2,24 @@ import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import PageHero from '../components/PageHero'
 import CountdownTimer from '../components/CountdownTimer'
+import { usePackages } from '../hooks/usePackages'
 import './Packages.css'
-
-const packages = [
-  { id:1, name:'Chitwan at a Glance', duration:'1 Night · 2 Days', price:'NPR 15,960', priceINR:'NPR 9,600', priceNPR:'NPR 5,000', img:'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?auto=format&fit=crop&w=900&q=80', badge:'1N · 2D', urgency:'2 rooms left', includes:['Welcome drink & cultural program','Elephant bathing (if available)','Jeep safari in National Park','Canoe safari on Rapti River','Tharu village walk','All meals (breakfast, lunch, dinner)'], desc:'A quick yet immersive escape. Perfect for weekend warriors who want to experience the essence of Chitwan without a long stay.' },
-  { id:2, name:'Close Up Chitwan', duration:'2 Nights · 3 Days', price:'NPR 25,270', priceINR:'NPR 15,200', priceNPR:'NPR 8,500', img:'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=900&q=80', badge:'2N · 3D', discount:'15% Off', includes:['All Day 1 activities','Guided jungle walk at dawn','Bird watching with naturalist','Sunset canoe ride','Cultural village dinner experience','All meals included'], desc:'A more intimate look at Chitwan. Two nights give you time to slow down, breathe the forest air, and connect with nature.' },
-  { id:3, name:'Explore Chitwan', duration:'3 Nights · 4 Days', price:'NPR 33,250', priceINR:'NPR 24,000', priceNPR:'NPR 12,500', img:'https://sweethomechitwan.com/wp-content/uploads/2025/01/j2.jpg', badge:'3N · 4D', popular:true, includes:['All activities from Day 1 & 2','Elephant back safari (optional)','Naturalist-led jungle drives','Sunset viewpoint trek','Farewell Tharu cultural dinner','All meals + airport transfers'], desc:'The full measure of Chitwan — four days shaped by the forest, guided by naturalists who know every trail and waterhole.' },
-]
 
 export default function Packages() {
   const [view, setView] = useState('detail')
+  const { packages, promo, loading } = usePackages()
 
   return (
     <main>
       <PageHero
         title="Stays in the Wild"
         subtitle="Three stays. One wilderness."
-        bgImage="https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1600&q=80"
+        bgImage="/images/gallery/resort-pool-day1.jpg"
         breadcrumbs={[{ label:'Packages' }]}
       />
 
-      {/* Phase 4: Early bird countdown */}
       <div className="pkg-countdown-bar" role="banner" aria-label="Limited time offer">
-        <CountdownTimer targetDate="2026-09-30" label="Early Bird Discount Expires In" />
+        <CountdownTimer targetDate={promo.endsAt} label={promo.label} />
       </div>
 
       <section className="pkg-intro">
@@ -48,7 +43,11 @@ export default function Packages() {
         </div>
       </section>
 
-      {view === 'detail' ? (
+      {loading ? (
+        <div className="container" style={{ padding: '60px 0', textAlign: 'center', color: 'var(--text-secondary)' }}>
+          Loading packages…
+        </div>
+      ) : view === 'detail' ? (
         <section className="pkgs-list">
           <div className="container">
             {packages.map((pkg, i) => (
@@ -56,7 +55,7 @@ export default function Packages() {
                 <div className="pkg-detail__image" style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden' }}>
                   <img
                     src={pkg.img}
-                    srcSet={`${pkg.img.replace('w=900', 'w=450')} 450w, ${pkg.img} 900w`}
+                    srcSet={pkg.img?.includes('w=900') ? `${pkg.img.replace('w=900', 'w=450')} 450w, ${pkg.img} 900w` : undefined}
                     sizes="(max-width: 768px) 100vw, 50vw"
                     alt={`${pkg.name} — ${pkg.duration}`}
                     loading="lazy"
@@ -65,7 +64,6 @@ export default function Packages() {
                   />
                   {pkg.popular && <div className="pkg-detail__popular" aria-label="Signature stay package">Signature Stay</div>}
                   <div className="pkg-detail__badge">{pkg.badge}</div>
-                  {/* Phase 4: Urgency badges */}
                   {pkg.urgency && (
                     <div className="pkg-badge pkg-badge--urgency" aria-label={`Only ${pkg.urgency}`}>
                       Only {pkg.urgency}
@@ -93,15 +91,18 @@ export default function Packages() {
                     </ul>
                   </div>
                   <div className="pkg-detail__pricing">
-                    {[['International (NPR)', pkg.price], ['SAARC (NPR)', pkg.priceINR], ['Nepali (NPR)', pkg.priceNPR]].map(([label, amt]) => (
+                    {[['International (NPR)', pkg.price, pkg.priceOriginal], ['SAARC (NPR)', pkg.priceINR], ['Nepali (NPR)', pkg.priceNPR]].map(([label, amt, original]) => (
                       <div key={label} className="price-tier">
                         <span className="price-label">{label}</span>
-                        <span className="price-amount">{amt}</span>
+                        <span className="price-amount">
+                          {original && <s style={{ opacity: 0.55, marginRight: 8, fontSize: '0.85em' }}>{original}</s>}
+                          {amt}
+                        </span>
                       </div>
                     ))}
                   </div>
                   <div className="pkg-detail__actions">
-                    <Link to="/contact#booking-section" className="btn-primary" aria-label={`Reserve ${pkg.name}`} onClick={() => sessionStorage.setItem("jwrPreselect", pkg.id)}><span>Reserve This Stay</span></Link>
+                    <Link to="/contact#booking-section" className="btn-primary" aria-label={`Reserve ${pkg.name}`} onClick={() => sessionStorage.setItem('jwrPreselect', pkg.id)}><span>Reserve This Stay</span></Link>
                     <Link to="/tariff" className="btn-ghost-dark">View Rates</Link>
                   </div>
                 </div>
@@ -130,7 +131,7 @@ export default function Packages() {
                   <div className="compare-price">{pkg.price}</div>
                   <div className="compare-price-sub">SAARC: {pkg.priceINR} · Nepali: {pkg.priceNPR}</div>
                   <div className="compare-duration">{pkg.duration}</div>
-                  <Link to="/contact" className="btn-primary" style={{ fontSize:'11px', padding:'10px 20px', marginTop:'12px' }} aria-label={`Book ${pkg.name}`}>
+                  <Link to="/contact" className="btn-primary" style={{ fontSize:'11px', padding:'10px 20px', marginTop:'12px' }} aria-label={`Book ${pkg.name}`} onClick={() => sessionStorage.setItem('jwrPreselect', pkg.id)}>
                     <span>Book</span>
                   </Link>
                 </div>
