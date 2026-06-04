@@ -1901,3 +1901,38 @@
 [data-theme="dark"] .departure-hint {
   background: rgba(45, 90, 61, 0.15);
 }
+
+/* ── Package picker — urgency & discount ── */
+.pkg-discount-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: rgba(45,90,61,0.92);
+  color: #a3e0b0;
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  z-index: 3;
+}
+
+.pkg-urgency-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b43723;
+  margin: 0 0 8px;
+  padding: 0;
+}
+.pkg-urgency-text svg { color: #b43723; flex-shrink: 0; }
+
+[data-theme="dark"] .pkg-urgency-text { color: #fca5a5; }
+[data-theme="dark"] .pkg-urgency-text svg { color: #fca5a5; }
+[data-theme="dark"] .pkg-discount-badge { background: rgba(45,90,61,0.85); }

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { usePackages } from '../hooks/usePackages'
+import PackageBadges from '../components/PackageBadges'
 import './Home.css'
 
 const activities = [
@@ -257,6 +258,7 @@ export default function Home() {
                   />
                   <div className="pkg-card__badge">{pkg.badge}</div>
                   {pkg.highlight && <div className="pkg-card__popular" aria-label="Signature stay package">Signature Stay</div>}
+                  <PackageBadges urgency={pkg.urgency} discount={pkg.discount} />
                 </div>
                 <div className="pkg-card__body">
                   <div className="pkg-card__duration">{pkg.duration}</div>

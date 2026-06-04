@@ -1,0 +1,54 @@
+/* ── PackageBadges: inline hint pills (variant="inline") ── */
+.pkg-hints {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.pkg-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: 50px;
+}
+
+.pkg-hint--urgency {
+  background: rgba(180,55,35,0.08);
+  color: #b43723;
+  border: 1px solid rgba(180,55,35,0.25);
+}
+
+.pkg-hint--discount {
+  background: rgba(45,90,61,0.08);
+  color: var(--forest-light);
+  border: 1px solid rgba(45,90,61,0.25);
+}
+
+/* ── PackageBadges: compare view pills (variant="compare") ── */
+.compare-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+  align-items: center;
+}
+
+.compare-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 50px;
+  white-space: nowrap;
+}
+
+.compare-badge--urgency  { background: rgba(180,55,35,0.9); color: #fff; }
+.compare-badge--discount { background: rgba(45,90,61,0.9);  color: #a3e0b0; }

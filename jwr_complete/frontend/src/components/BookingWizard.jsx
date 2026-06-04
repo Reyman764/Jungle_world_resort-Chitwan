@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import GoogleSignIn from './GoogleSignIn'
 import { usePackages } from '../hooks/usePackages'
+import PackageBadges from './PackageBadges'
 import './BookingWizard.css'
 
 const PACKAGE_NIGHTS = { glance: 1, closeup: 2, explore: 3 }
@@ -596,10 +597,17 @@ export default function BookingWizard({ preselect }) {
                       <img src={p.img} alt={p.name} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
                       {p.popular && <span className="pkg-pop-badge">Most Popular</span>}
                       <span className="pkg-dur-badge">{p.badge}</span>
+                      <PackageBadges urgency={null} discount={p.discount} />
                     </div>
                     <div className="pkg-card-pick__body">
                       <h4>{p.name}</h4>
                       <p className="pkg-duration">{p.duration}</p>
+                      {p.urgency && (
+                        <p className="pkg-urgency-text">
+                          <svg viewBox="0 0 16 16" fill="none" width="10" height="10" aria-hidden="true"><circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5"/><path d="M8 4v4l2.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                          Only {p.urgency}
+                        </p>
+                      )}
                       <ul className="pkg-mini-includes">
                         {p.includes.slice(0, 3).map((inc, j) => (
                           <li key={j}>
