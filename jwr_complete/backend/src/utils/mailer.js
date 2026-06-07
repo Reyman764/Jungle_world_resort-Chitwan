@@ -429,9 +429,65 @@ async function sendBookingOtpEmail(to, otp) {
   return result;
 }
 
+// ─────────────────────────────────────────────────────────
+// STAFF auth emails
+// ─────────────────────────────────────────────────────────
+
+function staffAdminBaseUrl() {
+  return (process.env.ADMIN_URL || process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
+}
+
+async function sendStaffVerificationEmail(email, token, firstName = 'Staff') {
+  const verifyUrl = `${staffAdminBaseUrl()}/staff-verify?token=${encodeURIComponent(token)}`;
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;">
+      <h2 style="color:#1a4731;">Verify your staff account</h2>
+      <p>Hello <strong>${firstName}</strong>,</p>
+      <p>Welcome to Jungle World Resort admin. Please verify your email to activate your account.</p>
+      <p><a href="${verifyUrl}" style="display:inline-block;background:#1a4731;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;">Verify Email</a></p>
+      <p style="font-size:12px;color:#666;">Or copy this link: ${verifyUrl}</p>
+      <p style="font-size:12px;color:#999;">This link expires in 24 hours.</p>
+    </div>`;
+  const text = `Hello ${firstName},\n\nVerify your staff account: ${verifyUrl}\n\nExpires in 24 hours.`;
+
+  return dispatchEmail({
+    to: email,
+    from: getFromAddress(),
+    subject: 'Jungle World Resort — Verify your staff account',
+    html,
+    text,
+    _devCode: token,
+  });
+}
+
+async function sendStaffPasswordResetEmail(email, token, firstName = 'Staff') {
+  const resetUrl = `${staffAdminBaseUrl()}/staff-reset-password?token=${encodeURIComponent(token)}`;
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;">
+      <h2 style="color:#1a4731;">Reset your password</h2>
+      <p>Hello <strong>${firstName}</strong>,</p>
+      <p>We received a request to reset your staff account password.</p>
+      <p><a href="${resetUrl}" style="display:inline-block;background:#1a4731;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;">Reset Password</a></p>
+      <p style="font-size:12px;color:#666;">Or copy this link: ${resetUrl}</p>
+      <p style="font-size:12px;color:#999;">This link expires in 1 hour. If you did not request this, ignore this email.</p>
+    </div>`;
+  const text = `Hello ${firstName},\n\nReset your password: ${resetUrl}\n\nExpires in 1 hour.`;
+
+  return dispatchEmail({
+    to: email,
+    from: getFromAddress(),
+    subject: 'Jungle World Resort — Password reset',
+    html,
+    text,
+    _devCode: token,
+  });
+}
+
 module.exports = {
   sendOtpEmail,
-  sendBookingOtpEmail,   // ← NEW
+  sendBookingOtpEmail,
+  sendStaffVerificationEmail,
+  sendStaffPasswordResetEmail,
   isEmailConfigured,
   hasSendGrid,
   hasSmtp,

@@ -1,6 +1,7 @@
 'use strict';
 
 const { Package, SiteSetting } = require('../models');
+const { uploadImage } = require('../utils/cloudinaryUpload');
 
 const PROMO_DEFAULTS = {
   label: 'Early Bird Discount Expires In',
@@ -150,4 +151,25 @@ async function updatePromoSettings(req, res, next) {
   } catch (err) { next(err); }
 }
 
-module.exports = { serializePackage, getPublicPackages, listAdminPackages, updatePackage, updatePromoSettings, getPromoSettings };
+async function uploadPackageImage(req, res, next) {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No image file provided' });
+
+    const pkg = await Package.findByPk(req.params.id);
+    if (!pkg) return res.status(404).json({ error: 'Package not found' });
+
+    // Upload to Cloudinary / Supabase Storage
+    const imageUrl = await uploadImage(req.file.buffer, {
+      mimetype:  req.file.mimetype,
+      public_id: `pkg-${pkg.slug || pkg.id}-${Date.now()}`,
+      folder:    'jungle-world-resort/packages',
+    });
+
+    // Persist the new URL
+    await pkg.update({ image_url: imageUrl });
+
+    res.json({ package: serializePackage(pkg) });
+  } catch (err) { next(err); }
+}
+
+module.exports = { serializePackage, getPublicPackages, listAdminPackages, updatePackage, updatePromoSettings, getPromoSettings, uploadPackageImage };

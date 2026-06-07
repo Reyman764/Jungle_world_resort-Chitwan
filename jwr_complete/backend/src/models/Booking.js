@@ -159,6 +159,23 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    is_spam: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    spam_reason: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    marked_spam_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    marked_spam_by: {
+      type: DataTypes.UUID,
+      allowNull: true,
+    },
   }, {
     tableName: 'bookings',
     timestamps: true,

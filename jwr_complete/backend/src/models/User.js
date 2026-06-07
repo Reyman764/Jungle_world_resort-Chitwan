@@ -77,6 +77,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
       allowNull: true,
     },
+    account_status: {
+      type: DataTypes.ENUM('pending', 'active', 'inactive', 'suspended'),
+      allowNull: false,
+      defaultValue: 'active',
+    },
+    must_change_password: {
+      type:         DataTypes.BOOLEAN,
+      allowNull:    false,
+      defaultValue: false,
+    },
   }, {
     tableName: 'users',
     timestamps: true,

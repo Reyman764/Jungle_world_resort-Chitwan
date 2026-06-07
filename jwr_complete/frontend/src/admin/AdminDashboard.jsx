@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './admin.css'
-import BookingDetail from './BookingDetail'
+import BookingManager from './BookingManager'
 import PackageManager from './PackageManager'
+import GalleryManager from './GalleryManager'
+import StaffManagement from './StaffManagement'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
@@ -11,23 +13,116 @@ function authHeader() {
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
-function StatusBadge({ status }) {
-  const cls = `status-badge status-${status?.replace(/ /g, '_') || 'draft'}`
-  return <span className={cls}>{status || 'draft'}</span>
-}
-
-function PayBadge({ status }) {
-  const cls = `status-badge pay-${status || 'pending'}`
-  return <span className={cls}>{status || 'pending'}</span>
-}
-
-function StatCard({ label, value, sub, icon, accent }) {
+function StatCard({ label, value, sub, accent }) {
   return (
     <div className="stat-card" style={{ '--stat-accent': accent }}>
-      {icon && <span className="stat-card__icon">{icon}</span>}
       <div className="stat-card__label">{label}</div>
       <div className="stat-card__value">{value ?? '—'}</div>
       {sub && <div className="stat-card__sub">{sub}</div>}
+    </div>
+  )
+}
+
+// ── Change My Password ─────────────────────────────────────────
+function ChangeMyPassword() {
+  const navigate = useNavigate()
+  const [form,    setForm]    = useState({ oldPassword: '', newPassword: '', confirm: '' })
+  const [error,   setError]   = useState('')
+  const [success, setSuccess] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    setError('')
+    setSuccess('')
+
+    if (form.newPassword.length < 8) { setError('New password must be at least 8 characters.'); return }
+    if (form.newPassword !== form.confirm) { setError('Passwords do not match.'); return }
+
+    setLoading(true)
+    try {
+      const res  = await fetch(`${API}/api/staff/auth/change-password`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeader() },
+        body:    JSON.stringify({ oldPassword: form.oldPassword, newPassword: form.newPassword }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setError(data.error || 'Could not change password.'); return }
+
+      setSuccess('Password changed successfully. You will be logged out.')
+      setTimeout(() => {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        localStorage.removeItem('staffToken')
+        localStorage.removeItem('staffUser')
+        navigate('/staff/login')
+      }, 2200)
+    } catch {
+      setError('Network error. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div style={{ maxWidth: 440, margin: '0 auto', padding: '24px 0' }}>
+      <h2 style={{ color: 'var(--a-text)', fontSize: '1.15rem', marginBottom: 6, fontWeight: 600 }}>
+        Change My Password
+      </h2>
+      <p style={{ color: 'var(--a-text-4)', fontSize: '0.82rem', marginBottom: 28 }}>
+        After changing your password you will be logged out and must sign in again.
+      </p>
+
+      {error   && <div className="sm-alert sm-alert--error"   style={{ marginBottom: 18 }}>{error}</div>}
+      {success && <div className="sm-alert sm-alert--success" style={{ marginBottom: 18 }}>{success}</div>}
+
+      <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {[
+          { name: 'oldPassword', label: 'Current Password',     placeholder: '••••••••' },
+          { name: 'newPassword', label: 'New Password',         placeholder: 'Min. 8 characters' },
+          { name: 'confirm',     label: 'Confirm New Password', placeholder: 'Repeat new password' },
+        ].map(({ name, label, placeholder }) => (
+          <div key={name}>
+            <label style={{
+              display: 'block', fontSize: 11, fontWeight: 600,
+              color: 'var(--a-text-3)', marginBottom: 6,
+              textTransform: 'uppercase', letterSpacing: '.05em',
+            }}>
+              {label}
+            </label>
+            <input
+              type="password"
+              placeholder={placeholder}
+              value={form[name]}
+              onChange={e => setForm(f => ({ ...f, [name]: e.target.value }))}
+              required
+              style={{
+                width: '100%', padding: '10px 14px',
+                background: 'var(--a-surface)',
+                border: '1px solid var(--a-border)',
+                borderRadius: 9,
+                color: 'var(--a-text)',
+                fontSize: 14, boxSizing: 'border-box', outline: 'none',
+                fontFamily: 'inherit',
+              }}
+            />
+          </div>
+        ))}
+
+        <button
+          type="submit"
+          disabled={loading || !!success}
+          style={{
+            marginTop: 8, padding: '11px 0',
+            background: 'var(--a-green)',
+            color: '#fff', border: 'none', borderRadius: 9,
+            fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            opacity: loading ? .6 : 1, transition: 'opacity .2s',
+          }}
+        >
+          {loading ? 'Saving…' : 'Update Password'}
+        </button>
+      </form>
     </div>
   )
 }
@@ -36,26 +131,10 @@ export default function AdminDashboard() {
   const navigate = useNavigate()
   const user = (() => { try { return JSON.parse(localStorage.getItem('user') || '{}') } catch { return {} } })()
 
-  const [stats,    setStats]    = useState(null)
-  const [bookings, setBookings] = useState([])
-  const [total,    setTotal]    = useState(0)
-  const [page,     setPage]     = useState(1)
-  const [loading,  setLoading]  = useState(true)
+  const [stats, setStats] = useState(null)
   const [statsErr, setStatsErr] = useState('')
-
-  // Filters
-  const [search,    setSearch]    = useState('')
-  const [status,    setStatus]    = useState('')
-  const [category,  setCategory]  = useState('')
-  const [startDate, setStartDate] = useState('')
-  const [endDate,   setEndDate]   = useState('')
-  const [applied,   setApplied]   = useState({})
-
-  // Modal
-  const [selectedId, setSelectedId] = useState(null)
   const [activeTab, setActiveTab] = useState('bookings')
 
-  // ── Load stats ──────────────────────────────────────────
   const loadStats = useCallback(() => {
     fetch(`${API}/api/admin/stats`, { headers: authHeader() })
       .then(r => r.json())
@@ -65,60 +144,14 @@ export default function AdminDashboard() {
 
   useEffect(() => { loadStats() }, [loadStats])
 
-  // ── Load bookings ────────────────────────────────────────
-  const loadBookings = useCallback(async (filters = applied, pg = 1) => {
-    setLoading(true)
-    try {
-      const q = new URLSearchParams()
-      if (filters.status)    q.set('status',    filters.status)
-      if (filters.category)  q.set('category',  filters.category)
-      if (filters.startDate) q.set('startDate', filters.startDate)
-      if (filters.endDate)   q.set('endDate',   filters.endDate)
-      if (filters.search)    q.set('search',    filters.search)
-      q.set('page', pg)
-
-      const res = await fetch(`${API}/api/admin?${q}`, { headers: authHeader() })
-      const data = await res.json()
-
-      if (res.ok) {
-        setBookings(data.bookings || [])
-        setTotal(data.total || 0)
-        setPage(pg)
-      } else if (res.status === 401 || res.status === 403) {
-        handleLogout()
-      }
-    } finally {
-      setLoading(false)
-    }
-  }, [applied])
-
-  useEffect(() => { loadBookings({}, 1) }, [])
-
-  function handleApply() {
-    const f = { search, status, category, startDate, endDate }
-    setApplied(f)
-    loadBookings(f, 1)
-  }
-
-  function handleClear() {
-    setSearch(''); setStatus(''); setCategory(''); setStartDate(''); setEndDate('')
-    const f = {}
-    setApplied(f)
-    loadBookings(f, 1)
-  }
-
   function handleLogout() {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
-    navigate('/staff-login')
+    navigate('/staff/login')
   }
-
-  const totalPages = Math.ceil(total / 50)
 
   return (
     <div className="admin-shell">
-
-      {/* Top bar */}
       <header className="admin-topbar">
         <div className="admin-topbar__brand">
           <span className="admin-topbar__logo">Jungle World Resort</span>
@@ -129,12 +162,8 @@ export default function AdminDashboard() {
             Logged in as <strong>{user.first_name || user.email}</strong>
             {user.role && <> · {user.role}</>}
           </span>
-          <button className="admin-logout-btn" onClick={handleLogout}>
-            <svg viewBox="0 0 16 16" fill="none" width="13" height="13">
-              <path d="M6 2H3a1 1 0 00-1 1v10a1 1 0 001 1h3M10 11l3-3-3-3M13 8H6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            Logout
-          </button>
+          <a href="/" className="admin-view-site-btn">View Website</a>
+          <button type="button" className="admin-logout-btn" onClick={handleLogout}>Logout</button>
         </div>
       </header>
 
@@ -143,217 +172,74 @@ export default function AdminDashboard() {
         <p className="admin-page-sub">BOOKING MANAGEMENT · JUNGLE WORLD RESORT, CHITWAN</p>
 
         <div className="admin-tabs">
-          <button
-            type="button"
-            className={`admin-tab${activeTab === 'bookings' ? ' admin-tab--active' : ''}`}
-            onClick={() => setActiveTab('bookings')}
-          >
+          <button type="button" className={`admin-tab${activeTab === 'bookings' ? ' admin-tab--active' : ''}`} onClick={() => setActiveTab('bookings')}>
             Bookings
           </button>
           {(user.role === 'admin' || user.role === 'manager') && (
-            <button
-              type="button"
-              className={`admin-tab${activeTab === 'packages' ? ' admin-tab--active' : ''}`}
-              onClick={() => setActiveTab('packages')}
-            >
+            <button type="button" className={`admin-tab${activeTab === 'packages' ? ' admin-tab--active' : ''}`} onClick={() => setActiveTab('packages')}>
               Packages &amp; Pricing
             </button>
           )}
-        </div>
-
-        {activeTab === 'packages' ? (
-          <PackageManager />
-        ) : (
-        <>
-
-        {/* Stats */}
-        {statsErr ? (
-          <p className="text-muted" style={{ marginBottom: 24 }}>{statsErr}</p>
-        ) : (
-          <div className="admin-stats-grid">
-            <StatCard
-              label="Total Bookings"
-              value={stats?.total_bookings}
-              sub="all time"
-              accent="#1a4731"
-            />
-            <StatCard
-              label="Pending Confirmation"
-              value={stats?.pending_confirmations}
-              sub="require action"
-              accent="#d97706"
-            />
-            <StatCard
-              label="Confirmed / Active"
-              value={stats ? (Number(stats.confirmed_bookings) + Number(stats.checked_in)) : undefined}
-              sub={stats ? `${stats.confirmed_bookings} confirmed · ${stats.checked_in} checked in` : ''}
-              accent="#16a34a"
-            />
-            <StatCard
-              label="Total Revenue"
-              value={stats ? `NPR ${Math.round(Number(stats.total_revenue)).toLocaleString()}` : undefined}
-              sub={stats ? `NPR ${Math.round(Number(stats.confirmed_revenue || 0)).toLocaleString()} active · NPR ${Math.round(Number(stats.revenue_this_month)).toLocaleString()} this month` : ''}
-              accent="#2563eb"
-            />
-          </div>
-        )}
-
-        {/* Filters */}
-        <div className="admin-filters">
-          <div className="admin-filter-group grow">
-            <label className="admin-filter-label">Search</label>
-            <input
-              type="text"
-              className="admin-filter-input"
-              placeholder="Guest name, email, or reference…"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleApply()}
-            />
-          </div>
-
-          <div className="admin-filter-group">
-            <label className="admin-filter-label">Status</label>
-            <select className="admin-filter-select" value={status} onChange={e => setStatus(e.target.value)}>
-              <option value="">All statuses</option>
-              <option value="draft">Draft</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="checked_in">Checked In</option>
-              <option value="checked_out">Checked Out</option>
-              <option value="cancelled">Cancelled</option>
-              <option value="no_show">No Show</option>
-            </select>
-          </div>
-
-          <div className="admin-filter-group">
-            <label className="admin-filter-label">Guest Category</label>
-            <select className="admin-filter-select" value={category} onChange={e => setCategory(e.target.value)}>
-              <option value="">All categories</option>
-              <option value="foreigner">Foreigner</option>
-              <option value="saarc">SAARC</option>
-              <option value="nepali">Nepali</option>
-            </select>
-          </div>
-
-          <div className="admin-filter-group">
-            <label className="admin-filter-label">Check-in From</label>
-            <input type="date" className="admin-filter-input" value={startDate} onChange={e => setStartDate(e.target.value)} />
-          </div>
-
-          <div className="admin-filter-group">
-            <label className="admin-filter-label">Check-in To</label>
-            <input type="date" className="admin-filter-input" value={endDate} onChange={e => setEndDate(e.target.value)} />
-          </div>
-
-          <button className="admin-filter-btn" onClick={handleApply}>
-            <svg viewBox="0 0 16 16" fill="none" width="12" height="12">
-              <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/>
-              <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
-            Search
+          {user.role === 'admin' && (
+            <button type="button" className={`admin-tab${activeTab === 'gallery' ? ' admin-tab--active' : ''}`} onClick={() => setActiveTab('gallery')}>
+              Gallery
+            </button>
+          )}
+          {(user.role === 'admin' || user.role === 'manager') && (
+            <button type="button" className={`admin-tab${activeTab === 'staff' ? ' admin-tab--active' : ''}`} onClick={() => setActiveTab('staff')}>
+              Staff
+            </button>
+          )}
+          <button type="button" className={`admin-tab${activeTab === 'password' ? ' admin-tab--active' : ''}`} onClick={() => setActiveTab('password')}>
+            My Password
           </button>
-
-          <button className="admin-clear-btn" onClick={handleClear}>Clear</button>
         </div>
 
-        {/* Table */}
-        <div className="admin-table-wrap">
-          <div className="admin-table-header">
-            <h3>Bookings</h3>
-            <span className="admin-table-count">{total} total</span>
-          </div>
-
-          {loading ? (
-            <div className="admin-loading">
-              <div className="admin-spinner" />
-              <p>Loading bookings…</p>
-            </div>
-          ) : bookings.length === 0 ? (
-            <div className="admin-empty">
-              <div className="admin-empty__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" width="26" height="26">
-                  <path d="M20 4c-6 1-10 5-11.5 10.5C7.5 17.2 7 20 7 20s2.8-.5 5.5-1.5C18 17 22 13 20 4Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
-                  <path d="M8 19c2-6 6-10 12-13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-                </svg>
+        {activeTab === 'gallery' ? (
+          <GalleryManager />
+        ) : activeTab === 'packages' ? (
+          <PackageManager />
+        ) : activeTab === 'staff' ? (
+          <StaffManagement />
+        ) : activeTab === 'password' ? (
+          <ChangeMyPassword />
+        ) : (
+          <>
+            {statsErr ? (
+              <p className="text-muted" style={{ marginBottom: 24 }}>{statsErr}</p>
+            ) : (
+              <div className="admin-stats-grid">
+                <StatCard label="Total Bookings" value={stats?.total_bookings} sub="all time" accent="#1a4731" />
+                <StatCard label="Pending (Draft)" value={stats?.pending_confirmations} sub="can be deleted" accent="#d97706" />
+                <StatCard
+                  label="Confirmed / Active"
+                  value={stats ? Number(stats.confirmed_bookings) + Number(stats.checked_in) : undefined}
+                  sub={stats ? `${stats.confirmed_bookings} confirmed · ${stats.checked_in} checked in` : ''}
+                  accent="#16a34a"
+                />
+                <StatCard
+                  label="Total Revenue"
+                  value={stats ? `NPR ${Math.round(Number(stats.total_revenue)).toLocaleString()}` : undefined}
+                  sub={stats ? `NPR ${Math.round(Number(stats.revenue_this_month)).toLocaleString()} this month` : ''}
+                  accent="#2563eb"
+                />
               </div>
-              <div className="admin-empty__title">No bookings found</div>
-              <div className="admin-empty__sub">Try adjusting your filters or create a test booking via the main site.</div>
-            </div>
-          ) : (
-            <div className="admin-table-scroll">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Reference</th>
-                    <th>Guest Name</th>
-                    <th>Package</th>
-                    <th>Check-in</th>
-                    <th>Category</th>
-                    <th>Status</th>
-                    <th>Payment</th>
-                    <th>Booking Total</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bookings.map(b => (
-                    <tr key={b.id} onClick={() => setSelectedId(b.id)}>
-                      <td>{b.booking_reference}</td>
-                      <td className="guest-name">{b.guest_name}</td>
-                      <td>{b.package?.name || '—'}</td>
-                      <td>{b.check_in_date}</td>
-                      <td style={{ textTransform: 'capitalize' }}>{b.guest_category}</td>
-                      <td><StatusBadge status={b.status} /></td>
-                      <td><PayBadge status={b.payment_status} /></td>
-                      <td className="amount">NPR {Math.round(Number(b.total_price || 0)).toLocaleString()}</td>
-                      <td>
-                        <button
-                          className="admin-view-btn"
-                          onClick={e => { e.stopPropagation(); setSelectedId(b.id) }}
-                        >
-                          View →
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+            )}
 
-          {/* Pagination */}
-          {total > 50 && (
-            <div className="admin-pagination">
-              <span className="admin-pagination__info">
-                Page {page} of {totalPages} · {total} bookings
-              </span>
-              <div className="admin-pagination__btns">
-                <button
-                  className="admin-pagination__btn"
-                  disabled={page <= 1}
-                  onClick={() => loadBookings(applied, page - 1)}
-                >← Prev</button>
-                <button
-                  className="admin-pagination__btn"
-                  disabled={page >= totalPages}
-                  onClick={() => loadBookings(applied, page + 1)}
-                >Next →</button>
-              </div>
+            <BookingManager onStatsRefresh={loadStats} onAuthError={handleLogout} />
+
+            <div className="admin-footer-actions">
+              <button
+                type="button"
+                className="admin-audit-link-btn"
+                onClick={() => navigate('/admin/audit-logs')}
+              >
+                View Activity Log →
+              </button>
             </div>
-          )}
-        </div>
-        </>
+          </>
         )}
       </main>
-
-      {/* Booking Detail Modal */}
-      {selectedId && (
-        <BookingDetail
-          bookingId={selectedId}
-          onClose={() => setSelectedId(null)}
-          onUpdate={() => { loadBookings(applied, page); loadStats(); }}
-        />
-      )}
     </div>
   )
 }

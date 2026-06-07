@@ -16,11 +16,19 @@ const Tariff       = lazy(() => import('./pages/Tariff'))
 const AboutChitwan = lazy(() => import('./pages/AboutChitwan'))
 const Contact      = lazy(() => import('./pages/Contact'))
 const Gallery      = lazy(() => import('./pages/Gallery'))
-const StaffLogin   = lazy(() => import('./pages/StaffLogin'))
+
+// Staff auth pages (public — no wrapper)
+const StaffLogin      = lazy(() => import('./pages/StaffLogin'))
+const StaffSignup     = lazy(() => import('./pages/StaffSignup'))
+const ForgotPassword  = lazy(() => import('./pages/ForgotPassword'))
+const ResetPassword   = lazy(() => import('./pages/ResetPassword'))
+const VerifyEmail     = lazy(() => import('./pages/VerifyEmail'))
+const StaffDashboard  = lazy(() => import('./pages/StaffDashboard'))
 
 // Admin (lazy)
 const AdminDashboard = lazy(() => import('./admin/AdminDashboard'))
-const AuditLogs = lazy(() => import('./admin/AuditLogs'))
+const AuditLogs      = lazy(() => import('./admin/AuditLogs'))
+const AuditLogPage   = lazy(() => import('./admin/AuditLogPage'))
 
 function PageLoader() {
   return (
@@ -86,6 +94,7 @@ function PublicLayout({ theme, toggleTheme }) {
             <Route path="/about-chitwan" element={<AboutChitwan />} />
             <Route path="/contact"       element={<Contact />} />
             <Route path="/gallery"       element={<Gallery />} />
+            {/* Legacy staff login — kept for backward compatibility */}
             <Route path="/staff-login"   element={<StaffLogin />} />
           </Routes>
         </Suspense>
@@ -101,7 +110,6 @@ function PublicLayout({ theme, toggleTheme }) {
 export default function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem('jwrTheme') || 'light')
 
-  // Show leaf intro once per browser session
   const [showIntro, setShowIntro] = useState(
     () => !sessionStorage.getItem('jwr_intro_seen')
   )
@@ -124,15 +132,26 @@ export default function App() {
       <ScrollToTop />
       <ScrollReveal />
 
-      {/* Leaf intro — shown once per session on first load */}
       {showIntro && <LeafIntro onComplete={handleIntroComplete} />}
 
       <Suspense fallback={<PageLoader />}>
         <Routes>
+          {/* ── Protected admin routes ───────────────── */}
           <Route element={<ProtectedRoute />}>
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/dashboard"              element={<AdminDashboard />} />
+            <Route path="/admin/audit-logs"             element={<AuditLogPage />} />
             <Route path="/admin/bookings/:id/audit-logs" element={<AuditLogs />} />
           </Route>
+
+          {/* ── Staff portal routes (all public — auth handled inside) ── */}
+          <Route path="/staff/login"          element={<StaffLogin />} />
+          <Route path="/staff/signup"         element={<StaffSignup />} />
+          <Route path="/staff/forgot-password" element={<ForgotPassword />} />
+          <Route path="/staff/reset-password" element={<ResetPassword />} />
+          <Route path="/staff/verify-email"   element={<VerifyEmail />} />
+          <Route path="/staff/dashboard"      element={<StaffDashboard />} />
+
+          {/* ── Public website ───────────────────────── */}
           <Route path="/*" element={<PublicLayout theme={theme} toggleTheme={toggleTheme} />} />
         </Routes>
       </Suspense>

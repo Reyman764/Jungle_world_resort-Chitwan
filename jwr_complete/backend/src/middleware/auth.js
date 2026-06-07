@@ -99,4 +99,56 @@ function requireRole(roles) {
   };
 }
 
-module.exports = { authenticateToken, requireAdmin, requireStaff, requireRole, optionalAuth };
+/**
+ * Protect staff-specific routes.
+ * Verifies JWT and ensures the user has a valid staff/admin role and active status.
+ * Sets both req.staffUser and req.user for downstream compatibility.
+ */
+async function authenticateStaffToken(req, res, next) {
+  try {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.startsWith('Bearer ')
+      ? authHeader.slice(7)
+      : null;
+
+    if (!token) {
+      return res.status(401).json({ error: 'Access token required' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const STAFF_ROLES = ['staff', 'admin', 'manager'];
+    if (!decoded.role || !STAFF_ROLES.includes(decoded.role)) {
+      return res.status(403).json({ error: 'Access denied. Staff account required.' });
+    }
+
+    const staff = await User.findByPk(decoded.id, {
+      attributes: { exclude: ['password_hash', 'refresh_token', 'password_reset_token'] },
+    });
+
+    if (!staff) {
+      return res.status(401).json({ error: 'Staff account not found' });
+    }
+
+    // Block access for non-active accounts
+    if (staff.account_status && !['active'].includes(staff.account_status)) {
+      return res.status(401).json({
+        error: `Staff account is ${staff.account_status}. Please contact an administrator.`,
+      });
+    }
+
+    req.staffUser = staff;
+    req.user      = staff; // also set req.user for unified compatibility
+    next();
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Token expired', code: 'TOKEN_EXPIRED' });
+    }
+    if (err.name === 'JsonWebTokenError') {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+    next(err);
+  }
+}
+
+module.exports = { authenticateToken, requireAdmin, requireStaff, requireRole, optionalAuth, authenticateStaffToken };

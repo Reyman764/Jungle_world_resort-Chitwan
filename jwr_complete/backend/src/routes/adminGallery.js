@@ -4,16 +4,16 @@ const router = require('express').Router();
 const multer = require('multer');
 const { authenticateToken, requireRole } = require('../middleware/auth');
 const {
-  listAdminPackages,
-  updatePackage,
-  updatePromoSettings,
-  uploadPackageImage,
-} = require('../controllers/packageController');
+  listGalleryImages,
+  uploadGalleryImage,
+  updateGalleryImage,
+  deleteGalleryImage,
+} = require('../controllers/adminController');
 
-// Multer: store upload in memory (max 5 MB, images only)
+// Multer: memory storage, 10 MB limit, images only
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     if (file.mimetype.startsWith('image/')) return cb(null, true);
     cb(new Error('Only image files are allowed'));
@@ -23,9 +23,9 @@ const upload = multer({
 router.use(authenticateToken);
 router.use(requireRole(['admin', 'manager']));
 
-router.get('/', listAdminPackages);
-router.patch('/promo', updatePromoSettings);
-router.patch('/:id', updatePackage);
-router.post('/:id/image', upload.single('image'), uploadPackageImage);
+router.get('/',                                listGalleryImages);
+router.post('/upload', upload.single('image'), uploadGalleryImage);
+router.patch('/:id',                           updateGalleryImage);
+router.delete('/:id',                          deleteGalleryImage);
 
 module.exports = router;

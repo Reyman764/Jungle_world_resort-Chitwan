@@ -50,9 +50,9 @@ export default function BookingDetail({ bookingId, onClose, onUpdate }) {
 
   const navigate = useNavigate()
 
-  // Delete guest
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [deleting,          setDeleting]          = useState(false)
+  // Delete guest or draft booking
+  const [deleteMode, setDeleteMode] = useState(null) // 'guest' | 'booking'
+  const [deleting, setDeleting] = useState(false)
 
   // ── Load booking ──────────────────────────────────────
   useEffect(() => {
@@ -145,27 +145,51 @@ export default function BookingDetail({ bookingId, onClose, onUpdate }) {
     }
   }
 
-  // ── Delete guest account ──────────────────────────────
   async function handleDeleteGuest() {
     if (!booking?.guest_email) return
     setDeleting(true)
     try {
-      const res  = await fetch(
+      const res = await fetch(
         `${API}/api/admin/users/${booking.user?.id || booking.user_id || booking.guest_email}`,
         { method: 'DELETE', headers: authHeader() },
       )
       const data = await res.json()
       if (res.ok) {
-        showToast('success', `Guest data for ${booking.guest_name} has been anonymized. Booking records are preserved.`)
-        setShowDeleteConfirm(false)
-        setTimeout(() => { if (onUpdate) onUpdate(); onClose() }, 2200)
+        showToast('success', `Guest data anonymized. Booking records preserved.`)
+        setDeleteMode(null)
+        setTimeout(() => { onUpdate?.(); onClose() }, 1500)
       } else {
         showToast('error', data.error || 'Failed to delete guest account')
-        setShowDeleteConfirm(false)
+        setDeleteMode(null)
       }
     } catch {
       showToast('error', 'Network error — please try again')
-      setShowDeleteConfirm(false)
+      setDeleteMode(null)
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  async function handleDeleteBooking() {
+    if (!booking?.id) return
+    setDeleting(true)
+    try {
+      const res = await fetch(`${API}/api/admin/bookings/${booking.id}`, {
+        method: 'DELETE',
+        headers: authHeader(),
+      })
+      const data = await res.json()
+      if (res.ok && data.success) {
+        showToast('success', data.message || 'Booking permanently deleted')
+        setDeleteMode(null)
+        setTimeout(() => { onUpdate?.(); onClose() }, 1200)
+      } else {
+        showToast('error', data.error || 'Failed to delete booking')
+        setDeleteMode(null)
+      }
+    } catch {
+      showToast('error', 'Network error — please try again')
+      setDeleteMode(null)
     } finally {
       setDeleting(false)
     }
@@ -390,19 +414,23 @@ export default function BookingDetail({ bookingId, onClose, onUpdate }) {
 
             {/* Footer */}
             <div className="modal-footer">
-              {booking && (
+              {booking?.status === 'draft' && (
                 <button
+                  type="button"
                   className="modal-delete-btn"
-                  onClick={() => setShowDeleteConfirm(true)}
-                  title="Remove guest account from system"
+                  onClick={() => setDeleteMode('booking')}
+                  title="Permanently remove this draft booking"
                 >
-                  <svg viewBox="0 0 16 16" fill="none" width="13" height="13">
-                    <path
-                      d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 9h8l1-9"
-                      stroke="currentColor" strokeWidth="1.5"
-                      strokeLinecap="round" strokeLinejoin="round"
-                    />
-                  </svg>
+                  Delete Booking
+                </button>
+              )}
+              {booking && booking.status !== 'draft' && (
+                <button
+                  type="button"
+                  className="modal-delete-btn"
+                  onClick={() => setDeleteMode('guest')}
+                  title="Anonymize guest account"
+                >
                   Delete Guest
                 </button>
               )}
@@ -428,41 +456,37 @@ export default function BookingDetail({ bookingId, onClose, onUpdate }) {
             </div>
 
             {/* Delete Confirmation */}
-            {showDeleteConfirm && (
+            {deleteMode === 'booking' && (
+              <div className="delete-confirm-overlay">
+                <div className="delete-confirm-box">
+                  <div className="delete-confirm-icon">🗑️</div>
+                  <h3 className="delete-confirm-title">Delete Draft Booking?</h3>
+                  <p className="delete-confirm-msg">
+                    Permanently remove <strong>{booking.booking_reference}</strong> ({booking.guest_name})?
+                    This cannot be undone.
+                  </p>
+                  <div className="delete-confirm-actions">
+                    <button type="button" className="modal-cancel-btn" onClick={() => setDeleteMode(null)} disabled={deleting}>Cancel</button>
+                    <button type="button" className="modal-delete-confirm-btn" onClick={handleDeleteBooking} disabled={deleting}>
+                      {deleting ? 'Deleting…' : 'Yes, Delete Booking'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {deleteMode === 'guest' && (
               <div className="delete-confirm-overlay">
                 <div className="delete-confirm-box">
                   <div className="delete-confirm-icon">⚠️</div>
                   <h3 className="delete-confirm-title">Delete Guest Account?</h3>
                   <p className="delete-confirm-msg">
-                    This will permanently anonymize the guest account and personal details for{' '}
-                    <strong>{booking.guest_name}</strong> ({booking.guest_email}).
-                    Their name and email will be replaced with "Deleted Guest" across all bookings.
-                    Financial records are preserved. This action cannot be undone.
+                    Anonymize <strong>{booking.guest_name}</strong> ({booking.guest_email}) across all bookings.
+                    Financial records are preserved.
                   </p>
                   <div className="delete-confirm-actions">
-                    <button
-                      className="modal-cancel-btn"
-                      onClick={() => setShowDeleteConfirm(false)}
-                      disabled={deleting}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      className="modal-delete-confirm-btn"
-                      onClick={handleDeleteGuest}
-                      disabled={deleting}
-                    >
-                      {deleting ? (
-                        <>
-                          <div
-                            className="admin-spinner admin-spinner--sm"
-                            style={{ borderTopColor: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}
-                          />
-                          Deleting…
-                        </>
-                      ) : (
-                        'Yes, Delete Guest'
-                      )}
+                    <button type="button" className="modal-cancel-btn" onClick={() => setDeleteMode(null)} disabled={deleting}>Cancel</button>
+                    <button type="button" className="modal-delete-confirm-btn" onClick={handleDeleteGuest} disabled={deleting}>
+                      {deleting ? 'Deleting…' : 'Yes, Delete Guest'}
                     </button>
                   </div>
                 </div>

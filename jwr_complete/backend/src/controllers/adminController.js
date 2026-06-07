@@ -1,7 +1,8 @@
 'use strict';
 
 const { Op } = require('sequelize');
-const { Booking, Package, User, BookingAuditLog, sequelize, Sequelize } = require('../models');
+const { Booking, Package, User, BookingAuditLog, Payment, Review, SiteSetting, sequelize, Sequelize } = require('../models');
+const { uploadImage } = require('../utils/cloudinaryUpload');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
@@ -290,8 +291,24 @@ function buildRequestedUpdates(req) {
       : String(req.body.cancellation_reason);
   }
 
+  if (req.body.is_spam !== undefined) {
+    updates.is_spam = Boolean(req.body.is_spam);
+    if (!updates.is_spam) {
+      updates.spam_reason = null;
+      updates.marked_spam_at = null;
+      updates.marked_spam_by = null;
+    }
+  }
+
   return updates;
 }
+
+const SORT_OPTIONS = {
+  latest:        [['created_at', 'DESC']],
+  oldest:        [['created_at', 'ASC']],
+  highest_value: [['total_price', 'DESC']],
+  lowest_value:  [['total_price', 'ASC']],
+};
 
 async function getBookings(req, res, next) {
   try {
@@ -302,14 +319,19 @@ async function getBookings(req, res, next) {
       category,
       search,
       page = 1,
+      limit: limitParam,
+      sort = 'latest',
+      is_spam,
     } = req.query;
 
-    const limit = 50;
+    const limit = Math.min(Math.max(parseInt(limitParam, 10) || 20, 1), 100);
     const offset = (parseInt(page, 10) - 1) * limit;
     const where = {};
 
     if (status) where.status = status;
     if (category) where.guest_category = category;
+    if (is_spam === 'true') where.is_spam = true;
+    else if (is_spam === 'false') where.is_spam = false;
 
     if (startDate || endDate) {
       where.check_in_date = {};
@@ -326,6 +348,7 @@ async function getBookings(req, res, next) {
       ];
     }
 
+    const order = SORT_OPTIONS[sort] || SORT_OPTIONS.latest;
     const total = await Booking.count({ where });
 
     const rows = await Booking.findAll({
@@ -338,19 +361,84 @@ async function getBookings(req, res, next) {
           required: false,
         },
       ],
-      order: [['created_at', 'DESC']],
+      order,
       limit,
       offset,
     });
+
+    const totalPages = Math.ceil(total / limit) || 1;
 
     return res.json({
       bookings: rows,
       total,
       page: parseInt(page, 10),
-      total_pages: Math.ceil(total / limit),
+      pageSize: limit,
+      total_pages: totalPages,
+      totalPages,
+      hasMore: parseInt(page, 10) < totalPages,
     });
   } catch (err) {
     next(err);
+  }
+}
+
+/**
+ * DELETE /api/admin/bookings/:id
+ * Hard-delete draft bookings only. Removes payments first (FK RESTRICT).
+ */
+async function deleteBooking(req, res, next) {
+  try {
+    const actor = req.user || {};
+    const actorName = actor.first_name
+      ? `${actor.first_name} ${actor.last_name || ''}`.trim()
+      : (actor.email || 'Admin');
+
+    let deletedBookingId;
+    let bookingReference;
+    let hardDeleted = false;
+
+    await sequelize.transaction(async (transaction) => {
+      const booking = await Booking.findByPk(req.params.id, { transaction });
+      if (!booking) {
+        const error = new Error('Booking not found');
+        error.status = 404;
+        throw error;
+      }
+
+      deletedBookingId = booking.id;
+      bookingReference = booking.booking_reference;
+
+      if (booking.status !== 'draft') {
+        const error = new Error('Only draft bookings can be permanently deleted. Cancel confirmed bookings instead.');
+        error.status = 400;
+        throw error;
+      }
+
+      // Payments table uses ON DELETE RESTRICT — must remove children first
+      await Payment.destroy({ where: { booking_id: booking.id }, transaction });
+      await Review.destroy({ where: { booking_id: booking.id }, transaction });
+      await BookingAuditLog.destroy({ where: { booking_id: booking.id }, transaction });
+      await booking.destroy({ transaction });
+
+      hardDeleted = true;
+      console.log(`[admin] Hard-deleted draft ${bookingReference} by ${actorName}`);
+    });
+
+    if (!hardDeleted) {
+      return res.status(500).json({ error: 'Delete failed' });
+    }
+
+    return res.json({
+      success: true,
+      message: 'Booking permanently deleted',
+      deletedBookingId,
+      booking_reference: bookingReference,
+      hardDeleted: true,
+    });
+  } catch (err) {
+    if (err.status) return res.status(err.status).json({ error: err.message });
+    console.error('[admin] deleteBooking error:', err.message);
+    return next(err);
   }
 }
 
@@ -619,12 +707,122 @@ async function deleteUser(req, res, next) {
   }
 }
 
+
+// ── Gallery Management ──────────────────────────────────────────────────────
+// Gallery images stored in SiteSetting key='gallery'
+// value: { images: [{ id, url, caption, category, size, uploadedAt }] }
+
+const GALLERY_KEY = 'gallery';
+const GALLERY_CATEGORIES = ['Resort', 'Wildlife', 'Activities', 'Landscape'];
+
+async function getGallerySetting() {
+  const row = await SiteSetting.findOne({ where: { key: GALLERY_KEY } });
+  if (!row) return [];
+  const val = row.value || {};
+  return Array.isArray(val.images) ? val.images : [];
+}
+
+async function saveGallerySetting(images) {
+  const [row] = await SiteSetting.findOrCreate({
+    where: { key: GALLERY_KEY },
+    defaults: { key: GALLERY_KEY, value: { images: [] } },
+  });
+  await row.update({ value: { images } });
+  return images;
+}
+
+/** GET /api/gallery (public) or GET /api/admin/gallery (admin) */
+async function listGalleryImages(req, res, next) {
+  try {
+    const images = await getGallerySetting();
+    res.json({ images });
+  } catch (err) { next(err); }
+}
+
+/** POST /api/admin/gallery/upload — multipart upload */
+async function uploadGalleryImage(req, res, next) {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No image file provided' });
+
+    const caption  = req.body.caption  || '';
+    const category = req.body.category || 'Resort';
+    const size     = req.body.size     || '';   // 'large' or ''
+
+    if (!GALLERY_CATEGORIES.includes(category)) {
+      return res.status(400).json({ error: `Invalid category. Must be one of: ${GALLERY_CATEGORIES.join(', ')}` });
+    }
+
+    const ts = Date.now();
+    const imageUrl = await uploadImage(req.file.buffer, {
+      mimetype:  req.file.mimetype,
+      public_id: `gallery-${ts}`,
+      folder:    'jungle-world-resort/gallery',
+    });
+
+    const images = await getGallerySetting();
+    const newImage = {
+      id:         ts,
+      url:        imageUrl,
+      caption,
+      category,
+      size,
+      uploadedAt: new Date().toISOString(),
+    };
+    images.push(newImage);
+    await saveGallerySetting(images);
+
+    res.status(201).json({ image: newImage, images });
+  } catch (err) { next(err); }
+}
+
+/** PATCH /api/admin/gallery/:id — update caption / category / size */
+async function updateGalleryImage(req, res, next) {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const images = await getGallerySetting();
+    const idx = images.findIndex(img => img.id === id);
+    if (idx === -1) return res.status(404).json({ error: 'Gallery image not found' });
+
+    const { caption, category, size } = req.body;
+    if (caption  !== undefined) images[idx].caption  = caption;
+    if (category !== undefined) {
+      if (!GALLERY_CATEGORIES.includes(category)) {
+        return res.status(400).json({ error: `Invalid category` });
+      }
+      images[idx].category = category;
+    }
+    if (size !== undefined) images[idx].size = size;
+
+    await saveGallerySetting(images);
+    res.json({ image: images[idx], images });
+  } catch (err) { next(err); }
+}
+
+/** DELETE /api/admin/gallery/:id */
+async function deleteGalleryImage(req, res, next) {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const images = await getGallerySetting();
+    const filtered = images.filter(img => img.id !== id);
+    if (filtered.length === images.length) {
+      return res.status(404).json({ error: 'Gallery image not found' });
+    }
+    await saveGallerySetting(filtered);
+    res.json({ success: true, images: filtered });
+  } catch (err) { next(err); }
+}
+
 module.exports = {
   getBookings,
   getBookingById,
   updateBooking,
+  deleteBooking,
   getAuditLogs,
   getDashboardStats,
   deleteUser,
   paymentRevenueFromValues,
+  listGalleryImages,
+  uploadGalleryImage,
+  updateGalleryImage,
+  deleteGalleryImage,
 };

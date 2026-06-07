@@ -3,8 +3,11 @@
 const bcrypt  = require('bcryptjs');
 const jwt     = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
-const { User, Package, Booking, BookingAuditLog } = require('../models');
+const { User, Package, Booking } = require('../models');
 const { generateBookingReference } = require('../utils/bookingRef');
+const { analyzeBookingForSpam } = require('../services/spamDetectionService');
+const { logAuditEvent } = require('./auditLogController');
+const { getClientIp } = require('../middleware/rateLimiter');
 
 /**
  * Map frontend package IDs → database slugs
@@ -16,14 +19,6 @@ const SLUG_MAP = {
   'closeup': 'close-up-chitwan',
   'explore': 'explore-chitwan',
 };
-
-function getClientIp(req) {
-  return (
-    (req.headers['x-forwarded-for'] || '').split(',')[0].trim() ||
-    req.socket?.remoteAddress ||
-    null
-  );
-}
 
 /**
  * POST /api/bookings
@@ -188,35 +183,46 @@ async function createBooking(req, res, next) {
       source:            'direct',
     });
 
-    // ── 8. Record initial audit history ───────────────────────
+    // ── 8. Spam check + audit log ─────────────────────────────
+    const clientIp = getClientIp(req);
+    let spamResult = { isSpam: false, riskLevel: 'low', reasons: [], score: 0 };
     try {
-      await BookingAuditLog.create({
-        booking_id:      booking.id,
-        changed_by_id:   user.id,
-        changed_by:      guest_name.trim(),
-        changed_by_role: 'guest',
-        action:          'BOOKING_CREATED',
-        field_name:      'booking',
-        old_value:       null,
-        new_value:       'Booking request submitted',
-        ip_address:      getClientIp(req),
-        user_agent:      req.headers['user-agent'] || null,
-        metadata: {
-          booking_reference: booking.booking_reference,
-          guest_email: booking.guest_email,
-          package_name: pkg.name,
-          check_in_date: booking.check_in_date,
-          check_out_date: booking.check_out_date,
-          num_adults: booking.num_adults,
-          num_children: booking.num_children,
-          currency: booking.currency,
-          total_price: Number(booking.total_price).toFixed(2),
-          paid_amount: Number(booking.paid_amount).toFixed(2),
-          refund_amount: '0.00',
-          payment_status: booking.payment_status,
-          revenue_after: '0.00',
-        },
+      spamResult = await analyzeBookingForSpam({
+        guest_email,
+        check_in_date,
+        check_out_date: checkOut,
+      }, clientIp);
+
+      if (spamResult.isSpam) {
+        await booking.update({
+          is_spam: true,
+          spam_reason: spamResult.reasons[0] || 'Automated spam detection',
+          marked_spam_at: new Date(),
+        });
+      }
+
+      await logAuditEvent(booking.id, 'CREATED', {
+        performedById: user.id,
+        performedByName: guest_name.trim(),
+        performedByRole: 'guest',
+        reason: 'New booking from guest',
+        risk_level: spamResult.riskLevel,
+        ip_address: clientIp,
+        user_agent: req.headers['user-agent'] || null,
+        new_value: 'Booking request submitted',
+        metadata: { booking_reference: booking.booking_reference, spam_score: spamResult.score },
       });
+
+      if (spamResult.isSpam) {
+        await logAuditEvent(booking.id, 'SPAM_DETECTED', {
+          performedByName: 'SYSTEM',
+          reason: spamResult.reasons[0],
+          risk_level: spamResult.riskLevel,
+          ip_address: clientIp,
+          field_name: 'is_spam',
+          new_value: 'true',
+        });
+      }
     } catch (auditErr) {
       console.warn(`[AUDIT] Booking creation log failed: ${auditErr.message}`);
     }

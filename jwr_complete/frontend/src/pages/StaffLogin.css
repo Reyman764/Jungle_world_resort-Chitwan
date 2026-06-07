@@ -272,3 +272,51 @@
 .staff-login-back:hover {
   color: rgba(200,151,58,0.6);
 }
+
+/* ── Force-change-password overlay ────────────────────────── */
+.sl-overlay {
+  position:        fixed;
+  inset:           0;
+  background:      rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  z-index:         9999;
+  padding:         20px;
+}
+
+.sl-change-modal {
+  background:    var(--forest-deep, #0d2818);
+  border:        1px solid rgba(200, 151, 58, 0.25);
+  border-radius: 16px;
+  padding:       40px 36px;
+  width:         100%;
+  max-width:     440px;
+  text-align:    center;
+}
+
+.sl-change-modal__icon {
+  display:         flex;
+  justify-content: center;
+  margin-bottom:   16px;
+}
+
+.sl-change-modal__title {
+  font-size:     1.3rem;
+  font-weight:   600;
+  color:         var(--gold-rich, #c8973a);
+  margin:        0 0 10px;
+  letter-spacing: 0.04em;
+}
+
+.sl-change-modal__sub {
+  font-size:     0.82rem;
+  color:         rgba(255, 255, 255, 0.55);
+  margin:        0 0 24px;
+  line-height:   1.55;
+}
+
+.sl-change-modal .staff-form-group {
+  text-align: left;
+}

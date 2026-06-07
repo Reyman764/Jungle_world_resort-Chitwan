@@ -1,56 +1,87 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import PageHero from '../components/PageHero'
 import './Gallery.css'
 
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+
 const categories = ['All', 'Wildlife', 'Resort', 'Activities', 'Landscape']
 
-const photos = [
-  { id: 1, src: '/images/gallery/resort-01.jpg', thumb: '/images/gallery/resort-01.jpg', cat: 'Resort', caption: 'Jungle World Resort grounds', size: 'large' },
-  { id: 2, src: '/images/gallery/resort-02.jpg', thumb: '/images/gallery/resort-02.jpg', cat: 'Resort', caption: 'Resort surroundings at Chitwan' },
-  { id: 3, src: '/images/gallery/resort-03.jpg', thumb: '/images/gallery/resort-03.jpg', cat: 'Resort', caption: 'Jungle World Resort landscape' },
-  { id: 4, src: '/images/gallery/resort-04.jpg', thumb: '/images/gallery/resort-04.jpg', cat: 'Resort', caption: 'Resort view in the morning light', size: 'large' },
-  { id: 5, src: '/images/gallery/resort-05.jpg', thumb: '/images/gallery/resort-05.jpg', cat: 'Resort', caption: 'Evening ambience at Jungle World' },
-  { id: 6, src: '/images/gallery/resort-06.jpg', thumb: '/images/gallery/resort-06.jpg', cat: 'Resort', caption: 'Night atmosphere at the resort' },
-  { id: 7, src: '/images/gallery/resort-07.jpg', thumb: '/images/gallery/resort-07.jpg', cat: 'Resort', caption: 'Jungle World Resort at night' },
-  { id: 8, src: '/images/gallery/resort-08.jpg', thumb: '/images/gallery/resort-08.jpg', cat: 'Resort', caption: 'Resort gardens and pathways' },
-  { id: 9, src: '/images/gallery/resort-09.jpg', thumb: '/images/gallery/resort-09.jpg', cat: 'Resort', caption: 'Relaxing spaces at Jungle World', size: 'large' },
-  { id: 10, src: '/images/gallery/resort-10.jpg', thumb: '/images/gallery/resort-10.jpg', cat: 'Resort', caption: 'The beauty of Jungle World Resort' },
-  { id: 11, src: '/images/gallery/resort-pool-night.jpg', thumb: '/images/gallery/resort-pool-night.jpg', cat: 'Resort', caption: 'Swimming pool glowing at night', size: 'large' },
-  { id: 12, src: '/images/gallery/resort-pool-day1.jpg', thumb: '/images/gallery/resort-pool-day1.jpg', cat: 'Resort', caption: 'Resort swimming pool surrounded by palms' },
-  { id: 13, src: '/images/gallery/resort-pool-day2.jpg', thumb: '/images/gallery/resort-pool-day2.jpg', cat: 'Resort', caption: 'Crystal clear pool with jungle backdrop' },
+// Fallback static photos (shown when no images have been uploaded yet)
+const STATIC_PHOTOS = [
+  { id: 1, url: '/images/gallery/resort-01.jpg', caption: 'Jungle World Resort grounds',              category: 'Resort',    size: 'large' },
+  { id: 2, url: '/images/gallery/resort-02.jpg', caption: 'Resort surroundings at Chitwan',          category: 'Resort',    size: '' },
+  { id: 3, url: '/images/gallery/resort-03.jpg', caption: 'Jungle World Resort landscape',           category: 'Resort',    size: '' },
+  { id: 4, url: '/images/gallery/resort-04.jpg', caption: 'Resort view in the morning light',        category: 'Resort',    size: 'large' },
+  { id: 5, url: '/images/gallery/resort-05.jpg', caption: 'Evening ambience at Jungle World',        category: 'Resort',    size: '' },
+  { id: 6, url: '/images/gallery/resort-06.jpg', caption: 'Night atmosphere at the resort',          category: 'Resort',    size: '' },
+  { id: 7, url: '/images/gallery/resort-07.jpg', caption: 'Jungle World Resort at night',            category: 'Resort',    size: '' },
+  { id: 8, url: '/images/gallery/resort-08.jpg', caption: 'Resort gardens and pathways',             category: 'Resort',    size: '' },
+  { id: 9, url: '/images/gallery/resort-09.jpg', caption: 'Relaxing spaces at Jungle World',         category: 'Resort',    size: 'large' },
+  { id: 10, url: '/images/gallery/resort-10.jpg', caption: 'The beauty of Jungle World Resort',      category: 'Resort',    size: '' },
+  { id: 11, url: '/images/gallery/resort-pool-night.jpg', caption: 'Swimming pool glowing at night', category: 'Resort',    size: 'large' },
+  { id: 12, url: '/images/gallery/resort-pool-day1.jpg',  caption: 'Resort pool surrounded by palms',category: 'Resort',    size: '' },
+  { id: 13, url: '/images/gallery/resort-pool-day2.jpg',  caption: 'Crystal clear pool with jungle', category: 'Resort',    size: '' },
 ]
 
 export default function Gallery() {
-  const [active, setActive] = useState('All')
-  const [lightbox, setLightbox] = useState(null)
-  // Phase 3: Swipe gestures
+  const [active,     setActive]     = useState('All')
+  const [lightbox,   setLightbox]   = useState(null)
   const [touchStart, setTouchStart] = useState(null)
+  const [photos,     setPhotos]     = useState(STATIC_PHOTOS)
+  const [apiLoaded,  setApiLoaded]  = useState(false)
 
-  const filtered = active === 'All' ? photos : photos.filter(p => p.cat === active)
+  // Load dynamic photos from API and MERGE with static photos.
+  // API-uploaded images appear first; static images follow as the base gallery.
+  useEffect(() => {
+    fetch(`${API}/api/gallery`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.images && data.images.length > 0) {
+          const apiPhotos = data.images.map(img => ({
+            id:      img.id,
+            url:     img.url,
+            caption: img.caption || '',
+            category: img.category || 'Resort',
+            size:    img.size || '',
+          }))
+          // Merge: API photos first, then static (deduped by URL)
+          const apiUrls = new Set(apiPhotos.map(p => p.url))
+          const uniqueStatic = STATIC_PHOTOS.filter(p => !apiUrls.has(p.url))
+          setPhotos([...apiPhotos, ...uniqueStatic])
+        }
+        // If API empty, keep static fallback
+        setApiLoaded(true)
+      })
+      .catch(() => {
+        // Network error → keep static fallback silently
+        setApiLoaded(true)
+      })
+  }, [])
 
-  const openLightbox = (photo) => setLightbox(photo)
+  const filtered = active === 'All' ? photos : photos.filter(p => p.category === active)
+
+  const openLightbox  = (photo) => setLightbox(photo)
   const closeLightbox = () => setLightbox(null)
 
   const navigate = (dir) => {
     if (!lightbox) return
-    const idx = filtered.findIndex(p => p.id === lightbox.id)
+    const idx  = filtered.findIndex(p => p.id === lightbox.id)
     const next = (idx + dir + filtered.length) % filtered.length
     setLightbox(filtered[next])
   }
 
-  // Phase 3: Keyboard + touch navigation
   const handleKeyDown = (e) => {
     if (!lightbox) return
     if (e.key === 'ArrowRight') navigate(1)
-    if (e.key === 'ArrowLeft') navigate(-1)
-    if (e.key === 'Escape') closeLightbox()
+    if (e.key === 'ArrowLeft')  navigate(-1)
+    if (e.key === 'Escape')     closeLightbox()
   }
 
   const handleTouchStart = e => setTouchStart(e.touches[0].clientX)
-  const handleTouchEnd = e => {
+  const handleTouchEnd   = e => {
     if (!touchStart) return
     const diff = touchStart - e.changedTouches[0].clientX
-    if (diff > 50) navigate(1)
+    if (diff > 50)  navigate(1)
     if (diff < -50) navigate(-1)
     setTouchStart(null)
   }
@@ -61,7 +92,7 @@ export default function Gallery() {
         title="Gallery"
         subtitle="Light, water, and wildlife — moments from the forest"
         bgImage="/images/gallery/resort-pool-day1.jpg"
-        breadcrumbs={[{ label:"Gallery" }]}
+        breadcrumbs={[{ label: 'Gallery' }]}
       />
 
       <section className="gallery-section">
@@ -100,8 +131,8 @@ export default function Gallery() {
                 style={{ aspectRatio: photo.size === 'large' ? '3/2' : '4/3' }}
               >
                 <img
-                  src={photo.thumb}
-                  srcSet={`${photo.thumb} 400w, ${photo.src} 800w`}
+                  src={photo.url}
+                  srcSet={`${photo.url} 800w`}
                   sizes="(max-width: 768px) 100vw, 33vw"
                   alt={photo.caption}
                   loading="lazy"
@@ -109,7 +140,7 @@ export default function Gallery() {
                 />
                 <div className="gallery-item__overlay" aria-hidden="true">
                   <div className="gallery-item__caption">{photo.caption}</div>
-                  <div className="gallery-item__cat">{photo.cat}</div>
+                  <div className="gallery-item__cat">{photo.category}</div>
                   <div className="gallery-item__zoom">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22">
                       <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -137,10 +168,10 @@ export default function Gallery() {
           <div className="lightbox-inner" onClick={e => e.stopPropagation()}>
             <button className="lightbox-close" onClick={closeLightbox} aria-label="Close lightbox">✕</button>
             <button className="lightbox-nav lightbox-nav--prev" onClick={() => navigate(-1)} aria-label="Previous photo">‹</button>
-            <img src={lightbox.src} alt={lightbox.caption} referrerPolicy="no-referrer-when-downgrade" />
+            <img src={lightbox.url} alt={lightbox.caption} referrerPolicy="no-referrer-when-downgrade" />
             <div className="lightbox-caption">
               <span>{lightbox.caption}</span>
-              <span className="lightbox-cat">{lightbox.cat}</span>
+              <span className="lightbox-cat">{lightbox.category}</span>
             </div>
             <button className="lightbox-nav lightbox-nav--next" onClick={() => navigate(1)} aria-label="Next photo">›</button>
           </div>

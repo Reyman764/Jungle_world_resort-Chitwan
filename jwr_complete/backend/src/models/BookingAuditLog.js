@@ -53,6 +53,14 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.JSONB,
       allowNull: true,
     },
+    reason: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    risk_level: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+    },
   }, {
     tableName: 'booking_audit_logs',
     timestamps: true,

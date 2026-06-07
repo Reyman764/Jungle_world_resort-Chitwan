@@ -1,14 +1,138 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
-function authHeader() {
+function authHeader(json = true) {
   const token = localStorage.getItem('token')
-  return token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : {}
+  const base  = token ? { Authorization: `Bearer ${token}` } : {}
+  return json ? { ...base, 'Content-Type': 'application/json' } : base
 }
 
 const PROMO_DEFAULTS = { label: '', endsAt: '', showCountdown: true }
 
+// ── Image Upload Sub-component ──────────────────────────────────────────────
+function PackageImageUpload({ pkg, onUpdate }) {
+  const [uploading, setUploading]   = useState(false)
+  const [imgError,  setImgError]    = useState('')
+  const [imgMsg,    setImgMsg]      = useState('')
+  const [preview,   setPreview]     = useState(null)
+  const [imgKey,    setImgKey]      = useState(Date.now())   // cache-buster
+  const fileRef                     = useRef(null)
+
+  const currentUrl = pkg._raw?.image_url || ''
+
+  function handleFileChange(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImgError(''); setImgMsg('')
+    // Local preview before upload
+    const reader = new FileReader()
+    reader.onload = (ev) => setPreview(ev.target.result)
+    reader.readAsDataURL(file)
+  }
+
+  async function handleUpload() {
+    const file = fileRef.current?.files?.[0]
+    if (!file) { setImgError('Please choose an image file first.'); return }
+
+    setUploading(true); setImgError(''); setImgMsg('')
+    try {
+      const form = new FormData()
+      form.append('image', file)
+
+      const res  = await fetch(`${API}/api/admin/packages/${pkg.dbId}/image`, {
+        method:  'POST',
+        headers: authHeader(false),   // no Content-Type — browser sets multipart boundary
+        body:    form,
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Upload failed')
+
+      setPreview(null)
+      if (fileRef.current) fileRef.current.value = ''
+      setImgMsg('Image uploaded & saved.')
+      setImgKey(Date.now())   // force img element to re-fetch from new URL
+      onUpdate(pkg.dbId, data.package._raw.image_url)
+    } catch (err) {
+      setImgError(err.message)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  function handleUrlChange(e) {
+    setImgError(''); setImgMsg(''); setPreview(null)
+    if (fileRef.current) fileRef.current.value = ''
+    onUpdate(pkg.dbId, e.target.value)
+  }
+
+  const displayUrl = preview || currentUrl
+
+  return (
+    <div className="admin-pkg-section admin-pkg-image-section">
+      <p className="admin-pkg-section__title">
+        Package image
+        <span className="admin-pkg-section__hint"> — upload a file or paste a URL</span>
+      </p>
+
+      {/* Current image preview */}
+      {displayUrl && (
+        <div className="admin-pkg-image-preview">
+          <img
+            key={imgKey}
+            src={preview ? displayUrl : `${displayUrl}?v=${imgKey}`}
+            alt="Package preview"
+            className={`admin-pkg-image-thumb${preview ? ' admin-pkg-image-thumb--pending' : ''}`}
+            onError={(e) => { e.target.style.display = 'none' }}
+          />
+          {preview && <span className="admin-pkg-image-preview__label">Preview (not saved yet)</span>}
+        </div>
+      )}
+
+      {/* File upload row */}
+      <div className="admin-pkg-image-upload-row">
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          className="admin-pkg-image-file-input"
+          id={`img-file-${pkg.dbId}`}
+          onChange={handleFileChange}
+          disabled={uploading}
+        />
+        <label htmlFor={`img-file-${pkg.dbId}`} className="admin-pkg-image-file-label">
+          {uploading ? 'Uploading…' : '📁 Choose file'}
+        </label>
+        <button
+          type="button"
+          className="admin-filter-btn admin-pkg-image-upload-btn"
+          onClick={handleUpload}
+          disabled={uploading || !fileRef.current?.files?.length}
+        >
+          {uploading ? 'Uploading…' : 'Upload image'}
+        </button>
+      </div>
+
+      {/* OR divider + URL paste */}
+      <div className="admin-pkg-image-or">
+        <span>or paste URL</span>
+      </div>
+      <label className="admin-pkg-field">
+        <input
+          type="url"
+          placeholder="https://example.com/image.jpg"
+          value={currentUrl}
+          onChange={handleUrlChange}
+        />
+      </label>
+
+      {imgMsg   && <p className="admin-msg admin-msg--ok  admin-msg--sm">{imgMsg}</p>}
+      {imgError && <p className="admin-msg admin-msg--err admin-msg--sm">{imgError}</p>}
+    </div>
+  )
+}
+
+// ── Main PackageManager ─────────────────────────────────────────────────────
 export default function PackageManager() {
   const [packages, setPackages] = useState([])
   const [promo,    setPromo]    = useState(PROMO_DEFAULTS)
@@ -50,6 +174,7 @@ export default function PackageManager() {
         price_nepali_discount:    r.price_nepali_discount    ? Number(r.price_nepali_discount)    : null,
         discount_label:           r.discount_label  || null,
         urgency_text:             r.urgency_text    || null,
+        image_url:                r.image_url       || null,
       }
       const res  = await fetch(`${API}/api/admin/packages/${pkg.dbId}`, { method: 'PATCH', headers: authHeader(), body: JSON.stringify(body) })
       const data = await res.json()
@@ -78,11 +203,15 @@ export default function PackageManager() {
     }
   }
 
-  // Only _raw needs updating — display values (name, discount, urgency) come from _raw via save
   function updateRaw(dbId, field, value) {
     setPackages(prev => prev.map(p =>
       p.dbId !== dbId ? p : { ...p, _raw: { ...p._raw, [field]: value } }
     ))
+  }
+
+  // Called by PackageImageUpload when upload succeeds or URL field changes
+  function handleImageUrlUpdate(dbId, newUrl) {
+    updateRaw(dbId, 'image_url', newUrl)
   }
 
   if (loading) return (
@@ -146,7 +275,7 @@ export default function PackageManager() {
               <header className="admin-pkg-card__head">
                 <span className="admin-pkg-card__badge">{pkg.badge}</span>
                 {pkg.popular && <span className="admin-pkg-card__popular">Signature</span>}
-                {r.urgency_text  && <span className="admin-pkg-card__urgency-preview" title="Urgency badge (live)">🔴 {r.urgency_text}</span>}
+                {r.urgency_text   && <span className="admin-pkg-card__urgency-preview"  title="Urgency badge (live)">🔴 {r.urgency_text}</span>}
                 {r.discount_label && <span className="admin-pkg-card__discount-preview" title="Discount badge (live)">🟢 {r.discount_label}</span>}
               </header>
 
@@ -194,6 +323,9 @@ export default function PackageManager() {
                 </div>
                 <p className="admin-pkg-section__note">Shown on Packages page, Home page cards, and the booking wizard. Clear to hide.</p>
               </div>
+
+              {/* ── Image Upload ── */}
+              <PackageImageUpload pkg={pkg} onUpdate={handleImageUrlUpdate} />
 
               <button type="button" className="admin-filter-btn admin-pkg-save" disabled={saving === pkg.dbId} onClick={() => savePackage(pkg)}>
                 {saving === pkg.dbId ? 'Saving…' : `Save ${r.name || 'package'}`}
