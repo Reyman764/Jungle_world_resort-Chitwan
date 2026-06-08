@@ -176,7 +176,7 @@ function PriceBreakdown({ pkg, category, adults, children, compact, currencyRate
 }
 
 export default function BookingWizard({ preselect }) {
-  const { packages: PACKAGES, loading: packagesLoading } = usePackages()
+  const { packages: PACKAGES, loading: packagesLoading, currencyRates } = usePackages()
   const [step, setStep]         = useState(0)
   const [pkg, setPkg]           = useState(null)
   const [category, setCategory] = useState('nepali')

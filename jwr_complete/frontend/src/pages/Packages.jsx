@@ -122,36 +122,74 @@ export default function Packages() {
       ) : (
         <section className="compare-section">
           <div className="container">
-            <div className="compare-grid reveal">
-              <div className="compare-col compare-col--label" />
-              {packages.map(pkg => (
-                <div key={pkg.id} className={`compare-col compare-col--pkg ${pkg.popular ? 'featured' : ''}`}>
-                  <div className="compare-pkg-img">
-                    <img src={pkg.img} alt={`${pkg.name} package`} loading="lazy" referrerPolicy="no-referrer-when-downgrade" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  </div>
-                  {pkg.popular && <div className="compare-popular">Most Popular</div>}
-                  <h3>{pkg.name}</h3>
-                  <div className="compare-price">{pkg.price}</div>
-                  <div className="compare-price-sub">SAARC: {pkg.priceINR} · Nepali: {pkg.priceNPR}</div>
-                  <div className="compare-duration">{pkg.duration}</div>
-                  <PackageBadges urgency={pkg.urgency} discount={pkg.discount} variant="compare" />
-                  <Link to="/contact" className="btn-primary" style={{ fontSize: '11px', padding: '10px 20px', marginTop: '12px' }} aria-label={`Book ${pkg.name}`} onClick={() => sessionStorage.setItem('jwrPreselect', pkg.id)}>
-                    <span>Book</span>
-                  </Link>
-                </div>
-              ))}
-              {COMPARE_FEATURES.map(feature => (
-                <React.Fragment key={feature}>
-                  <div className="compare-col compare-col--label">{feature}</div>
-                  {packages.map((pkg, i) => (
-                    <div key={pkg.id} className={`compare-col compare-col--check ${pkg.popular ? 'featured' : ''}`}>
-                      {pkg.includes.some(inc => inc.toLowerCase().includes(feature.toLowerCase().split(' ')[0])) || i >= (feature.includes('Elephant') || feature.includes('Sunset') || feature.includes('Airport') ? 2 : feature.includes('Bird') || feature.includes('Guided') ? 1 : 0)
-                        ? <span className="check-yes" aria-label="Included">Included</span>
-                        : <span className="check-no"  aria-label="Not included">–</span>}
+            <div className="compare-wrapper reveal">
+              {/* ── Package header row ── */}
+              <div className="compare-header-row">
+                <div className="compare-label-col compare-label-col--header" aria-hidden="true" />
+                {packages.map(pkg => (
+                  <div key={pkg.id} className={`compare-pkg-col ${pkg.popular ? 'compare-pkg-col--featured' : ''}`}>
+                    {pkg.popular && <div className="compare-pkg-crown">MOST POPULAR</div>}
+                    <div className="compare-pkg-img-wrap">
+                      <img src={pkg.img} alt={`${pkg.name} package`} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+                      <div className="compare-pkg-img-overlay" />
                     </div>
-                  ))}
-                </React.Fragment>
-              ))}
+                    <div className="compare-pkg-info">
+                      <span className="compare-pkg-duration">{pkg.duration}</span>
+                      <h3 className="compare-pkg-name">{pkg.name}</h3>
+                      <div className="compare-pkg-price">{pkg.price}</div>
+                      <div className="compare-pkg-price-sub">
+                        <span>SAARC <strong>{pkg.priceINR}</strong></span>
+                        <span className="compare-pkg-price-sep">·</span>
+                        <span>Nepali <strong>{pkg.priceNPR}</strong></span>
+                      </div>
+                      <PackageBadges urgency={pkg.urgency} discount={pkg.discount} variant="compare" />
+                      <Link
+                        to="/contact#booking-section"
+                        className={pkg.popular ? 'compare-book-btn compare-book-btn--featured' : 'compare-book-btn'}
+                        aria-label={`Book ${pkg.name}`}
+                        onClick={() => sessionStorage.setItem('jwrPreselect', pkg.id)}
+                      >
+                        Reserve This Stay
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* ── Feature rows ── */}
+              <div className="compare-features-table">
+                <div className="compare-features-section-label">What's Included</div>
+                {COMPARE_FEATURES.map((feature, fi) => (
+                  <div key={feature} className={`compare-feature-row ${fi % 2 === 0 ? 'compare-feature-row--even' : ''}`}>
+                    <div className="compare-label-col">{feature}</div>
+                    {packages.map((pkg, i) => {
+                      const included = pkg.includes.some(inc => inc.toLowerCase().includes(feature.toLowerCase().split(' ')[0]))
+                        || i >= (feature.includes('Elephant') || feature.includes('Sunset') || feature.includes('Airport') ? 2
+                               : feature.includes('Bird') || feature.includes('Guided') ? 1 : 0)
+                      return (
+                        <div key={pkg.id} className={`compare-check-col ${pkg.popular ? 'compare-check-col--featured' : ''}`} aria-label={included ? 'Included' : 'Not included'}>
+                          {included ? (
+                            <span className="compare-tick" aria-hidden="true">
+                              <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+                                <circle cx="10" cy="10" r="9" fill="currentColor" opacity="0.12"/>
+                                <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="1.5"/>
+                                <polyline points="6,10.5 9,13.5 14,7.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                            </span>
+                          ) : (
+                            <span className="compare-cross" aria-hidden="true">
+                              <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" width="18" height="18">
+                                <line x1="6" y1="6" x2="14" y2="14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                                <line x1="14" y1="6" x2="6" y2="14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                              </svg>
+                            </span>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>

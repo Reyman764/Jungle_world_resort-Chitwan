@@ -33,7 +33,7 @@ function fmtNprEq(nprVal) {
 /* ────────────────────────────────────────────────────────────
    Image Upload Sub-component
    ──────────────────────────────────────────────────────────── */
-function PackageImageUpload({ pkg, onUpdate }) {
+function PackageImageUpload({ pkg, onUpdate, hideTitle = false }) {
   const [uploading, setUploading]   = useState(false)
   const [imgError,  setImgError]    = useState('')
   const [imgMsg,    setImgMsg]      = useState('')
@@ -90,11 +90,13 @@ function PackageImageUpload({ pkg, onUpdate }) {
   const displayUrl = preview || currentUrl
 
   return (
-    <div className="admin-pkg-section admin-pkg-image-section">
-      <p className="admin-pkg-section__title">
-        Package image
-        <span className="admin-pkg-section__hint"> — upload a file or paste a URL</span>
-      </p>
+    <div className={hideTitle ? 'admin-pkg-image-bare' : 'admin-pkg-section admin-pkg-image-section'}>
+      {!hideTitle && (
+        <p className="admin-pkg-section__title">
+          Package image
+          <span className="admin-pkg-section__hint"> — upload a file or paste a URL</span>
+        </p>
+      )}
 
       {displayUrl && (
         <div className="admin-pkg-image-preview">
@@ -317,16 +319,54 @@ function CurrencyPriceField({ label, currency, symbol, nprValue, rate, onChange,
 }
 
 /* ────────────────────────────────────────────────────────────
+   Accordion Section — collapsible panel with animated body
+   ──────────────────────────────────────────────────────────── */
+function AccordionSection({ label, icon, summary, isOpen, onToggle, children }) {
+  return (
+    <div className={`pkg-acc${isOpen ? ' pkg-acc--open' : ''}`}>
+      <button type="button" className="pkg-acc__btn" onClick={onToggle}>
+        <span className="pkg-acc__icon">{icon}</span>
+        <span className="pkg-acc__label">{label}</span>
+        {!isOpen && summary && <span className="pkg-acc__summary">{summary}</span>}
+        <span className="pkg-acc__arrow">
+          <svg viewBox="0 0 16 16" fill="currentColor" width="12" height="12" aria-hidden="true">
+            <path d="M8 10.94L2.53 5.47a.75.75 0 0 1 1.06-1.06L8 8.82l4.41-4.41a.75.75 0 1 1 1.06 1.06L8 10.94z"/>
+          </svg>
+        </span>
+      </button>
+      <div className="pkg-acc__body">
+        <div className="pkg-acc__body-inner">
+          {children}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ────────────────────────────────────────────────────────────
    Main PackageManager
    ──────────────────────────────────────────────────────────── */
 export default function PackageManager() {
-  const [packages,  setPackages]  = useState([])
-  const [promo,     setPromo]     = useState(PROMO_DEFAULTS)
-  const [rates,     setRates]     = useState(DEFAULT_RATES)
-  const [loading,   setLoading]   = useState(true)
-  const [saving,    setSaving]    = useState(null)
-  const [message,   setMessage]   = useState('')
-  const [error,     setError]     = useState('')
+  const [packages,      setPackages]      = useState([])
+  const [promo,         setPromo]         = useState(PROMO_DEFAULTS)
+  const [rates,         setRates]         = useState(DEFAULT_RATES)
+  const [loading,       setLoading]       = useState(true)
+  const [saving,        setSaving]        = useState(null)
+  const [message,       setMessage]       = useState('')
+  const [error,         setError]         = useState('')
+  const [openSections,  setOpenSections]  = useState({})          // accordion state
+
+  /* Which section is open? Base prices open by default, rest closed */
+  function isSectionOpen(dbId, section) {
+    if (!openSections[dbId]) return section === 'base'            // default
+    return openSections[dbId][section] ?? (section === 'base')
+  }
+  function toggleSection(dbId, section) {
+    setOpenSections(prev => ({
+      ...prev,
+      [dbId]: { ...(prev[dbId] || {}), [section]: !isSectionOpen(dbId, section) }
+    }))
+  }
 
   const load = useCallback(async () => {
     setLoading(true); setError('')
@@ -461,136 +501,168 @@ export default function PackageManager() {
       <div className="admin-pkg-list">
         {packages.map(pkg => {
           const r = pkg._raw || {}
+          /* Helpers for accordion summaries */
+          const baseSummary = r.price_foreigner
+            ? `$${nprToUsd(r.price_foreigner, rates.usd_to_npr)} · ₹${nprToInr(r.price_saarc, rates.inr_to_npr)} · NPR ${Number(r.price_nepali||0).toLocaleString('en-IN')}`
+            : '—'
+          const discountSummary = r.price_foreigner_discount
+            ? `$${nprToUsd(r.price_foreigner_discount, rates.usd_to_npr)} active`
+            : 'None set'
+          const badgeSummary = [r.discount_label, r.urgency_text].filter(Boolean).join(' · ') || '—'
+          const imageSummary = r.image_url ? 'Uploaded' : 'None'
+
           return (
             <article key={pkg.dbId} className="admin-pkg-card">
-              <header className="admin-pkg-card__head">
-                <span className="admin-pkg-card__badge">{pkg.badge}</span>
-                {pkg.popular && <span className="admin-pkg-card__popular">Signature</span>}
-                {r.urgency_text   && <span className="admin-pkg-card__urgency-preview"  title="Urgency badge (live)">🔴 {r.urgency_text}</span>}
-                {r.discount_label && <span className="admin-pkg-card__discount-preview" title="Discount badge (live)">🟢 {r.discount_label}</span>}
+
+              {/* ═══ Dark Forest Header ═══ */}
+              <header className="admin-pkg-card__header">
+                <div className="admin-pkg-card__header-top">
+                  <span className="admin-pkg-card__badge">{pkg.badge}</span>
+                  {pkg.popular && <span className="admin-pkg-card__popular">★ Signature</span>}
+                </div>
+                <input
+                  type="text"
+                  className="admin-pkg-card__name-input"
+                  value={r.name || ''}
+                  onChange={e => updateRaw(pkg.dbId, 'name', e.target.value)}
+                  placeholder="Package name…"
+                />
+                {(r.urgency_text || r.discount_label) && (
+                  <div className="admin-pkg-card__live-row">
+                    {r.urgency_text   && <span className="admin-pkg-live admin-pkg-live--urgency">● {r.urgency_text}</span>}
+                    {r.discount_label && <span className="admin-pkg-live admin-pkg-live--discount">● {r.discount_label}</span>}
+                  </div>
+                )}
               </header>
 
-              <label className="admin-pkg-field">
-                <span>Package name</span>
-                <input type="text" value={r.name || ''} onChange={e => updateRaw(pkg.dbId, 'name', e.target.value)} />
-              </label>
+              {/* ═══ Accordion Body ═══ */}
+              <div className="admin-pkg-card__body">
 
-              {/* ── Base Prices ── */}
-              <div className="admin-pkg-section">
-                <p className="admin-pkg-section__title">
-                  Base prices
-                  <span className="admin-pkg-section__hint"> — International in USD · SAARC in INR · Nepali in NPR</span>
-                </p>
-                <div className="admin-pkg-prices admin-pkg-prices--3col">
-                  <CurrencyPriceField
-                    label="International"
-                    currency="USD"
-                    symbol="$"
-                    nprValue={r.price_foreigner}
-                    rate={rates.usd_to_npr}
-                    toNpr={usdToNpr}
-                    fromNpr={nprToUsd}
-                    onChange={v => updateRaw(pkg.dbId, 'price_foreigner', v)}
-                  />
-                  <CurrencyPriceField
-                    label="SAARC"
-                    currency="INR"
-                    symbol="₹"
-                    nprValue={r.price_saarc}
-                    rate={rates.inr_to_npr}
-                    toNpr={inrToNpr}
-                    fromNpr={nprToInr}
-                    onChange={v => updateRaw(pkg.dbId, 'price_saarc', v)}
-                  />
-                  {/* Nepali stays NPR */}
-                  <label className="admin-fx-price-label">
-                    <span className="admin-pkg-price-head">
-                      <span>Nepali</span>
-                      <span className="admin-fx-currency-tag admin-fx-currency-tag--npr">NPR</span>
-                    </span>
-                    <div className="admin-fx-price-input-wrap">
-                      <span className="admin-fx-price-prefix admin-fx-price-prefix--npr">₨</span>
-                      <input
-                        type="number"
-                        min="0"
-                        value={r.price_nepali ?? ''}
-                        onChange={e => updateRaw(pkg.dbId, 'price_nepali', e.target.value)}
-                        className="admin-fx-price-input"
+                <AccordionSection
+                  label="Base Prices" icon="💰"
+                  summary={baseSummary}
+                  isOpen={isSectionOpen(pkg.dbId, 'base')}
+                  onToggle={() => toggleSection(pkg.dbId, 'base')}
+                >
+                  <div className="admin-pkg-prices admin-pkg-prices--3col">
+                    <CurrencyPriceField
+                      label="International" currency="USD" symbol="$"
+                      nprValue={r.price_foreigner} rate={rates.usd_to_npr}
+                      toNpr={usdToNpr} fromNpr={nprToUsd}
+                      onChange={v => updateRaw(pkg.dbId, 'price_foreigner', v)}
+                    />
+                    <CurrencyPriceField
+                      label="SAARC" currency="INR" symbol="₹"
+                      nprValue={r.price_saarc} rate={rates.inr_to_npr}
+                      toNpr={inrToNpr} fromNpr={nprToInr}
+                      onChange={v => updateRaw(pkg.dbId, 'price_saarc', v)}
+                    />
+                    <label className="admin-fx-price-label">
+                      <span className="admin-pkg-price-head">
+                        <span>Nepali</span>
+                        <span className="admin-fx-currency-tag admin-fx-currency-tag--npr">NPR</span>
+                      </span>
+                      <div className="admin-fx-price-input-wrap">
+                        <span className="admin-fx-price-prefix admin-fx-price-prefix--npr">₨</span>
+                        <input
+                          type="number" min="0"
+                          value={r.price_nepali ?? ''}
+                          onChange={e => updateRaw(pkg.dbId, 'price_nepali', e.target.value)}
+                          className="admin-fx-price-input"
+                        />
+                      </div>
+                    </label>
+                  </div>
+                </AccordionSection>
+
+                <AccordionSection
+                  label="Discount Prices" icon="🏷️"
+                  summary={discountSummary}
+                  isOpen={isSectionOpen(pkg.dbId, 'discount')}
+                  onToggle={() => toggleSection(pkg.dbId, 'discount')}
+                >
+                  <div className="admin-pkg-prices admin-pkg-prices--3col">
+                    <CurrencyPriceField
+                      label="Intl. discount" currency="USD" symbol="$"
+                      nprValue={r.price_foreigner_discount} rate={rates.usd_to_npr}
+                      toNpr={usdToNpr} fromNpr={nprToUsd}
+                      onChange={v => updateRaw(pkg.dbId, 'price_foreigner_discount', v)}
+                    />
+                    <CurrencyPriceField
+                      label="SAARC discount" currency="INR" symbol="₹"
+                      nprValue={r.price_saarc_discount} rate={rates.inr_to_npr}
+                      toNpr={inrToNpr} fromNpr={nprToInr}
+                      onChange={v => updateRaw(pkg.dbId, 'price_saarc_discount', v)}
+                    />
+                    <label className="admin-fx-price-label">
+                      <span className="admin-pkg-price-head">
+                        <span>Nepali disc.</span>
+                        <span className="admin-fx-currency-tag admin-fx-currency-tag--npr">NPR</span>
+                      </span>
+                      <div className="admin-fx-price-input-wrap">
+                        <span className="admin-fx-price-prefix admin-fx-price-prefix--npr">₨</span>
+                        <input
+                          type="number" min="0"
+                          value={r.price_nepali_discount ?? ''}
+                          onChange={e => updateRaw(pkg.dbId, 'price_nepali_discount', e.target.value || null)}
+                          className="admin-fx-price-input"
+                        />
+                      </div>
+                    </label>
+                  </div>
+                  <p className="admin-pkg-section__note" style={{ marginTop: 10 }}>Leave blank to use regular price.</p>
+                </AccordionSection>
+
+                <AccordionSection
+                  label="Live Badges" icon="🎯"
+                  summary={badgeSummary}
+                  isOpen={isSectionOpen(pkg.dbId, 'badges')}
+                  onToggle={() => toggleSection(pkg.dbId, 'badges')}
+                >
+                  <div className="admin-pkg-badges">
+                    <label>
+                      <span>Discount badge</span>
+                      <input type="text" placeholder="e.g. 15% Off"
+                        value={r.discount_label || ''}
+                        onChange={e => updateRaw(pkg.dbId, 'discount_label', e.target.value)}
                       />
-                    </div>
-                  </label>
-                </div>
-              </div>
-
-              {/* ── Discount Prices ── */}
-              <div className="admin-pkg-section">
-                <p className="admin-pkg-section__title">
-                  Discount prices <span className="admin-pkg-section__hint">— leave blank to use regular price</span>
-                </p>
-                <div className="admin-pkg-prices admin-pkg-prices--3col">
-                  <CurrencyPriceField
-                    label="Intl. discount"
-                    currency="USD"
-                    symbol="$"
-                    nprValue={r.price_foreigner_discount}
-                    rate={rates.usd_to_npr}
-                    toNpr={usdToNpr}
-                    fromNpr={nprToUsd}
-                    onChange={v => updateRaw(pkg.dbId, 'price_foreigner_discount', v)}
-                  />
-                  <CurrencyPriceField
-                    label="SAARC discount"
-                    currency="INR"
-                    symbol="₹"
-                    nprValue={r.price_saarc_discount}
-                    rate={rates.inr_to_npr}
-                    toNpr={inrToNpr}
-                    fromNpr={nprToInr}
-                    onChange={v => updateRaw(pkg.dbId, 'price_saarc_discount', v)}
-                  />
-                  <label className="admin-fx-price-label">
-                    <span className="admin-pkg-price-head">
-                      <span>Nepali discount</span>
-                      <span className="admin-fx-currency-tag admin-fx-currency-tag--npr">NPR</span>
-                    </span>
-                    <div className="admin-fx-price-input-wrap">
-                      <span className="admin-fx-price-prefix admin-fx-price-prefix--npr">₨</span>
-                      <input
-                        type="number"
-                        min="0"
-                        value={r.price_nepali_discount ?? ''}
-                        onChange={e => updateRaw(pkg.dbId, 'price_nepali_discount', e.target.value || null)}
-                        className="admin-fx-price-input"
+                    </label>
+                    <label>
+                      <span>Rooms / urgency</span>
+                      <input type="text" placeholder="e.g. 2 rooms left"
+                        value={r.urgency_text || ''}
+                        onChange={e => updateRaw(pkg.dbId, 'urgency_text', e.target.value)}
                       />
-                    </div>
-                  </label>
-                </div>
+                    </label>
+                  </div>
+                  <p className="admin-pkg-section__note" style={{ marginTop: 10 }}>Shown on Packages page, Home page, and booking wizard. Clear to hide.</p>
+                </AccordionSection>
+
+                <AccordionSection
+                  label="Package Image" icon="🖼️"
+                  summary={imageSummary}
+                  isOpen={isSectionOpen(pkg.dbId, 'image')}
+                  onToggle={() => toggleSection(pkg.dbId, 'image')}
+                >
+                  <PackageImageUpload pkg={pkg} onUpdate={handleImageUrlUpdate} hideTitle />
+                </AccordionSection>
+
+              </div>{/* end .admin-pkg-card__body */}
+
+              {/* ═══ Footer — Save ═══ */}
+              <div className="admin-pkg-card__footer">
+                <button
+                  type="button"
+                  className="admin-pkg-save"
+                  disabled={saving === pkg.dbId}
+                  onClick={() => savePackage(pkg)}
+                >
+                  {saving === pkg.dbId
+                    ? <><span className="pkg-save-spinner" />Saving…</>
+                    : `Save ${r.name || 'Package'} →`}
+                </button>
               </div>
 
-              {/* ── Live Badges ── */}
-              <div className="admin-pkg-section">
-                <p className="admin-pkg-section__title">
-                  Live badges <span className="admin-pkg-section__hint">— appear on package cards across the site</span>
-                </p>
-                <div className="admin-pkg-badges">
-                  <label>
-                    <span>Discount badge</span>
-                    <input type="text" placeholder="e.g. 15% Off" value={r.discount_label || ''} onChange={e => updateRaw(pkg.dbId, 'discount_label', e.target.value)} />
-                  </label>
-                  <label>
-                    <span>Rooms / urgency text</span>
-                    <input type="text" placeholder="e.g. 2 rooms left" value={r.urgency_text || ''} onChange={e => updateRaw(pkg.dbId, 'urgency_text', e.target.value)} />
-                  </label>
-                </div>
-                <p className="admin-pkg-section__note">Shown on Packages page, Home page cards, and the booking wizard. Clear to hide.</p>
-              </div>
-
-              {/* ── Image Upload ── */}
-              <PackageImageUpload pkg={pkg} onUpdate={handleImageUrlUpdate} />
-
-              <button type="button" className="admin-filter-btn admin-pkg-save" disabled={saving === pkg.dbId} onClick={() => savePackage(pkg)}>
-                {saving === pkg.dbId ? 'Saving…' : `Save ${r.name || 'package'}`}
-              </button>
             </article>
           )
         })}
