@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import './Navbar.css'
 
@@ -17,6 +17,8 @@ export default function Navbar({ theme, toggleTheme }) {
   const [menuOpen, setMenuOpen]   = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
+  const drawerRef = useRef(null)
+  const burgerRef = useRef(null)
 
   // Staff login state
   const isLoggedIn = !!localStorage.getItem('token')
@@ -29,10 +31,18 @@ export default function Navbar({ theme, toggleTheme }) {
 
   useEffect(() => { setMenuOpen(false) }, [location])
 
+  // Fix: blur focused drawer link before aria-hidden is applied
+  useEffect(() => {
+    if (!menuOpen && drawerRef.current) {
+      const focused = drawerRef.current.querySelector(':focus')
+      if (focused) focused.blur()
+    }
+  }, [menuOpen])
+
   function handleLogout() {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
-    navigate('/staff-login')
+    navigate('/staff/login')
   }
 
   return (
@@ -103,20 +113,8 @@ export default function Navbar({ theme, toggleTheme }) {
             ))}
           </ul>
 
-          {/* Actions */}
+          {/* Desktop actions */}
           <div className="navbar__actions">
-            <button
-              className="theme-btn"
-              onClick={toggleTheme}
-              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-              title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
-            >
-              {theme === 'dark'
-                ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="16" height="16"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-                : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="16" height="16"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-              }
-            </button>
-
             {isLoggedIn ? (
               <>
                 <Link to="/admin/dashboard" className="navbar__cta">
@@ -132,7 +130,7 @@ export default function Navbar({ theme, toggleTheme }) {
               </>
             ) : (
               <>
-                <Link to="/staff-login" className="navbar__staff-link" aria-label="Staff login" title="Staff portal login">
+                <Link to="/staff/login" className="navbar__staff-link" aria-label="Staff login" title="Staff portal login">
                   <svg viewBox="0 0 16 16" fill="none" width="12" height="12" aria-hidden="true">
                     <circle cx="8" cy="5" r="3" stroke="currentColor" strokeWidth="1.3"/>
                     <path d="M2.5 14c0-3.038 2.462-5.5 5.5-5.5s5.5 2.462 5.5 5.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
@@ -150,8 +148,22 @@ export default function Navbar({ theme, toggleTheme }) {
             )}
           </div>
 
+          {/* Theme toggle — always visible (desktop + mobile) */}
+          <button
+            className="theme-btn"
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+          >
+            {theme === 'dark'
+              ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="16" height="16"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+              : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="16" height="16"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+            }
+          </button>
+
           {/* Hamburger */}
           <button
+            ref={burgerRef}
             className={`navbar__burger${menuOpen ? ' navbar__burger--open' : ''}`}
             onClick={() => setMenuOpen(v => !v)}
             aria-label="Toggle menu"
@@ -162,7 +174,11 @@ export default function Navbar({ theme, toggleTheme }) {
         </div>
 
         {/* ── Mobile drawer ── */}
-        <div className={`navbar__drawer${menuOpen ? ' navbar__drawer--open' : ''}`} aria-hidden={!menuOpen}>
+        <div
+          ref={drawerRef}
+          className={`navbar__drawer${menuOpen ? ' navbar__drawer--open' : ''}`}
+          aria-hidden={!menuOpen}
+        >
           <div className="drawer__scroll">
             {links.map(l => (
               <NavLink
@@ -179,9 +195,24 @@ export default function Navbar({ theme, toggleTheme }) {
             ))}
 
             <div className="drawer__footer">
-              <button className="drawer__theme-btn" onClick={toggleTheme}>
-                {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-              </button>
+              {isLoggedIn ? (
+                <>
+                  <Link to="/admin/dashboard" className="drawer__cta drawer__cta--secondary">
+                    Admin Dashboard
+                  </Link>
+                  <button onClick={handleLogout} className="drawer__logout-btn">
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <Link to="/staff/login" className="drawer__staff-link">
+                  <svg viewBox="0 0 16 16" fill="none" width="13" height="13" aria-hidden="true">
+                    <circle cx="8" cy="5" r="3" stroke="currentColor" strokeWidth="1.3"/>
+                    <path d="M2.5 14c0-3.038 2.462-5.5 5.5-5.5s5.5 2.462 5.5 5.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                  </svg>
+                  Staff Login
+                </Link>
+              )}
               <Link to="/contact" className="drawer__cta">
                 Book / Reserve
               </Link>

@@ -19,14 +19,15 @@ const STAFF_STATUSES = ['pending', 'active', 'inactive', 'suspended'];
 
 function publicUser(user) {
   return {
-    id:          user.id,
-    email:       user.email,
-    first_name:  user.first_name,
-    last_name:   user.last_name,
-    role:        user.role,
-    status:      user.account_status ?? 'active',
-    last_login:  user.last_login,
-    created_at:  user.created_at,
+    id:                   user.id,
+    email:                user.email,
+    first_name:           user.first_name,
+    last_name:            user.last_name,
+    role:                 user.role,
+    status:               user.account_status ?? 'active',
+    last_login:           user.last_login,
+    created_at:           user.created_at,
+    must_change_password: user.must_change_password ?? false,
   };
 }
 

@@ -320,3 +320,51 @@
 .sl-change-modal .staff-form-group {
   text-align: left;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   STAFF LOGIN — Mobile responsiveness improvements
+   ══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 480px) {
+  .staff-login-page { padding: 24px 12px; align-items: flex-end; }
+
+  .staff-login-card {
+    padding: 36px 22px 32px;
+    border-radius: 16px 16px 0 0;
+    border-bottom: none;
+    max-width: 100%;
+    width: 100%;
+    box-shadow:
+      0 2px 0 rgba(200,151,58,0.4),
+      0 -16px 60px rgba(0,0,0,0.55),
+      inset 0 1px 0 rgba(255,255,255,0.06);
+    animation: loginCardInMobile .4s cubic-bezier(0,0,.2,1) both;
+  }
+
+  @keyframes loginCardInMobile {
+    from { opacity: 0; transform: translateY(32px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .staff-login-brand { margin-bottom: 28px; gap: 10px; }
+  .staff-login-logo  { width: 52px; height: 52px; }
+  .staff-login-name  { font-size: 1.6rem !important; }
+  .staff-login-sub   { font-size: 10px !important; }
+
+  .staff-form-group  { margin-bottom: 16px !important; }
+  .staff-login-btn   { padding: 14px 20px !important; font-size: 13px !important; }
+
+  /* Force-change modal */
+  .sl-overlay { align-items: flex-end; padding: 0; }
+  .sl-change-modal {
+    border-radius: 16px 16px 0 0 !important;
+    padding: 28px 20px 32px !important;
+    max-width: 100% !important;
+    border-bottom: none !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .staff-login-card { padding: 28px 16px 28px; }
+  .staff-login-name { font-size: 1.4rem !important; }
+}

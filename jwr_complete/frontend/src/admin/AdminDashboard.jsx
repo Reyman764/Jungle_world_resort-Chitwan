@@ -66,64 +66,65 @@ function ChangeMyPassword() {
   }
 
   return (
-    <div style={{ maxWidth: 440, margin: '0 auto', padding: '24px 0' }}>
-      <h2 style={{ color: 'var(--a-text)', fontSize: '1.15rem', marginBottom: 6, fontWeight: 600 }}>
-        Change My Password
-      </h2>
-      <p style={{ color: 'var(--a-text-4)', fontSize: '0.82rem', marginBottom: 28 }}>
-        After changing your password you will be logged out and must sign in again.
+    <div className="pwd-panel">
+      <div className="pwd-panel__header">
+        <div className="pwd-panel__icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </div>
+        <h2 className="pwd-panel__title">Change My Password</h2>
+      </div>
+      <p className="pwd-panel__subtitle">
+        After changing your password you will be signed out and must log in again.
       </p>
 
-      {error   && <div className="sm-alert sm-alert--error"   style={{ marginBottom: 18 }}>{error}</div>}
-      {success && <div className="sm-alert sm-alert--success" style={{ marginBottom: 18 }}>{success}</div>}
+      {error   && <div className="sm-alert sm-alert--error"   style={{ marginBottom: 20 }}>{error}</div>}
+      {success && <div className="sm-alert sm-alert--success" style={{ marginBottom: 20 }}>{success}</div>}
 
-      <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {[
-          { name: 'oldPassword', label: 'Current Password',     placeholder: '••••••••' },
-          { name: 'newPassword', label: 'New Password',         placeholder: 'Min. 8 characters' },
-          { name: 'confirm',     label: 'Confirm New Password', placeholder: 'Repeat new password' },
-        ].map(({ name, label, placeholder }) => (
-          <div key={name}>
-            <label style={{
-              display: 'block', fontSize: 11, fontWeight: 600,
-              color: 'var(--a-text-3)', marginBottom: 6,
-              textTransform: 'uppercase', letterSpacing: '.05em',
-            }}>
-              {label}
-            </label>
-            <input
-              type="password"
-              placeholder={placeholder}
-              value={form[name]}
-              onChange={e => setForm(f => ({ ...f, [name]: e.target.value }))}
-              required
-              style={{
-                width: '100%', padding: '10px 14px',
-                background: 'var(--a-surface)',
-                border: '1px solid var(--a-border)',
-                borderRadius: 9,
-                color: 'var(--a-text)',
-                fontSize: 14, boxSizing: 'border-box', outline: 'none',
-                fontFamily: 'inherit',
-              }}
-            />
+      <div className="pwd-panel__card">
+        <form onSubmit={handleSubmit} noValidate>
+          <div className="pwd-panel__fields">
+            {[
+              { name: 'oldPassword', label: 'Current Password',     placeholder: '••••••••' },
+              { name: 'newPassword', label: 'New Password',         placeholder: 'Minimum 8 characters' },
+              { name: 'confirm',     label: 'Confirm New Password', placeholder: 'Repeat new password' },
+            ].map(({ name, label, placeholder }) => (
+              <div className="pwd-panel__field" key={name}>
+                <label>{label}</label>
+                <input
+                  type="password"
+                  className="pwd-panel__input"
+                  placeholder={placeholder}
+                  value={form[name]}
+                  onChange={e => setForm(f => ({ ...f, [name]: e.target.value }))}
+                  required
+                />
+              </div>
+            ))}
           </div>
-        ))}
 
-        <button
-          type="submit"
-          disabled={loading || !!success}
-          style={{
-            marginTop: 8, padding: '11px 0',
-            background: 'var(--a-green)',
-            color: '#fff', border: 'none', borderRadius: 9,
-            fontSize: 13, fontWeight: 700, cursor: 'pointer',
-            opacity: loading ? .6 : 1, transition: 'opacity .2s',
-          }}
-        >
-          {loading ? 'Saving…' : 'Update Password'}
-        </button>
-      </form>
+          <div className="pwd-panel__divider" />
+
+          <div className="pwd-panel__footer">
+            <button
+              type="submit"
+              className="pwd-panel__submit"
+              disabled={loading || !!success}
+            >
+              {loading ? 'Saving…' : 'Update Password'}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div className="pwd-panel__hint">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        Use a strong password with letters, numbers, and symbols. Never share it with others.
+      </div>
     </div>
   )
 }

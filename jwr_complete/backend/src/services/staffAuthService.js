@@ -81,8 +81,10 @@ async function findValidToken(rawToken, tokenType, transaction = null) {
 
 /**
  * Record a staff auth event in staff_audit_logs.
+ * NOTE: Never pass a transaction here — audit log failures must not
+ * roll back caller transactions.
  */
-async function logAuditEvent(staffId, action, details = '', performedByStaffId = null, ipAddress = null, transaction = null) {
+async function logAuditEvent(staffId, action, details = '', performedByStaffId = null, ipAddress = null) {
   try {
     await StaffAuditLog.create({
       staff_id: staffId,
@@ -90,8 +92,9 @@ async function logAuditEvent(staffId, action, details = '', performedByStaffId =
       details: typeof details === 'string' ? details : JSON.stringify(details),
       performed_by_staff_id: performedByStaffId,
       ip_address: ipAddress,
-    }, transaction ? { transaction } : undefined);
+    });
   } catch (err) {
+    // Audit log failures are non-fatal — log and continue
     console.error('[staffAuth] audit log failed:', err.message);
   }
 }
@@ -191,15 +194,16 @@ async function createStaffAccount({ email, password, firstName, lastName, role =
         token_type: 'email_verification',
         expires_at: new Date(Date.now() + VERIFICATION_TTL_MS),
       }, { transaction });
-
-      await logAuditEvent(
-        staff.id,
-        'STAFF_ACCOUNT_CREATED',
-        `Staff account created for ${normalized}`,
-        null,
-        null
-      );
     });
+
+    // Audit log fires OUTSIDE the transaction — failure is non-fatal
+    await logAuditEvent(
+      staff.id,
+      'STAFF_ACCOUNT_CREATED',
+      `Staff account created for ${normalized}`,
+      null,
+      null
+    );
 
     await sendVerificationEmail(normalized, rawToken, firstName);
 
@@ -250,15 +254,16 @@ async function verifyEmail(rawToken) {
       }, { transaction });
 
       staffId = staff.id;
-
-      await logAuditEvent(
-        staff.id,
-        'EMAIL_VERIFIED',
-        'Staff email verified — account activated',
-        staff.id,
-        null
-      );
     });
+
+    // Audit log outside transaction
+    await logAuditEvent(
+      staffId,
+      'EMAIL_VERIFIED',
+      'Staff email verified — account activated',
+      staffId,
+      null
+    );
 
     const staff = await User.findByPk(staffId);
 
@@ -430,15 +435,15 @@ async function resetPassword({ token, newPassword }) {
       await staff.update({ password_hash, refresh_token: null, must_change_password: false }, { transaction });
 
       staffId = staff.id;
-
-      await logAuditEvent(
-        staff.id,
-        'PASSWORD_RESET_COMPLETED',
-        'Password reset via email link',
-        staff.id,
-        null
-      );
     });
+
+    await logAuditEvent(
+      staffId,
+      'PASSWORD_RESET_COMPLETED',
+      'Password reset via email link',
+      staffId,
+      null
+    );
 
     return {
       success: true,
@@ -515,6 +520,9 @@ async function changePassword({ staffId, oldPassword, newPassword, ipAddress = n
  * Admin creates a staff account directly — account is immediately active.
  * Staff member must change their temporary password on first login.
  *
+ * IMPORTANT: logAuditEvent is called OUTSIDE the transaction so that any
+ * FK constraint issue with staff_audit_logs never aborts the user creation.
+ *
  * @param {{ email, password, firstName, lastName, role?, createdByAdminId? }} input
  */
 async function createStaffByAdmin({ email, password, firstName, lastName, role = 'staff', createdByAdminId = null }) {
@@ -542,6 +550,7 @@ async function createStaffByAdmin({ email, password, firstName, lastName, role =
 
     let staff;
 
+    // Only user creation inside the transaction — no audit log here
     await sequelize.transaction(async (transaction) => {
       staff = await User.create({
         email:                normalized,
@@ -554,16 +563,16 @@ async function createStaffByAdmin({ email, password, firstName, lastName, role =
         auth_provider:        'local',
         must_change_password: true,
       }, { transaction });
-
-      await logAuditEvent(
-        staff.id,
-        'STAFF_ACCOUNT_CREATED_BY_ADMIN',
-        `Account created by admin for ${normalized} with role '${role}'`,
-        createdByAdminId,
-        null,
-        transaction
-      );
     });
+
+    // Audit log fires after the transaction commits — non-fatal if it fails
+    await logAuditEvent(
+      staff.id,
+      'STAFF_ACCOUNT_CREATED_BY_ADMIN',
+      `Account created by admin for ${normalized} with role '${role}'`,
+      createdByAdminId,
+      null
+    );
 
     return {
       success: true,

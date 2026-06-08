@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
     staff_id: {
       type: DataTypes.UUID,
       allowNull: false,
-      references: { model: 'staff_accounts', key: 'id' },
+      // References users.id — staffAuthService stores staff in the users table
     },
     action: {
       type: DataTypes.STRING(50),
@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
     performed_by_staff_id: {
       type: DataTypes.UUID,
       allowNull: true,
-      references: { model: 'staff_accounts', key: 'id' },
+      // References users.id (nullable)
     },
     ip_address: {
       type: DataTypes.STRING(45),

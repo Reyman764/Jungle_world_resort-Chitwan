@@ -90,11 +90,12 @@ StaffToken.belongsTo(User, { foreignKey: 'staff_id', as: 'staff' });
 StaffAccount.hasMany(PasswordResetToken, { foreignKey: 'staff_id', as: 'password_reset_tokens' });
 PasswordResetToken.belongsTo(StaffAccount, { foreignKey: 'staff_id', as: 'staff' });
 
-StaffAccount.hasMany(StaffAuditLog, { foreignKey: 'staff_id', as: 'audit_logs' });
-StaffAuditLog.belongsTo(StaffAccount, { foreignKey: 'staff_id', as: 'staff' });
+// StaffAuditLog references users.id (staffAuthService stores staff in the users table)
+User.hasMany(StaffAuditLog, { foreignKey: 'staff_id', as: 'staff_audit_logs' });
+StaffAuditLog.belongsTo(User, { foreignKey: 'staff_id', as: 'staff_user' });
 
-StaffAccount.hasMany(StaffAuditLog, { foreignKey: 'performed_by_staff_id', as: 'performed_audit_logs' });
-StaffAuditLog.belongsTo(StaffAccount, { foreignKey: 'performed_by_staff_id', as: 'performer' });
+User.hasMany(StaffAuditLog, { foreignKey: 'performed_by_staff_id', as: 'performed_audit_logs' });
+StaffAuditLog.belongsTo(User, { foreignKey: 'performed_by_staff_id', as: 'performer_user' });
 
 StaffAccount.belongsTo(StaffAccount, { foreignKey: 'created_by', as: 'createdBy' });
 StaffAccount.hasMany(StaffAccount, { foreignKey: 'created_by', as: 'createdAccounts' });

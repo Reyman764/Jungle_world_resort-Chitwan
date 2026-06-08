@@ -208,6 +208,7 @@
   cursor: pointer;
   transition: background 0.25s, border-color 0.25s, color 0.25s, transform 0.25s;
   flex-shrink: 0;
+  margin-left: 12px;
 }
 
 .theme-btn:hover {
@@ -467,8 +468,16 @@
     display: none;
   }
 
+  /* theme-btn stays visible on mobile — floats before the burger */
+  .theme-btn {
+    display: flex;
+    margin-left: auto;
+    margin-right: 8px;
+  }
+
   .navbar__burger {
     display: flex;
+    margin-left: 0;
   }
 
   .navbar__drawer {
@@ -622,4 +631,83 @@
 [data-theme="dark"] .navbar__cta--ghost:hover {
   color: var(--gold-light);
   background: rgba(200, 151, 58, 0.15);
+}
+
+/* ── Drawer: Staff login link ───────────────────────────── */
+.drawer__staff-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: rgba(13, 34, 24, 0.04);
+  border: 1px solid rgba(13, 34, 24, 0.12);
+  color: var(--text-nav);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 11px 20px;
+  text-decoration: none;
+  text-align: center;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.drawer__staff-link:hover {
+  background: rgba(200, 151, 58, 0.12);
+  color: var(--gold-light);
+  border-color: rgba(200, 151, 58, 0.3);
+}
+
+/* ── Drawer: secondary CTA (Dashboard) ─────────────────── */
+.drawer__cta--secondary {
+  background: rgba(13, 34, 24, 0.06) !important;
+  color: var(--forest-mid) !important;
+  border: 1px solid rgba(13, 34, 24, 0.16);
+  font-weight: 600;
+}
+.drawer__cta--secondary:hover {
+  background: rgba(13, 34, 24, 0.1) !important;
+}
+
+/* ── Drawer: Logout button ──────────────────────────────── */
+.drawer__logout-btn {
+  width: 100%;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #b91c1c;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 11px 20px;
+  text-align: center;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.drawer__logout-btn:hover {
+  background: rgba(239, 68, 68, 0.14);
+}
+
+[data-theme="dark"] .drawer__staff-link {
+  color: var(--text-nav);
+  border-color: rgba(200, 151, 58, 0.2);
+  background: rgba(200, 151, 58, 0.06);
+}
+[data-theme="dark"] .drawer__staff-link:hover {
+  color: var(--gold-light);
+  background: rgba(200, 151, 58, 0.14);
+}
+[data-theme="dark"] .drawer__cta--secondary {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: rgba(240, 236, 227, 0.85) !important;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+[data-theme="dark"] .drawer__logout-btn {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
 }
