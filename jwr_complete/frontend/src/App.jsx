@@ -7,6 +7,7 @@ import ParticleBackground from './components/ParticleBackground'
 import FloatingBookBtn from './components/FloatingBookBtn'
 import ProtectedRoute from './components/ProtectedRoute'
 import LeafIntro from './components/LeafIntro'
+import OfferPopup from './components/OfferPopup'
 
 // Public pages
 const Home         = lazy(() => import('./pages/Home'))
@@ -103,6 +104,7 @@ function PublicLayout({ theme, toggleTheme }) {
       <FloatingBookBtn />
       <ScrollTopBtn />
       <ParticleBackground />
+      <OfferPopup />
     </>
   )
 }

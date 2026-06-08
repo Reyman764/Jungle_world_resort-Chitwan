@@ -8,6 +8,8 @@ const {
   updatePackage,
   updatePromoSettings,
   uploadPackageImage,
+  getCurrencyRatesHandler,
+  updateCurrencyRatesHandler,
 } = require('../controllers/packageController');
 
 // Multer: store upload in memory (max 5 MB, images only)
@@ -25,6 +27,11 @@ router.use(requireRole(['admin', 'manager']));
 
 router.get('/', listAdminPackages);
 router.patch('/promo', updatePromoSettings);
+
+// Currency rates — must be before /:id to avoid collision
+router.get('/currency-rates',   getCurrencyRatesHandler);
+router.patch('/currency-rates', updateCurrencyRatesHandler);
+
 router.patch('/:id', updatePackage);
 router.post('/:id/image', upload.single('image'), uploadPackageImage);
 

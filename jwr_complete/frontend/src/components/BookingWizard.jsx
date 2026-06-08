@@ -106,7 +106,20 @@ function fmtPrice(amount) {
   return `NPR ${Number(amount).toLocaleString()}`
 }
 
-function PriceBreakdown({ pkg, category, adults, children, compact }) {
+/** Show unit price in the correct display currency for the selected category */
+function fmtCatPrice(nprAmount, category, rates) {
+  if (category === 'foreigner') {
+    const rate = rates?.usd_to_npr || 132
+    return `USD ${(Number(nprAmount) / rate).toFixed(2)}`
+  }
+  if (category === 'saarc') {
+    const rate = rates?.inr_to_npr || 1.58
+    return `INR ${Math.round(Number(nprAmount) / rate).toLocaleString('en-IN')}`
+  }
+  return `NPR ${Number(nprAmount).toLocaleString('en-IN')}`
+}
+
+function PriceBreakdown({ pkg, category, adults, children, compact, currencyRates }) {
   if (!pkg) return null
   const unitPrice  = pkg.prices[category]
   const childPrice = Math.round(unitPrice * 0.5)
@@ -114,6 +127,8 @@ function PriceBreakdown({ pkg, category, adults, children, compact }) {
   const service    = Math.round(base * 0.10)
   const vat        = Math.round(base * 0.13)
   const grand      = base + service + vat
+  const unitFmt    = fmtCatPrice(unitPrice,  category, currencyRates)
+  const childFmt   = fmtCatPrice(childPrice, category, currencyRates)
 
   if (compact) return (
     <div className="price-compact">
@@ -127,12 +142,12 @@ function PriceBreakdown({ pkg, category, adults, children, compact }) {
       <div className="pb-title">Price Breakdown</div>
       <div className="pb-rows">
         <div className="pb-row">
-          <span>{adults} Adult{adults > 1 ? 's' : ''} × {fmtPrice(unitPrice)}</span>
+          <span>{adults} Adult{adults > 1 ? 's' : ''} × {unitFmt}</span>
           <span>{fmtPrice(unitPrice * adults)}</span>
         </div>
         {children > 0 && (
           <div className="pb-row">
-            <span>{children} Child{children > 1 ? 'ren' : ''} × {fmtPrice(childPrice)} <em>(50%)</em></span>
+            <span>{children} Child{children > 1 ? 'ren' : ''} × {childFmt} <em>(50%)</em></span>
             <span>{fmtPrice(childPrice * children)}</span>
           </div>
         )}
@@ -619,7 +634,7 @@ export default function BookingWizard({ preselect }) {
                       </ul>
                       <div className="pkg-card-pick__price-row">
                         <span className="pkg-from">From</span>
-                        <span className="pkg-price">{fmtPrice(p.prices[category])}</span>
+                        <span className="pkg-price">{fmtCatPrice(p.prices[category], category, currencyRates)}</span>
                         <span className="pkg-per">/ person</span>
                       </div>
                     </div>
@@ -662,7 +677,8 @@ export default function BookingWizard({ preselect }) {
                       </div>
                       {pkg && (
                         <span className="cat-price">
-                          NPR {pkg.prices[cat.id].toLocaleString()}
+                          {fmtCatPrice(pkg.prices[cat.id], cat.id, currencyRates)}
+                          <span className="cat-price-sub"> ≈ NPR {pkg.prices[cat.id].toLocaleString()}</span>
                         </span>
                       )}
                     </button>
@@ -972,7 +988,7 @@ export default function BookingWizard({ preselect }) {
                 </div>
               </div>
               <div className="review-price-full">
-                <PriceBreakdown pkg={pkg} category={category} adults={adults} children={children} />
+                <PriceBreakdown pkg={pkg} category={category} adults={adults} children={children} currencyRates={currencyRates} />
               </div>
             </div>
           )}
@@ -1066,7 +1082,7 @@ export default function BookingWizard({ preselect }) {
                   )}
                 </div>
 
-                <PriceBreakdown pkg={pkg} category={category} adults={adults} children={children} />
+                <PriceBreakdown pkg={pkg} category={category} adults={adults} children={children} currencyRates={currencyRates} />
 
                 <div className="sidebar-trust">
                   <div className="trust-row">

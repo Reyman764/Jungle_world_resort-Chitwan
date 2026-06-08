@@ -812,6 +812,80 @@ async function deleteGalleryImage(req, res, next) {
   } catch (err) { next(err); }
 }
 
+// ── Offer Banner Management ──────────────────────────────────────────────────
+// Stored in SiteSetting key='offer_banner'
+// value: { url, title, expiresAt, uploadedAt }
+
+const OFFER_KEY = 'offer_banner';
+
+async function getOfferSetting() {
+  const row = await SiteSetting.findOne({ where: { key: OFFER_KEY } });
+  if (!row || !row.value) return null;
+  const offer = row.value;
+  // Treat expired offers as absent for public endpoint
+  return offer;
+}
+
+/** GET /api/offer (public) — returns offer if active and not expired */
+async function getOffer(req, res, next) {
+  try {
+    const offer = await getOfferSetting();
+    if (!offer || !offer.url) return res.json({ offer: null });
+    // Check expiry
+    if (offer.expiresAt && new Date(offer.expiresAt) < new Date()) {
+      return res.json({ offer: null });
+    }
+    res.json({ offer });
+  } catch (err) { next(err); }
+}
+
+/** POST /api/admin/offer/upload — admin upload offer banner */
+async function uploadOffer(req, res, next) {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No image file provided' });
+
+    const title    = req.body.title    || '';
+    const duration = parseInt(req.body.duration, 10) || 24; // hours
+
+    if (duration < 1 || duration > 8760) {
+      return res.status(400).json({ error: 'Duration must be between 1 and 8760 hours' });
+    }
+
+    const ts = Date.now();
+    const imageUrl = await uploadImage(req.file.buffer, {
+      mimetype:  req.file.mimetype,
+      public_id: `offer-${ts}`,
+      folder:    'jungle-world-resort/offers',
+    });
+
+    const expiresAt = new Date(Date.now() + duration * 60 * 60 * 1000).toISOString();
+
+    const offer = {
+      url:        imageUrl,
+      title,
+      expiresAt,
+      uploadedAt: new Date().toISOString(),
+    };
+
+    const [row] = await SiteSetting.findOrCreate({
+      where:    { key: OFFER_KEY },
+      defaults: { key: OFFER_KEY, value: {} },
+    });
+    await row.update({ value: offer });
+
+    res.status(201).json({ offer });
+  } catch (err) { next(err); }
+}
+
+/** DELETE /api/admin/offer — remove offer banner */
+async function deleteOffer(req, res, next) {
+  try {
+    const row = await SiteSetting.findOne({ where: { key: OFFER_KEY } });
+    if (row) await row.destroy();
+    res.json({ success: true });
+  } catch (err) { next(err); }
+}
+
 module.exports = {
   getBookings,
   getBookingById,
@@ -825,4 +899,7 @@ module.exports = {
   uploadGalleryImage,
   updateGalleryImage,
   deleteGalleryImage,
+  getOffer,
+  uploadOffer,
+  deleteOffer,
 };

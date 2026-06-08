@@ -95,9 +95,9 @@ export default function Packages() {
                   </div>
                   <div className="pkg-detail__pricing">
                     {[
-                      ['International (NPR)', pkg.price, pkg.priceOriginal],
-                      ['SAARC (NPR)',         pkg.priceINR],
-                      ['Nepali (NPR)',         pkg.priceNPR],
+                      ['International', pkg.price, pkg.priceOriginal],
+                      ['SAARC', pkg.priceINR, pkg.priceINROriginal],
+                      ['Nepali', pkg.priceNPR, null],
                     ].map(([label, amt, original]) => (
                       <div key={label} className="price-tier">
                         <span className="price-label">{label}</span>

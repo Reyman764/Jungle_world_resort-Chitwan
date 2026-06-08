@@ -9,6 +9,9 @@ const PROMO_DEFAULTS = {
   showCountdown: true,
 };
 
+const CURRENCY_RATES_KEY = 'currency_rates';
+const DEFAULT_RATES = { usd_to_npr: 132, inr_to_npr: 1.58 };
+
 const UPDATABLE_FIELDS = [
   'name', 'description', 'duration_nights', 'duration_days',
   'price_foreigner', 'price_saarc', 'price_nepali',
@@ -21,6 +24,16 @@ function fmtNPR(amount) {
   return `NPR ${Math.round(Number(amount)).toLocaleString('en-IN')}`;
 }
 
+function fmtUSD(amount) {
+  const n = Number(amount);
+  if (!Number.isFinite(n)) return 'USD 0.00';
+  return `USD ${n.toFixed(2)}`;
+}
+
+function fmtINR(amount) {
+  return `INR ${Math.round(Number(amount)).toLocaleString('en-IN')}`;
+}
+
 function effectivePrice(regular, discount) {
   const d = discount != null && Number(discount) > 0 ? Number(discount) : null;
   return d ?? Number(regular);
@@ -30,18 +43,31 @@ function toNum(val) {
   return val != null ? Number(val) : null;
 }
 
-function serializePackage(row) {
+async function getCurrencyRatesFromDB() {
+  const row = await SiteSetting.findOne({ where: { key: CURRENCY_RATES_KEY } });
+  const val = row?.value || {};
+  return {
+    usd_to_npr: Number(val.usd_to_npr) || DEFAULT_RATES.usd_to_npr,
+    inr_to_npr: Number(val.inr_to_npr) || DEFAULT_RATES.inr_to_npr,
+  };
+}
+
+function serializePackage(row, rates) {
   const p = row.get ? row.get({ plain: true }) : row;
+  const usdRate = (rates && Number(rates.usd_to_npr)) || DEFAULT_RATES.usd_to_npr;
+  const inrRate = (rates && Number(rates.inr_to_npr)) || DEFAULT_RATES.inr_to_npr;
 
   const foreigner = effectivePrice(p.price_foreigner, p.price_foreigner_discount);
   const saarc     = effectivePrice(p.price_saarc,     p.price_saarc_discount);
   const nepali    = effectivePrice(p.price_nepali,    p.price_nepali_discount);
 
-  const hasDiscount = [
-    [p.price_foreigner, p.price_foreigner_discount],
-    [p.price_saarc,     p.price_saarc_discount],
-    [p.price_nepali,    p.price_nepali_discount],
-  ].some(([r, d]) => d != null && Number(d) > 0 && Number(d) < Number(r));
+  const hasForeignerDiscount = p.price_foreigner_discount != null
+    && Number(p.price_foreigner_discount) > 0
+    && Number(p.price_foreigner_discount) < Number(p.price_foreigner);
+
+  const hasSaarcDiscount = p.price_saarc_discount != null
+    && Number(p.price_saarc_discount) > 0
+    && Number(p.price_saarc_discount) < Number(p.price_saarc);
 
   const includes = Array.isArray(p.includes) ? p.includes : (p.includes ? JSON.parse(p.includes) : []);
 
@@ -58,14 +84,23 @@ function serializePackage(row) {
     desc:     p.description,
     img:      p.image_url,
     includes,
-    price:        fmtNPR(foreigner),
-    priceINR:     fmtNPR(saarc),
-    priceNPR:     fmtNPR(nepali),
-    priceOriginal: hasDiscount ? fmtNPR(p.price_foreigner) : null,
-    prices:       { foreigner, saarc, nepali },
+    // Display prices in proper currencies
+    price:        fmtUSD(foreigner / usdRate),          // USD for international
+    priceINR:     fmtINR(saarc    / inrRate),           // INR for SAARC
+    priceNPR:     fmtNPR(nepali),                       // NPR for Nepali
+    // "Before discount" originals in proper currency
+    priceOriginal:    hasForeignerDiscount ? fmtUSD(Number(p.price_foreigner) / usdRate) : null,
+    priceINROriginal: hasSaarcDiscount     ? fmtINR(Number(p.price_saarc)     / inrRate)  : null,
+    // NPR equivalents for reference / booking math (booking wizard still works in NPR)
+    priceNPREquiv: {
+      foreigner: Math.round(foreigner),
+      saarc:     Math.round(saarc),
+    },
+    // Raw numeric NPR values for booking calculations
+    prices: { foreigner, saarc, nepali },
     sortOrder: p.sort_order,
     isActive:  p.is_active,
-    // Raw values for admin forms only
+    // Raw values for admin forms (NPR stored)
     _raw: {
       name:                     p.name,
       description:              p.description,
@@ -98,11 +133,16 @@ async function getPromoSettings() {
 }
 
 async function respondWithPackages(res, where = {}) {
-  const [rows, promo] = await Promise.all([
+  const [rows, promo, rates] = await Promise.all([
     Package.findAll({ where, order: [['sort_order', 'ASC'], ['name', 'ASC']] }),
     getPromoSettings(),
+    getCurrencyRatesFromDB(),
   ]);
-  res.json({ packages: rows.map(serializePackage), promo });
+  res.json({
+    packages: rows.map(r => serializePackage(r, rates)),
+    promo,
+    currencyRates: rates,
+  });
 }
 
 async function getPublicPackages(req, res, next) {
@@ -129,7 +169,8 @@ async function updatePackage(req, res, next) {
     }
 
     await pkg.update(updates);
-    res.json({ package: serializePackage(pkg) });
+    const rates = await getCurrencyRatesFromDB();
+    res.json({ package: serializePackage(pkg, rates) });
   } catch (err) { next(err); }
 }
 
@@ -151,6 +192,42 @@ async function updatePromoSettings(req, res, next) {
   } catch (err) { next(err); }
 }
 
+/** GET /api/admin/packages/currency-rates */
+async function getCurrencyRatesHandler(req, res, next) {
+  try {
+    const rates = await getCurrencyRatesFromDB();
+    res.json({ currencyRates: rates });
+  } catch (err) { next(err); }
+}
+
+/** PATCH /api/admin/packages/currency-rates */
+async function updateCurrencyRatesHandler(req, res, next) {
+  try {
+    const { usd_to_npr, inr_to_npr } = req.body;
+    const updates = {};
+
+    if (usd_to_npr !== undefined) {
+      const v = Number(usd_to_npr);
+      if (!Number.isFinite(v) || v <= 0) return res.status(400).json({ error: 'usd_to_npr must be a positive number' });
+      updates.usd_to_npr = v;
+    }
+    if (inr_to_npr !== undefined) {
+      const v = Number(inr_to_npr);
+      if (!Number.isFinite(v) || v <= 0) return res.status(400).json({ error: 'inr_to_npr must be a positive number' });
+      updates.inr_to_npr = v;
+    }
+
+    const [row] = await SiteSetting.findOrCreate({
+      where: { key: CURRENCY_RATES_KEY },
+      defaults: { key: CURRENCY_RATES_KEY, value: DEFAULT_RATES },
+    });
+
+    await row.update({ value: { ...row.value, ...updates } });
+    const rates = await getCurrencyRatesFromDB();
+    res.json({ currencyRates: rates, message: 'Exchange rates updated' });
+  } catch (err) { next(err); }
+}
+
 async function uploadPackageImage(req, res, next) {
   try {
     if (!req.file) return res.status(400).json({ error: 'No image file provided' });
@@ -158,18 +235,26 @@ async function uploadPackageImage(req, res, next) {
     const pkg = await Package.findByPk(req.params.id);
     if (!pkg) return res.status(404).json({ error: 'Package not found' });
 
-    // Upload to Cloudinary / Supabase Storage
     const imageUrl = await uploadImage(req.file.buffer, {
       mimetype:  req.file.mimetype,
       public_id: `pkg-${pkg.slug || pkg.id}-${Date.now()}`,
       folder:    'jungle-world-resort/packages',
     });
 
-    // Persist the new URL
     await pkg.update({ image_url: imageUrl });
-
-    res.json({ package: serializePackage(pkg) });
+    const rates = await getCurrencyRatesFromDB();
+    res.json({ package: serializePackage(pkg, rates) });
   } catch (err) { next(err); }
 }
 
-module.exports = { serializePackage, getPublicPackages, listAdminPackages, updatePackage, updatePromoSettings, getPromoSettings, uploadPackageImage };
+module.exports = {
+  serializePackage,
+  getPublicPackages,
+  listAdminPackages,
+  updatePackage,
+  updatePromoSettings,
+  getPromoSettings,
+  uploadPackageImage,
+  getCurrencyRatesHandler,
+  updateCurrencyRatesHandler,
+};

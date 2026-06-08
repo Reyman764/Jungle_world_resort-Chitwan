@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
+export const FALLBACK_RATES = { usd_to_npr: 132, inr_to_npr: 1.58 }
+
 export const FALLBACK_PACKAGES = [
   {
     id: 'glance', name: 'Chitwan at a Glance', duration: '1 Night · 2 Days', badge: '1N · 2D',
@@ -9,7 +11,9 @@ export const FALLBACK_PACKAGES = [
     desc: 'A quick yet immersive escape. Perfect for weekend warriors who want to experience the essence of Chitwan without a long stay.',
     img: 'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?auto=format&fit=crop&w=900&q=80',
     includes: ['Welcome drink & cultural program', 'Elephant bathing (if available)', 'Jeep safari in National Park', 'Canoe safari on Rapti River', 'Tharu village walk', 'All meals (breakfast, lunch, dinner)'],
-    price: 'NPR 15,960', priceINR: 'NPR 9,600', priceNPR: 'NPR 5,000',
+    price: 'USD 120.91', priceINR: 'INR 6,076', priceNPR: 'NPR 5,000',
+    priceOriginal: null, priceINROriginal: null,
+    priceNPREquiv: { foreigner: 15960, saarc: 9600 },
     prices: { foreigner: 15960, saarc: 9600, nepali: 5000 },
   },
   {
@@ -18,7 +22,9 @@ export const FALLBACK_PACKAGES = [
     desc: 'A more intimate look at Chitwan. Two nights give you time to slow down, breathe the forest air, and connect with nature.',
     img: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=900&q=80',
     includes: ['All Day 1 activities', 'Guided jungle walk at dawn', 'Bird watching with naturalist', 'Sunset canoe ride', 'Cultural village dinner experience', 'All meals included'],
-    price: 'NPR 25,270', priceINR: 'NPR 15,200', priceNPR: 'NPR 8,500',
+    price: 'USD 191.44', priceINR: 'INR 9,620', priceNPR: 'NPR 8,500',
+    priceOriginal: null, priceINROriginal: null,
+    priceNPREquiv: { foreigner: 25270, saarc: 15200 },
     prices: { foreigner: 25270, saarc: 15200, nepali: 8500 },
   },
   {
@@ -27,7 +33,9 @@ export const FALLBACK_PACKAGES = [
     desc: 'The full measure of Chitwan — four days shaped by the forest, guided by naturalists who know every trail and waterhole.',
     img: 'https://sweethomechitwan.com/wp-content/uploads/2025/01/j2.jpg',
     includes: ['All activities from Day 1 & 2', 'Elephant back safari (optional)', 'Naturalist-led jungle drives', 'Sunset viewpoint trek', 'Farewell Tharu cultural dinner', 'All meals + airport transfers'],
-    price: 'NPR 33,250', priceINR: 'NPR 24,000', priceNPR: 'NPR 12,500',
+    price: 'USD 251.89', priceINR: 'INR 15,190', priceNPR: 'NPR 12,500',
+    priceOriginal: null, priceINROriginal: null,
+    priceNPREquiv: { foreigner: 33250, saarc: 24000 },
     prices: { foreigner: 33250, saarc: 24000, nepali: 12500 },
   },
 ]
@@ -55,10 +63,11 @@ function parsePromo(p) {
 }
 
 export function usePackages() {
-  const [packages, setPackages] = useState(FALLBACK_PACKAGES)
-  const [promo,    setPromo]    = useState(FALLBACK_PROMO)
-  const [loading,  setLoading]  = useState(true)
-  const [fromApi,  setFromApi]  = useState(false)
+  const [packages,      setPackages]      = useState(FALLBACK_PACKAGES)
+  const [promo,         setPromo]         = useState(FALLBACK_PROMO)
+  const [currencyRates, setCurrencyRates] = useState(FALLBACK_RATES)
+  const [loading,       setLoading]       = useState(true)
+  const [fromApi,       setFromApi]       = useState(false)
 
   const load = useCallback(async () => {
     try {
@@ -67,6 +76,7 @@ export function usePackages() {
       const data = await res.json()
       if (data.packages?.length) { setPackages(data.packages); setFromApi(true) }
       if (data.promo) setPromo(parsePromo(data.promo))
+      if (data.currencyRates) setCurrencyRates(data.currencyRates)
     } catch {
       setFromApi(false)
       // state stays on FALLBACK_* initial values
@@ -77,5 +87,5 @@ export function usePackages() {
 
   useEffect(() => { load() }, [load])
 
-  return { packages, promo, loading, fromApi, reload: load }
+  return { packages, promo, currencyRates, loading, fromApi, reload: load }
 }

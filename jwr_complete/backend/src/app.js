@@ -140,11 +140,14 @@ app.use('/api/bookings', require('./routes/bookings'));      // ✅ booking subm
 app.use('/api/packages',  require('./routes/packages'));   // ✅ public packages
 app.use('/api/admin/packages', require('./routes/adminPackages')); // ✅ package management
 app.use('/api/admin/gallery',  require('./routes/adminGallery'));  // ✅ gallery management
+app.use('/api/admin/offer',   require('./routes/adminOffer'));    // ✅ offer banner management
 app.use('/api/admin',    require('./routes/admin'));         // ✅ admin dashboard
 app.use('/api/staff/auth',    require('./routes/staffAuth'));     // ✅ staff auth portal
 
 // Public gallery endpoint (no auth required — Gallery page reads images)
 app.get('/api/gallery', require('./controllers/adminController').listGalleryImages);
+// Public offer endpoint (no auth required — shows active offer popup to visitors)
+app.get('/api/offer',   require('./controllers/adminController').getOffer);
 // app.use('/api/payments',  require('./routes/payments'));  // add when ready
 
 // ── 404 Handler ───────────────────────────────────────────

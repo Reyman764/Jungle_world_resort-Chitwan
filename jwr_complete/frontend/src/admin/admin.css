@@ -1267,29 +1267,43 @@
 
 .admin-pkg-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px,1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(560px, 1fr));
+  gap: 24px;
 }
 
 .admin-pkg-card {
   background: var(--a-surface);
   border: 1px solid var(--a-border);
-  border-radius: var(--a-r-lg);
-  padding: 20px;
-  display: flex; flex-direction: column; gap: 14px;
+  border-radius: 14px;
+  padding: 28px 28px 22px;
+  display: flex; flex-direction: column; gap: 18px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.05), 0 1px 3px rgba(0,0,0,.04);
+  transition: box-shadow .2s;
+}
+.admin-pkg-card:hover {
+  box-shadow: 0 6px 24px rgba(0,0,0,.09), 0 2px 6px rgba(0,0,0,.05);
 }
 
-.admin-pkg-card__head { display: flex; gap: 8px; align-items: center; }
+.admin-pkg-card__head {
+  display: flex; gap: 8px; align-items: center;
+  padding-bottom: 14px;
+  border-bottom: 2px solid var(--a-border);
+  flex-wrap: wrap;
+}
 
 .admin-pkg-card__badge {
   font-family: var(--a-font); font-size: .72rem; font-weight: 700;
   letter-spacing: .1em; text-transform: uppercase;
-  color: var(--a-green); background: #ecfdf5; padding: 4px 10px; border-radius: 999px;
+  color: #14532d; background: #dcfce7;
+  padding: 5px 12px; border-radius: 999px;
+  border: 1px solid #86efac;
 }
 
 .admin-pkg-card__popular {
   font-family: var(--a-font); font-size: .72rem; font-weight: 700;
-  color: #92400e; background: #fffbeb; padding: 4px 10px; border-radius: 999px;
+  color: #92400e; background: #fef3c7;
+  padding: 5px 12px; border-radius: 999px;
+  border: 1px solid #fcd34d;
 }
 
 .admin-pkg-field label,
@@ -1308,10 +1322,17 @@
 .admin-pkg-field input,
 .admin-pkg-prices input,
 .admin-pkg-badges input {
-  padding: 9px 12px; border: 1px solid var(--a-border-md);
+  padding: 10px 14px; border: 1.5px solid var(--a-border-md);
   border-radius: var(--a-r); font-family: var(--a-font);
-  font-size: .88rem; color: var(--a-text); background: var(--a-surface); outline: none;
+  font-size: .9rem; color: var(--a-text); background: var(--a-surface); outline: none;
   width: 100%; box-sizing: border-box; min-width: 0;
+  transition: border-color .18s, box-shadow .18s;
+}
+.admin-pkg-field input:focus,
+.admin-pkg-prices input:focus,
+.admin-pkg-badges input:focus {
+  border-color: var(--a-green);
+  box-shadow: 0 0 0 3px rgba(26,71,49,.1);
 }
 
 .admin-pkg-prices {
@@ -1322,9 +1343,27 @@
 
 
 
-.admin-pkg-badges { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.admin-pkg-badges { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
-.admin-pkg-save { margin-top: 4px; align-self: flex-start; }
+.admin-pkg-save {
+  margin-top: 6px;
+  align-self: flex-start;
+  background: var(--a-green);
+  color: #fff;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  cursor: pointer;
+  transition: background .18s, box-shadow .18s;
+}
+.admin-pkg-save:hover:not(:disabled) {
+  background: var(--a-green-h);
+  box-shadow: 0 4px 14px rgba(26,71,49,.25);
+}
+.admin-pkg-save:disabled { opacity: .55; cursor: not-allowed; }
 
 .admin-msg {
   padding: 12px 16px; border-radius: var(--a-r);
@@ -1337,6 +1376,7 @@
 @media (max-width: 640px) {
   .admin-pkg-prices,
   .admin-pkg-badges { grid-template-columns: 1fr; }
+  .admin-pkg-list   { grid-template-columns: 1fr; }
   .admin-content    { padding: 24px 16px 48px; }
   .admin-topbar     { padding: 0 16px; }
 }
@@ -1444,19 +1484,22 @@
 
 /* ── Admin package card — new section layout ── */
 .admin-pkg-section {
-  display: flex; flex-direction: column; gap: 10px;
-  border-top: 1px dashed var(--a-border); padding-top: 12px;
+  display: flex; flex-direction: column; gap: 12px;
+  border-top: 1px solid var(--a-border); padding-top: 16px;
 }
 .admin-pkg-section__title {
   margin: 0; font-family: var(--a-font);
-  font-size: .82rem; font-weight: 700; color: var(--a-text-2);
+  font-size: .8rem; font-weight: 700;
+  color: var(--a-text-2);
+  letter-spacing: .04em; text-transform: uppercase;
 }
 .admin-pkg-section__hint {
   font-weight: 400; color: var(--a-text-3);
+  text-transform: none; letter-spacing: 0;
 }
 .admin-pkg-section__note {
-  margin: 2px 0 0; font-family: var(--a-font);
-  font-size: .74rem; color: var(--a-text-3); line-height: 1.5;
+  margin: 4px 0 0; font-family: var(--a-font);
+  font-size: .74rem; color: var(--a-text-4); line-height: 1.5;
 }
 
 /* ── Admin package card head — live status preview pills ── */
@@ -1667,11 +1710,12 @@
 .admin-pkg-field input,
 .admin-pkg-field select {
   background: var(--a-surface-2);
-  border: 1px solid var(--a-border-md);
+  border: 1.5px solid var(--a-border-md);
   border-radius: var(--a-r);
-  padding: 8px 11px;
+  padding: 10px 14px;
   font-family: var(--a-font);
-  font-size: 0.84rem;
+  font-size: 0.9rem;
+  font-weight: 600;
   color: var(--a-text);
   width: 100%;
   outline: none;
@@ -2076,3 +2120,403 @@
 .risk-badge--low { background: #dcfce7; color: #15803d; }
 .risk-badge--medium { background: #fef3c7; color: #b45309; }
 .risk-badge--high { background: #fee2e2; color: #b91c1c; }
+
+/* ══════════════════════════════════════════════════════════════
+   CRITICAL OVERRIDES — fix conflicts with .admin-pkg-prices label span { display:block }
+   These must come BEFORE the fx-* rules so specificity wins cleanly.
+   ══════════════════════════════════════════════════════════════ */
+
+/* The price-head is a flex row (label text + currency tag side by side).
+   The existing rule .admin-pkg-prices label span { display:block } overrides this,
+   so we use !important here. */
+.admin-pkg-prices .admin-pkg-price-head {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 4px;
+  overflow: visible !important;
+  white-space: normal !important;
+  text-overflow: unset !important;
+}
+
+/* Left-side label text inside the head */
+.admin-pkg-prices .admin-pkg-price-head > span:first-child {
+  display: inline !important;
+  overflow: visible !important;
+  white-space: normal !important;
+  color: #253328 !important;
+  font-size: .7rem !important;
+  font-weight: 700 !important;
+}
+
+/* Currency tag (USD / INR / NPR pill) */
+.admin-pkg-prices .admin-fx-currency-tag {
+  display: inline-block !important;
+  overflow: visible !important;
+  white-space: nowrap !important;
+  text-overflow: unset !important;
+  color: #ffffff !important;
+  background: #1a4731 !important;
+  padding: 1px 7px !important;
+  border-radius: 999px !important;
+  font-size: .65rem !important;
+  font-weight: 800 !important;
+  line-height: 1.5 !important;
+  letter-spacing: .04em !important;
+  flex-shrink: 0;
+}
+
+.admin-pkg-prices .admin-fx-currency-tag--npr {
+  background: #435449 !important;
+}
+
+/* Price input inside the flex input-wrap must NOT be width:100%
+   The existing .admin-pkg-prices input rule sets width:100% which breaks the flex layout */
+.admin-pkg-prices .admin-fx-price-input {
+  width: auto !important;
+  flex: 1 1 0% !important;
+  padding: 8px 8px !important;
+  font-size: .88rem !important;
+  color: #0e1a10 !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  min-width: 0 !important;
+}
+
+/* The input-wrap border should not be doubled by the outer input rule */
+.admin-pkg-prices .admin-fx-price-input-wrap {
+  border: 1.5px solid #c8d4c2 !important;
+  border-radius: 6px !important;
+  overflow: hidden !important;
+}
+.admin-pkg-prices .admin-fx-price-input-wrap:focus-within {
+  border-color: #1a4731 !important;
+  box-shadow: 0 0 0 3px rgba(26,71,49,.1) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════ */
+
+/* ══════════════════════════════════════════════════════════════
+   CURRENCY RATES CARD (admin-fx-*)
+   ══════════════════════════════════════════════════════════════ */
+
+.admin-fx-card {
+  border-left-color: var(--a-gold) !important;
+  background: var(--a-surface);
+}
+.admin-fx-card .admin-promo-card__titlerow h4 {
+  color: #1a3a1e;  /* explicit dark — no CSS var ambiguity */
+}
+
+.admin-fx-grid {
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.admin-fx-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 200px;
+}
+
+.admin-fx-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: #253328;  /* explicit dark — always readable on white admin bg */
+}
+
+.admin-fx-flag {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.admin-fx-input-wrap {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--a-border-md);
+  border-radius: var(--a-r);
+  background: var(--a-surface);
+  overflow: hidden;
+  transition: border-color .2s;
+}
+
+.admin-fx-input-wrap:focus-within {
+  border-color: var(--a-gold);
+  box-shadow: 0 0 0 3px rgba(200,151,58,.12);
+}
+
+.admin-fx-input {
+  flex: 1;
+  padding: 9px 10px;
+  border: none;
+  outline: none;
+  font-family: var(--a-font);
+  font-size: .95rem;
+  font-weight: 600;
+  color: #0e1a10;                    /* explicit near-black — always readable */
+  background: transparent;
+  -moz-appearance: textfield;
+  min-width: 0;
+}
+
+.admin-fx-input::-webkit-inner-spin-button,
+.admin-fx-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+.admin-fx-suffix {
+  padding: 0 10px;
+  font-size: .78rem;
+  font-weight: 700;
+  color: #253328;           /* explicit dark green */
+  background: #eef2ec;      /* explicit soft green-grey bg */
+  border-left: 1px solid #c8d4c2;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  min-height: 38px;
+}
+
+.admin-fx-example {
+  font-size: .73rem;
+  color: #637068;  /* explicit mid-grey — always readable */
+  font-style: italic;
+}
+
+.admin-fx-save-btn {
+  align-self: flex-end;
+  white-space: nowrap;
+  background: var(--a-gold) !important;
+  color: #fff !important;
+}
+
+.admin-fx-save-btn:hover:not(:disabled) {
+  background: #b07e2a !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CURRENCY PRICE FIELDS (admin-fx-price-*)
+   ══════════════════════════════════════════════════════════════ */
+
+.admin-pkg-prices--3col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.admin-fx-price-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.admin-pkg-price-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--a-font);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: #253328;                   /* explicit dark — always readable */
+  margin-bottom: 2px;
+}
+
+.admin-fx-currency-tag {
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  color: #ffffff;
+  background: #1a4731;      /* explicit dark green */
+  padding: 2px 8px;
+  border-radius: 999px;
+  line-height: 1.5;
+}
+
+.admin-fx-currency-tag--npr {
+  background: #435449;      /* explicit mid-green for NPR */
+}
+
+.admin-fx-price-input-wrap {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--a-border-md);
+  border-radius: var(--a-r);
+  background: var(--a-surface);
+  overflow: hidden;
+  transition: border-color .2s;
+}
+
+.admin-fx-price-input-wrap:focus-within {
+  border-color: var(--a-green);
+  box-shadow: 0 0 0 3px rgba(26,71,49,.1);
+}
+
+.admin-fx-price-prefix {
+  padding: 0 9px;
+  font-size: .88rem;
+  font-weight: 700;
+  color: #1a4731 !important;  /* explicit dark green */
+  background: #dcfce7 !important;
+  border-right: 1px solid #86efac !important;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.admin-fx-price-prefix--npr {
+  color: var(--a-text-3);
+  background: var(--a-surface-2);
+}
+
+.admin-fx-price-input {
+  flex: 1;
+  padding: 8px 10px;
+  border: none;
+  outline: none;
+  font-family: var(--a-font);
+  font-size: .9rem;
+  font-weight: 600;
+  color: #0e1a10;                   /* explicit near-black — always readable */
+  background: transparent;
+  min-width: 0;
+  -moz-appearance: textfield;
+}
+
+.admin-fx-price-input::-webkit-inner-spin-button,
+.admin-fx-price-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+.admin-fx-price-input::placeholder { color: var(--a-text-4); }
+
+.admin-fx-price-eq {
+  font-size: .72rem !important;
+  font-weight: 700 !important;
+  color: #1a4731 !important;     /* explicit dark green */
+  background: #dcfce7 !important;
+  padding: 3px 8px !important;
+  border-radius: 4px !important;
+  border: 1px solid #86efac !important;
+  display: block !important;     /* block is fine here — takes full row */
+  white-space: nowrap !important;
+  overflow: visible !important;  /* NOT hidden — don't clip the text */
+  text-overflow: unset !important;
+  text-transform: none !important; /* don't uppercase "≈ NPR 5,001" */
+  letter-spacing: 0 !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PACKAGES PAGE — NPR equiv on price tiers
+   ══════════════════════════════════════════════════════════════ */
+
+.price-npr-eq {
+  font-size: .78em;
+  font-weight: 500;
+  color: var(--text-muted, #7a8b7f);
+  opacity: .85;
+  margin-left: 4px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BOOKING WIZARD — category price & sub
+   ══════════════════════════════════════════════════════════════ */
+
+.cat-price-sub {
+  display: block;
+  font-size: .7em;
+  opacity: .65;
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TARIFF PAGE additions
+   ══════════════════════════════════════════════════════════════ */
+
+.tariff-th-sub {
+  font-weight: 400;
+  font-size: .8em;
+  opacity: .7;
+}
+
+.price-cell__main {
+  display: block;
+  font-weight: 700;
+  color: var(--forest-dark, #1a3a2a);
+}
+
+.price-cell__sub {
+  display: block;
+  font-size: .78em;
+  color: var(--text-muted, #7a8b7f);
+  margin-top: 2px;
+}
+
+.calc-npr-eq {
+  font-size: .88em;
+  opacity: .7;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DARK MODE overrides for new fx elements
+   ══════════════════════════════════════════════════════════════ */
+
+/* Admin is always light — no dark-mode background override for fx-card
+   The admin-shell locks its own CSS vars to light values */
+[data-theme="dark"] .admin-shell .admin-fx-card {
+  background: var(--a-surface);  /* keeps white — admin is always light */
+}
+
+[data-theme="dark"] .admin-shell .admin-fx-input,
+[data-theme="dark"] .admin-shell .admin-fx-price-input {
+  color: var(--a-text);
+}
+
+[data-theme="dark"] .admin-shell .admin-fx-suffix,
+[data-theme="dark"] .admin-shell .admin-fx-price-prefix {
+  background: var(--a-surface-2);
+  border-color: var(--a-border);
+}
+
+[data-theme="dark"] .admin-shell .admin-fx-price-prefix {
+  color: #4ade80;
+  background: rgba(26,71,49,.3);
+}
+
+[data-theme="dark"] .admin-shell .admin-fx-price-eq {
+  background: rgba(26,71,49,.3);
+  border-color: rgba(74,222,128,.25);
+  color: #4ade80;
+}
+
+[data-theme="dark"] .admin-shell .admin-fx-input-wrap,
+[data-theme="dark"] .admin-shell .admin-fx-price-input-wrap {
+  background: var(--a-surface);
+  border-color: var(--a-border-md);
+}
+
+/* Admin always-light: keep explicit colors same as light mode */
+[data-theme="dark"] .admin-shell .admin-pkg-price-head { color: #253328 !important; }
+[data-theme="dark"] .admin-shell .admin-fx-label       { color: #253328 !important; }
+[data-theme="dark"] .admin-shell .admin-fx-example     { color: #637068 !important; }
+[data-theme="dark"] .admin-shell .admin-promo-hint     { color: #435449 !important; }
+[data-theme="dark"] .admin-shell .admin-fx-card h4     { color: #1a3a1e !important; }
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .admin-fx-grid       { flex-direction: column; }
+  .admin-fx-field      { min-width: 0; width: 100%; }
+  .admin-pkg-prices--3col { grid-template-columns: 1fr 1fr; }
+}

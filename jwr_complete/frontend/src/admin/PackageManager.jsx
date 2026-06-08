@@ -9,14 +9,36 @@ function authHeader(json = true) {
 }
 
 const PROMO_DEFAULTS = { label: '', endsAt: '', showCountdown: true }
+const DEFAULT_RATES  = { usd_to_npr: 132, inr_to_npr: 1.58 }
 
-// ── Image Upload Sub-component ──────────────────────────────────────────────
+/* ────────────────────────────────────────────────────────────
+   Currency helpers
+   ──────────────────────────────────────────────────────────── */
+function nprToUsd(npr, rate) {
+  if (!npr || !rate) return ''
+  return (Number(npr) / Number(rate)).toFixed(2)
+}
+function nprToInr(npr, rate) {
+  if (!npr || !rate) return ''
+  return Math.round(Number(npr) / Number(rate)).toString()
+}
+function usdToNpr(usd, rate) { return Math.round(Number(usd) * Number(rate)) }
+function inrToNpr(inr, rate) { return Math.round(Number(inr) * Number(rate)) }
+
+function fmtNprEq(nprVal) {
+  if (!nprVal || isNaN(Number(nprVal))) return '—'
+  return `NPR ${Math.round(Number(nprVal)).toLocaleString('en-IN')}`
+}
+
+/* ────────────────────────────────────────────────────────────
+   Image Upload Sub-component
+   ──────────────────────────────────────────────────────────── */
 function PackageImageUpload({ pkg, onUpdate }) {
   const [uploading, setUploading]   = useState(false)
   const [imgError,  setImgError]    = useState('')
   const [imgMsg,    setImgMsg]      = useState('')
   const [preview,   setPreview]     = useState(null)
-  const [imgKey,    setImgKey]      = useState(Date.now())   // cache-buster
+  const [imgKey,    setImgKey]      = useState(Date.now())
   const fileRef                     = useRef(null)
 
   const currentUrl = pkg._raw?.image_url || ''
@@ -25,7 +47,6 @@ function PackageImageUpload({ pkg, onUpdate }) {
     const file = e.target.files?.[0]
     if (!file) return
     setImgError(''); setImgMsg('')
-    // Local preview before upload
     const reader = new FileReader()
     reader.onload = (ev) => setPreview(ev.target.result)
     reader.readAsDataURL(file)
@@ -42,7 +63,7 @@ function PackageImageUpload({ pkg, onUpdate }) {
 
       const res  = await fetch(`${API}/api/admin/packages/${pkg.dbId}/image`, {
         method:  'POST',
-        headers: authHeader(false),   // no Content-Type — browser sets multipart boundary
+        headers: authHeader(false),
         body:    form,
       })
       const data = await res.json()
@@ -51,7 +72,7 @@ function PackageImageUpload({ pkg, onUpdate }) {
       setPreview(null)
       if (fileRef.current) fileRef.current.value = ''
       setImgMsg('Image uploaded & saved.')
-      setImgKey(Date.now())   // force img element to re-fetch from new URL
+      setImgKey(Date.now())
       onUpdate(pkg.dbId, data.package._raw.image_url)
     } catch (err) {
       setImgError(err.message)
@@ -75,7 +96,6 @@ function PackageImageUpload({ pkg, onUpdate }) {
         <span className="admin-pkg-section__hint"> — upload a file or paste a URL</span>
       </p>
 
-      {/* Current image preview */}
       {displayUrl && (
         <div className="admin-pkg-image-preview">
           <img
@@ -89,7 +109,6 @@ function PackageImageUpload({ pkg, onUpdate }) {
         </div>
       )}
 
-      {/* File upload row */}
       <div className="admin-pkg-image-upload-row">
         <input
           ref={fileRef}
@@ -113,7 +132,6 @@ function PackageImageUpload({ pkg, onUpdate }) {
         </button>
       </div>
 
-      {/* OR divider + URL paste */}
       <div className="admin-pkg-image-or">
         <span>or paste URL</span>
       </div>
@@ -132,14 +150,183 @@ function PackageImageUpload({ pkg, onUpdate }) {
   )
 }
 
-// ── Main PackageManager ─────────────────────────────────────────────────────
+/* ────────────────────────────────────────────────────────────
+   Currency Rate Settings Card
+   ──────────────────────────────────────────────────────────── */
+function CurrencyRatesCard({ rates, onSaved }) {
+  const [form,    setForm]    = useState({ usd_to_npr: '', inr_to_npr: '' })
+  const [saving,  setSaving]  = useState(false)
+  const [msg,     setMsg]     = useState('')
+  const [err,     setErr]     = useState('')
+
+  /* Sync incoming rates into the form whenever they change */
+  useEffect(() => {
+    setForm({
+      usd_to_npr: rates.usd_to_npr?.toString() || DEFAULT_RATES.usd_to_npr.toString(),
+      inr_to_npr: rates.inr_to_npr?.toString() || DEFAULT_RATES.inr_to_npr.toString(),
+    })
+  }, [rates.usd_to_npr, rates.inr_to_npr])
+
+  async function handleSave() {
+    setMsg(''); setErr('')
+    const usd = parseFloat(form.usd_to_npr)
+    const inr = parseFloat(form.inr_to_npr)
+    if (!Number.isFinite(usd) || usd <= 0) { setErr('USD rate must be a positive number'); return }
+    if (!Number.isFinite(inr) || inr <= 0) { setErr('INR rate must be a positive number'); return }
+
+    setSaving(true)
+    try {
+      const res  = await fetch(`${API}/api/admin/packages/currency-rates`, {
+        method:  'PATCH',
+        headers: authHeader(),
+        body:    JSON.stringify({ usd_to_npr: usd, inr_to_npr: inr }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Save failed')
+      setMsg('Exchange rates saved — all package prices updated instantly.')
+      onSaved(data.currencyRates)
+    } catch (e) {
+      setErr(e.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="admin-promo-card admin-fx-card">
+      <div className="admin-promo-card__titlerow">
+        <div>
+          <h4>Currency Conversion Rates</h4>
+          <p className="admin-promo-hint">
+            International prices are entered in <strong>USD</strong> · SAARC prices in <strong>INR</strong>.
+            Set the exchange rates here — all prices sync automatically.
+          </p>
+        </div>
+      </div>
+
+      <div className="admin-fx-grid">
+        {/* USD → NPR */}
+        <div className="admin-fx-field">
+          <label className="admin-fx-label">
+            <span className="admin-fx-flag">🇺🇸</span>
+            <span>1 USD =</span>
+          </label>
+          <div className="admin-fx-input-wrap">
+            <input
+              type="number"
+              min="1"
+              step="0.01"
+              value={form.usd_to_npr}
+              onChange={e => setForm(f => ({ ...f, usd_to_npr: e.target.value }))}
+              className="admin-fx-input"
+            />
+            <span className="admin-fx-suffix">NPR</span>
+          </div>
+          <span className="admin-fx-example">
+            e.g. USD 100 = NPR {Math.round(parseFloat(form.usd_to_npr || 0) * 100).toLocaleString('en-IN')}
+          </span>
+        </div>
+
+        {/* INR → NPR */}
+        <div className="admin-fx-field">
+          <label className="admin-fx-label">
+            <span className="admin-fx-flag">🇮🇳</span>
+            <span>1 INR =</span>
+          </label>
+          <div className="admin-fx-input-wrap">
+            <input
+              type="number"
+              min="0.01"
+              step="0.0001"
+              value={form.inr_to_npr}
+              onChange={e => setForm(f => ({ ...f, inr_to_npr: e.target.value }))}
+              className="admin-fx-input"
+            />
+            <span className="admin-fx-suffix">NPR</span>
+          </div>
+          <span className="admin-fx-example">
+            e.g. INR 100 = NPR {Math.round(parseFloat(form.inr_to_npr || 0) * 100).toLocaleString('en-IN')}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          className="admin-filter-btn admin-fx-save-btn"
+          onClick={handleSave}
+          disabled={saving}
+        >
+          {saving ? 'Saving…' : 'Save rates'}
+        </button>
+      </div>
+
+      {msg && <p className="admin-msg admin-msg--ok  admin-msg--sm" style={{ marginTop: 8 }}>{msg}</p>}
+      {err && <p className="admin-msg admin-msg--err admin-msg--sm" style={{ marginTop: 8 }}>{err}</p>}
+    </div>
+  )
+}
+
+/* ────────────────────────────────────────────────────────────
+   Price field pair: currency input (free-type, no NPR equiv)
+   ──────────────────────────────────────────────────────────── */
+function CurrencyPriceField({ label, currency, symbol, nprValue, rate, onChange, toNpr, fromNpr }) {
+  /* Local string state so the user can type multi-digit values freely
+     without React overwriting the input on every keystroke.             */
+  const computedVal = nprValue ? fromNpr(nprValue, rate) : ''
+  const [localVal, setLocalVal] = useState(computedVal)
+  const editingRef = useRef(false)
+
+  /* Sync from parent only while NOT being edited */
+  useEffect(() => {
+    if (!editingRef.current) {
+      setLocalVal(nprValue ? fromNpr(nprValue, rate) : '')
+    }
+  }, [nprValue, rate])                        // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <label className="admin-fx-price-label">
+      <span className="admin-pkg-price-head">
+        <span>{label}</span>
+        <span className="admin-fx-currency-tag">{currency}</span>
+      </span>
+      <div className="admin-fx-price-input-wrap">
+        <span className="admin-fx-price-prefix">{symbol}</span>
+        <input
+          type="number"
+          min="0"
+          step="any"
+          value={localVal}
+          onFocus={() => { editingRef.current = true }}
+          onChange={e => {
+            const raw = e.target.value
+            setLocalVal(raw)                  // keep local string in sync
+            if (raw === '' || raw === null) { onChange(null); return }
+            const converted = toNpr(raw, rate)
+            onChange(isNaN(converted) ? null : converted)
+          }}
+          onBlur={() => {
+            editingRef.current = false
+            /* Re-format on blur (e.g. "10" → "10.00") */
+            setLocalVal(nprValue ? fromNpr(nprValue, rate) : '')
+          }}
+          className="admin-fx-price-input"
+        />
+      </div>
+      {/* NPR equivalent hint removed — not needed in admin price section */}
+    </label>
+  )
+}
+
+/* ────────────────────────────────────────────────────────────
+   Main PackageManager
+   ──────────────────────────────────────────────────────────── */
 export default function PackageManager() {
-  const [packages, setPackages] = useState([])
-  const [promo,    setPromo]    = useState(PROMO_DEFAULTS)
-  const [loading,  setLoading]  = useState(true)
-  const [saving,   setSaving]   = useState(null)
-  const [message,  setMessage]  = useState('')
-  const [error,    setError]    = useState('')
+  const [packages,  setPackages]  = useState([])
+  const [promo,     setPromo]     = useState(PROMO_DEFAULTS)
+  const [rates,     setRates]     = useState(DEFAULT_RATES)
+  const [loading,   setLoading]   = useState(true)
+  const [saving,    setSaving]    = useState(null)
+  const [message,   setMessage]   = useState('')
+  const [error,     setError]     = useState('')
 
   const load = useCallback(async () => {
     setLoading(true); setError('')
@@ -149,6 +336,7 @@ export default function PackageManager() {
       if (!res.ok) throw new Error(data.error || 'Failed to load packages')
       setPackages(data.packages || [])
       if (data.promo) setPromo({ ...PROMO_DEFAULTS, ...data.promo, showCountdown: data.promo.showCountdown !== undefined ? Boolean(data.promo.showCountdown) : true })
+      if (data.currencyRates) setRates(data.currencyRates)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -166,6 +354,7 @@ export default function PackageManager() {
       const r = pkg._raw || {}
       const body = {
         name:                     r.name,
+        // Send NPR values directly (already stored as NPR; user edits converted on change)
         price_foreigner:          Number(r.price_foreigner),
         price_saarc:              Number(r.price_saarc),
         price_nepali:             Number(r.price_nepali),
@@ -209,7 +398,6 @@ export default function PackageManager() {
     ))
   }
 
-  // Called by PackageImageUpload when upload succeeds or URL field changes
   function handleImageUrlUpdate(dbId, newUrl) {
     updateRaw(dbId, 'image_url', newUrl)
   }
@@ -229,6 +417,9 @@ export default function PackageManager() {
 
       {message && <p className="admin-msg admin-msg--ok">{message}</p>}
       {error   && <p className="admin-msg admin-msg--err">{error}</p>}
+
+      {/* ── Currency Conversion Rates ── */}
+      <CurrencyRatesCard rates={rates} onSaved={newRates => { setRates(newRates); setMessage('') }} />
 
       {/* ── Early Bird Countdown ── */}
       <div className="admin-promo-card">
@@ -284,29 +475,99 @@ export default function PackageManager() {
                 <input type="text" value={r.name || ''} onChange={e => updateRaw(pkg.dbId, 'name', e.target.value)} />
               </label>
 
-              <div className="admin-pkg-prices">
-                {[['International (NPR)', 'price_foreigner'], ['SAARC (NPR)', 'price_saarc'], ['Nepali (NPR)', 'price_nepali']].map(([label, field]) => (
-                  <label key={field}>
-                    <span>{label}</span>
-                    <input type="number" min="0" value={r[field] ?? ''} onChange={e => updateRaw(pkg.dbId, field, e.target.value)} />
+              {/* ── Base Prices ── */}
+              <div className="admin-pkg-section">
+                <p className="admin-pkg-section__title">
+                  Base prices
+                  <span className="admin-pkg-section__hint"> — International in USD · SAARC in INR · Nepali in NPR</span>
+                </p>
+                <div className="admin-pkg-prices admin-pkg-prices--3col">
+                  <CurrencyPriceField
+                    label="International"
+                    currency="USD"
+                    symbol="$"
+                    nprValue={r.price_foreigner}
+                    rate={rates.usd_to_npr}
+                    toNpr={usdToNpr}
+                    fromNpr={nprToUsd}
+                    onChange={v => updateRaw(pkg.dbId, 'price_foreigner', v)}
+                  />
+                  <CurrencyPriceField
+                    label="SAARC"
+                    currency="INR"
+                    symbol="₹"
+                    nprValue={r.price_saarc}
+                    rate={rates.inr_to_npr}
+                    toNpr={inrToNpr}
+                    fromNpr={nprToInr}
+                    onChange={v => updateRaw(pkg.dbId, 'price_saarc', v)}
+                  />
+                  {/* Nepali stays NPR */}
+                  <label className="admin-fx-price-label">
+                    <span className="admin-pkg-price-head">
+                      <span>Nepali</span>
+                      <span className="admin-fx-currency-tag admin-fx-currency-tag--npr">NPR</span>
+                    </span>
+                    <div className="admin-fx-price-input-wrap">
+                      <span className="admin-fx-price-prefix admin-fx-price-prefix--npr">₨</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={r.price_nepali ?? ''}
+                        onChange={e => updateRaw(pkg.dbId, 'price_nepali', e.target.value)}
+                        className="admin-fx-price-input"
+                      />
+                    </div>
                   </label>
-                ))}
+                </div>
               </div>
 
+              {/* ── Discount Prices ── */}
               <div className="admin-pkg-section">
                 <p className="admin-pkg-section__title">
                   Discount prices <span className="admin-pkg-section__hint">— leave blank to use regular price</span>
                 </p>
-                <div className="admin-pkg-prices">
-                  {[['Intl. discount', 'price_foreigner_discount'], ['SAARC discount', 'price_saarc_discount'], ['Nepali discount', 'price_nepali_discount']].map(([label, field]) => (
-                    <label key={field}>
-                      <span>{label}</span>
-                      <input type="number" min="0" value={r[field] ?? ''} onChange={e => updateRaw(pkg.dbId, field, e.target.value || null)} />
-                    </label>
-                  ))}
+                <div className="admin-pkg-prices admin-pkg-prices--3col">
+                  <CurrencyPriceField
+                    label="Intl. discount"
+                    currency="USD"
+                    symbol="$"
+                    nprValue={r.price_foreigner_discount}
+                    rate={rates.usd_to_npr}
+                    toNpr={usdToNpr}
+                    fromNpr={nprToUsd}
+                    onChange={v => updateRaw(pkg.dbId, 'price_foreigner_discount', v)}
+                  />
+                  <CurrencyPriceField
+                    label="SAARC discount"
+                    currency="INR"
+                    symbol="₹"
+                    nprValue={r.price_saarc_discount}
+                    rate={rates.inr_to_npr}
+                    toNpr={inrToNpr}
+                    fromNpr={nprToInr}
+                    onChange={v => updateRaw(pkg.dbId, 'price_saarc_discount', v)}
+                  />
+                  <label className="admin-fx-price-label">
+                    <span className="admin-pkg-price-head">
+                      <span>Nepali discount</span>
+                      <span className="admin-fx-currency-tag admin-fx-currency-tag--npr">NPR</span>
+                    </span>
+                    <div className="admin-fx-price-input-wrap">
+                      <span className="admin-fx-price-prefix admin-fx-price-prefix--npr">₨</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={r.price_nepali_discount ?? ''}
+                        onChange={e => updateRaw(pkg.dbId, 'price_nepali_discount', e.target.value || null)}
+                        className="admin-fx-price-input"
+                      />
+                    </div>
+                  </label>
                 </div>
               </div>
 
+              {/* ── Live Badges ── */}
               <div className="admin-pkg-section">
                 <p className="admin-pkg-section__title">
                   Live badges <span className="admin-pkg-section__hint">— appear on package cards across the site</span>

@@ -320,3 +320,38 @@
 .excl-icon { color: #c44; font-weight: 900; flex-shrink: 0; margin-top: 2px; }
 
 @media (max-width: 768px) { .calc-inner { grid-template-columns: 1fr; gap: 32px; } .tariff-bottom-grid { grid-template-columns: 1fr; gap: 40px; } }
+
+/* ── Currency-aware tariff additions ── */
+.tariff-th-sub {
+  font-weight: 400;
+  font-size: 0.8em;
+  opacity: 0.7;
+  display: block;
+}
+
+.price-cell {
+  vertical-align: middle;
+}
+
+.price-cell__main {
+  display: block;
+  font-weight: 700;
+  font-size: 0.97em;
+  color: var(--forest-dark, #1a3a2a);
+}
+
+.price-cell__sub {
+  display: block;
+  font-size: 0.76em;
+  color: var(--text-muted, #7a8b7f);
+  margin-top: 3px;
+  font-weight: 400;
+}
+
+[data-theme="dark"] .price-cell__main { color: var(--text-primary, #ede8df); }
+[data-theme="dark"] .price-cell__sub  { color: var(--text-muted,   #a0a89f); }
+
+.calc-npr-eq {
+  font-size: 0.85em;
+  opacity: 0.65;
+}

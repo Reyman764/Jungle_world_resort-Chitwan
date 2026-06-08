@@ -28,10 +28,8 @@ export default function Gallery() {
   const [lightbox,   setLightbox]   = useState(null)
   const [touchStart, setTouchStart] = useState(null)
   const [photos,     setPhotos]     = useState(STATIC_PHOTOS)
-  const [apiLoaded,  setApiLoaded]  = useState(false)
 
   // Load dynamic photos from API and MERGE with static photos.
-  // API-uploaded images appear first; static images follow as the base gallery.
   useEffect(() => {
     fetch(`${API}/api/gallery`)
       .then(r => r.ok ? r.json() : null)
@@ -44,19 +42,23 @@ export default function Gallery() {
             category: img.category || 'Resort',
             size:    img.size || '',
           }))
-          // Merge: API photos first, then static (deduped by URL)
           const apiUrls = new Set(apiPhotos.map(p => p.url))
           const uniqueStatic = STATIC_PHOTOS.filter(p => !apiUrls.has(p.url))
           setPhotos([...apiPhotos, ...uniqueStatic])
         }
-        // If API empty, keep static fallback
-        setApiLoaded(true)
       })
-      .catch(() => {
-        // Network error → keep static fallback silently
-        setApiLoaded(true)
-      })
+      .catch(() => {})
   }, [])
+
+  // Lock body scroll when lightbox is open
+  useEffect(() => {
+    if (lightbox) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [lightbox])
 
   const filtered = active === 'All' ? photos : photos.filter(p => p.category === active)
 
@@ -87,7 +89,7 @@ export default function Gallery() {
   }
 
   return (
-    <main onKeyDown={handleKeyDown}>
+    <main onKeyDown={handleKeyDown} tabIndex={-1} style={{ outline: 'none' }}>
       <PageHero
         title="Gallery"
         subtitle="Light, water, and wildlife — moments from the forest"
@@ -141,10 +143,13 @@ export default function Gallery() {
                 <div className="gallery-item__overlay" aria-hidden="true">
                   <div className="gallery-item__caption">{photo.caption}</div>
                   <div className="gallery-item__cat">{photo.category}</div>
-                  <div className="gallery-item__zoom">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22">
-                      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                      <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
+                  {/* Zoom icon — purely decorative, whole card is clickable */}
+                  <div className="gallery-item__zoom" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="18" height="18">
+                      <circle cx="11" cy="11" r="7.5"/>
+                      <line x1="20" y1="20" x2="15.8" y2="15.8"/>
+                      <line x1="11" y1="8.5" x2="11" y2="13.5"/>
+                      <line x1="8.5" y1="11" x2="13.5" y2="11"/>
                     </svg>
                   </div>
                 </div>
@@ -154,7 +159,7 @@ export default function Gallery() {
         </div>
       </section>
 
-      {/* Lightbox with swipe support */}
+      {/* ── Premium Lightbox ── */}
       {lightbox && (
         <div
           className="lightbox-overlay"
@@ -163,30 +168,32 @@ export default function Gallery() {
           onTouchEnd={handleTouchEnd}
           role="dialog"
           aria-modal="true"
-          aria-label={`Photo lightbox: ${lightbox.caption}`}
+          aria-label={`Photo: ${lightbox.caption}`}
         >
+          {/* Prev / Next outside inner so they're not cut off */}
+          <button className="lightbox-nav lightbox-nav--prev" onClick={e => { e.stopPropagation(); navigate(-1) }} aria-label="Previous photo">‹</button>
+          <button className="lightbox-nav lightbox-nav--next" onClick={e => { e.stopPropagation(); navigate(1)  }} aria-label="Next photo">›</button>
+
           <div className="lightbox-inner" onClick={e => e.stopPropagation()}>
             <button className="lightbox-close" onClick={closeLightbox} aria-label="Close lightbox">✕</button>
-            <button className="lightbox-nav lightbox-nav--prev" onClick={() => navigate(-1)} aria-label="Previous photo">‹</button>
             <img src={lightbox.url} alt={lightbox.caption} referrerPolicy="no-referrer-when-downgrade" />
             <div className="lightbox-caption">
               <span>{lightbox.caption}</span>
               <span className="lightbox-cat">{lightbox.category}</span>
             </div>
-            <button className="lightbox-nav lightbox-nav--next" onClick={() => navigate(1)} aria-label="Next photo">›</button>
-          </div>
-          {/* Dots indicator */}
-          <div className="lightbox-dots" role="tablist" aria-label="Photo navigation">
-            {filtered.map((p, i) => (
-              <button
-                key={p.id}
-                className={`lightbox-dot ${p.id === lightbox.id ? 'active' : ''}`}
-                onClick={e => { e.stopPropagation(); setLightbox(p) }}
-                aria-label={`View photo ${i + 1}: ${p.caption}`}
-                aria-selected={p.id === lightbox.id}
-                role="tab"
-              />
-            ))}
+            {/* Dot navigation */}
+            <div className="lightbox-dots" role="tablist" aria-label="Photo navigation">
+              {filtered.map((p, i) => (
+                <button
+                  key={p.id}
+                  className={`lightbox-dot ${p.id === lightbox.id ? 'active' : ''}`}
+                  onClick={e => { e.stopPropagation(); setLightbox(p) }}
+                  aria-label={`Photo ${i + 1}`}
+                  aria-selected={p.id === lightbox.id}
+                  role="tab"
+                />
+              ))}
+            </div>
           </div>
         </div>
       )}

@@ -4,6 +4,7 @@ import './admin.css'
 import BookingManager from './BookingManager'
 import PackageManager from './PackageManager'
 import GalleryManager from './GalleryManager'
+import OfferManager from './OfferManager'
 import StaffManagement from './StaffManagement'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
@@ -185,6 +186,11 @@ export default function AdminDashboard() {
               Gallery
             </button>
           )}
+          {user.role === 'admin' && (
+            <button type="button" className={`admin-tab${activeTab === 'offers' ? ' admin-tab--active' : ''}`} onClick={() => setActiveTab('offers')}>
+              Offers
+            </button>
+          )}
           {(user.role === 'admin' || user.role === 'manager') && (
             <button type="button" className={`admin-tab${activeTab === 'staff' ? ' admin-tab--active' : ''}`} onClick={() => setActiveTab('staff')}>
               Staff
@@ -197,6 +203,8 @@ export default function AdminDashboard() {
 
         {activeTab === 'gallery' ? (
           <GalleryManager />
+        ) : activeTab === 'offers' ? (
+          <OfferManager />
         ) : activeTab === 'packages' ? (
           <PackageManager />
         ) : activeTab === 'staff' ? (
