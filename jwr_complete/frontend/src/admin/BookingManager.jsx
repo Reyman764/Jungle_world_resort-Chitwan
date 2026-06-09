@@ -19,6 +19,16 @@ function PayBadge({ status }) {
   return <span className={`status-badge pay-${status || 'pending'}`}>{status || 'pending'}</span>
 }
 
+// Quick filters that map to filter combos
+const QUICK_FILTERS = [
+  { label: 'All',             key: 'all',            status: '',            extra: {} },
+  { label: '⚠ Pending Pay',  key: 'pending_pay',    status: 'confirmed',   extra: { paymentStatus: 'pending' } },
+  { label: '✓ Confirmed',    key: 'confirmed',       status: 'confirmed',   extra: {} },
+  { label: '🏕 Checked In',   key: 'checked_in',     status: 'checked_in',  extra: {} },
+  { label: '✗ Cancelled',    key: 'cancelled',       status: 'cancelled',   extra: {} },
+  { label: '⏳ Draft',        key: 'draft',           status: 'draft',       extra: {} },
+]
+
 export default function BookingManager({ onStatsRefresh, onAuthError }) {
   const [bookings, setBookings] = useState([])
   const [total, setTotal] = useState(0)
@@ -29,6 +39,9 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
   const [toast, setToast] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const [activeQuick, setActiveQuick] = useState('all')
+  const [archiveMode, setArchiveMode] = useState(false)
 
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
@@ -39,16 +52,28 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
   const [pageSize, setPageSize] = useState('20')
   const [applied, setApplied] = useState({})
 
+  const buildFilters = useCallback(() => ({
+    search, status, category, startDate, endDate, sort, pageSize,
+    ...(archiveMode ? { archiveMode: 'true' } : {}),
+  }), [search, status, category, startDate, endDate, sort, pageSize, archiveMode])
+
   const loadBookings = useCallback(async (filters = applied, pg = 1) => {
     setLoading(true)
     try {
       const q = new URLSearchParams()
-      if (filters.search) q.set('search', filters.search)
-      if (filters.status) q.set('status', filters.status)
-      if (filters.category) q.set('category', filters.category)
+      if (filters.search)    q.set('search', filters.search)
+      if (filters.status)    q.set('status', filters.status)
+      if (filters.category)  q.set('category', filters.category)
       if (filters.startDate) q.set('startDate', filters.startDate)
-      if (filters.endDate) q.set('endDate', filters.endDate)
-      if (filters.sort) q.set('sort', filters.sort)
+      if (filters.endDate)   q.set('endDate', filters.endDate)
+      if (filters.sort)      q.set('sort', filters.sort)
+      // Archive mode: filter to completed/cancelled bookings older than 90 days
+      if (filters.archiveMode) {
+        const cutoff = new Date()
+        cutoff.setDate(cutoff.getDate() - 90)
+        q.set('endDate', q.get('endDate') || cutoff.toISOString().split('T')[0])
+        if (!filters.status) q.set('status', 'checked_out')
+      }
       q.set('limit', filters.pageSize || '20')
       q.set('page', String(pg))
 
@@ -80,17 +105,72 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
   }
 
   function handleApply() {
-    const f = { search, status, category, startDate, endDate, sort, pageSize }
+    const f = buildFilters()
     setApplied(f)
     loadBookings(f, 1)
   }
 
   function handleClear() {
     setSearch(''); setStatus(''); setCategory(''); setStartDate(''); setEndDate('')
-    setSort('latest'); setPageSize('20')
+    setSort('latest'); setPageSize('20'); setActiveQuick('all'); setArchiveMode(false)
     const f = { search: '', status: '', category: '', startDate: '', endDate: '', sort: 'latest', pageSize: '20' }
     setApplied(f)
     loadBookings(f, 1)
+  }
+
+  function handleQuickFilter(qf) {
+    setActiveQuick(qf.key)
+    setStatus(qf.status)
+    setArchiveMode(false)
+    const f = { search, status: qf.status, category, startDate, endDate, sort, pageSize }
+    setApplied(f)
+    loadBookings(f, 1)
+  }
+
+  function handleArchiveToggle() {
+    const next = !archiveMode
+    setArchiveMode(next)
+    setActiveQuick('all')
+    setStatus('')
+    const f = { search, status: '', category, startDate, endDate, sort, pageSize, archiveMode: next ? 'true' : '' }
+    setApplied(f)
+    loadBookings(f, 1)
+  }
+
+  async function handleExportCSV() {
+    setExporting(true)
+    try {
+      const q = new URLSearchParams()
+      if (applied.search)    q.set('search', applied.search)
+      if (applied.status)    q.set('status', applied.status)
+      if (applied.category)  q.set('category', applied.category)
+      if (applied.startDate) q.set('startDate', applied.startDate)
+      if (applied.endDate)   q.set('endDate', applied.endDate)
+      if (applied.sort)      q.set('sort', applied.sort)
+
+      const res = await fetch(`${API}/api/admin/export/csv?${q}`, {
+        headers: { Authorization: authHeader().Authorization || '' },
+      })
+
+      if (!res.ok) { showToast('error', 'Export failed — please try again'); return }
+
+      const blob = await res.blob()
+      const url  = URL.createObjectURL(blob)
+      const a    = document.createElement('a')
+      const cd   = res.headers.get('content-disposition') || ''
+      const match = cd.match(/filename="([^"]+)"/)
+      a.download = match ? match[1] : `jwr-bookings-${new Date().toISOString().split('T')[0]}.csv`
+      a.href = url
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+      showToast('success', `Exported ${total} bookings to CSV`)
+    } catch {
+      showToast('error', 'Export failed — network error')
+    } finally {
+      setExporting(false)
+    }
   }
 
   async function confirmDelete() {
@@ -119,8 +199,57 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
     }
   }
 
+  // Pagination range helper
+  function getPageRange() {
+    const range = []
+    const delta = 2
+    const left  = Math.max(1, page - delta)
+    const right = Math.min(totalPages, page + delta)
+    if (left > 1)          { range.push(1); if (left > 2) range.push('...') }
+    for (let i = left; i <= right; i++) range.push(i)
+    if (right < totalPages) { if (right < totalPages - 1) range.push('...'); range.push(totalPages) }
+    return range
+  }
+
   return (
     <>
+      {/* ── Quick Filter Chips ─────────────────────────────────── */}
+      <div className="quick-filters-row">
+        {QUICK_FILTERS.map(qf => (
+          <button
+            key={qf.key}
+            type="button"
+            className={`quick-filter-chip${activeQuick === qf.key && !archiveMode ? ' active' : ''}`}
+            onClick={() => handleQuickFilter(qf)}
+          >
+            {qf.label}
+          </button>
+        ))}
+        <div className="quick-filters-spacer" />
+        <button
+          type="button"
+          className={`quick-filter-chip archive-chip${archiveMode ? ' active' : ''}`}
+          onClick={handleArchiveToggle}
+          title="Show completed bookings older than 90 days"
+        >
+          📦 Archive
+        </button>
+      </div>
+
+      {archiveMode && (
+        <div className="archive-banner">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/>
+            <line x1="10" y1="12" x2="14" y2="12"/>
+          </svg>
+          Archive view — showing completed bookings older than 90 days
+          <button type="button" onClick={handleArchiveToggle} className="archive-banner-close">
+            ✕ Exit archive
+          </button>
+        </div>
+      )}
+
+      {/* ── Filters Bar ───────────────────────────────────────── */}
       <div className="admin-filters">
         <div className="admin-filter-group grow">
           <label className="admin-filter-label">Search</label>
@@ -177,6 +306,7 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
             <option value="10">10</option>
             <option value="20">20</option>
             <option value="50">50</option>
+            <option value="100">100</option>
           </select>
         </div>
         <button type="button" className="admin-filter-btn" onClick={handleApply}>Search</button>
@@ -185,8 +315,39 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
 
       <div className="admin-table-wrap">
         <div className="admin-table-header">
-          <h3>Bookings</h3>
-          <span className="admin-table-count">{total} total</span>
+          <div className="admin-table-header-left">
+            <h3>
+              {archiveMode ? '📦 Archive' : 'Bookings'}
+            </h3>
+            <span className="admin-table-count">{total} total</span>
+          </div>
+          <div className="admin-table-header-right">
+            <button
+              type="button"
+              className="export-csv-btn"
+              onClick={handleExportCSV}
+              disabled={exporting || total === 0}
+              title="Download filtered bookings as CSV"
+            >
+              {exporting ? (
+                <>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: 'spin 1s linear infinite' }}>
+                    <path d="M21 12a9 9 0 11-6.219-8.56"/>
+                  </svg>
+                  Exporting…
+                </>
+              ) : (
+                <>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  Export CSV
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         {toast && (
@@ -199,7 +360,17 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
           <div className="admin-loading"><div className="admin-spinner" /><p>Loading…</p></div>
         ) : bookings.length === 0 ? (
           <div className="admin-empty">
-            <div className="admin-empty__title">No bookings found</div>
+            <div className="admin-empty__icon">
+              {archiveMode ? '📦' : '🔍'}
+            </div>
+            <div className="admin-empty__title">
+              {archiveMode ? 'No archived bookings found' : 'No bookings found'}
+            </div>
+            <div className="admin-empty__sub">
+              {archiveMode
+                ? 'Bookings older than 90 days that are checked out will appear here.'
+                : 'Try adjusting your search or filters.'}
+            </div>
           </div>
         ) : (
           <div className="admin-table-scroll">
@@ -245,12 +416,56 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
           </div>
         )}
 
-        {total > parseInt(applied.pageSize || 20, 10) && (
+        {/* ── Pagination ──────────────────────────────────────── */}
+        {totalPages > 1 && (
           <div className="admin-pagination">
-            <span className="admin-pagination__info">Page {page} of {totalPages}</span>
+            <span className="admin-pagination__info">
+              Page {page} of {totalPages}
+              <span className="admin-pagination__total"> · {total} bookings</span>
+            </span>
             <div className="admin-pagination__btns">
-              <button type="button" className="admin-pagination__btn" disabled={page <= 1} onClick={() => loadBookings(applied, page - 1)}>← Prev</button>
-              <button type="button" className="admin-pagination__btn" disabled={page >= totalPages} onClick={() => loadBookings(applied, page + 1)}>Next →</button>
+              <button
+                type="button"
+                className="admin-pagination__btn"
+                disabled={page <= 1}
+                onClick={() => loadBookings(applied, 1)}
+                title="First page"
+              >«</button>
+              <button
+                type="button"
+                className="admin-pagination__btn"
+                disabled={page <= 1}
+                onClick={() => loadBookings(applied, page - 1)}
+              >← Prev</button>
+
+              {getPageRange().map((p, i) =>
+                p === '...' ? (
+                  <span key={`ellipsis-${i}`} className="admin-pagination__ellipsis">…</span>
+                ) : (
+                  <button
+                    key={p}
+                    type="button"
+                    className={`admin-pagination__btn admin-pagination__page${p === page ? ' active' : ''}`}
+                    onClick={() => loadBookings(applied, p)}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+
+              <button
+                type="button"
+                className="admin-pagination__btn"
+                disabled={page >= totalPages}
+                onClick={() => loadBookings(applied, page + 1)}
+              >Next →</button>
+              <button
+                type="button"
+                className="admin-pagination__btn"
+                disabled={page >= totalPages}
+                onClick={() => loadBookings(applied, totalPages)}
+                title="Last page"
+              >»</button>
             </div>
           </div>
         )}

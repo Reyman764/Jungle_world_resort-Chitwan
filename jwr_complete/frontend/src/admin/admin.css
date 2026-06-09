@@ -3108,3 +3108,348 @@
   .pwd-panel { padding: 12px 0 32px; }
   .pwd-panel__card { padding: 20px 16px; border-radius: 10px; }
 }
+
+/* ════════════════════════════════════════════════════════════════
+   BOOKING SCALABILITY IMPROVEMENTS
+   Trend chart · Quick filters · CSV export · Archive · Pagination
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Monthly Trend Chart ──────────────────────────────────────── */
+.trend-chart-wrap {
+  background: var(--a-surface);
+  border: 1px solid var(--a-border);
+  border-radius: var(--a-r-lg);
+  padding: 22px 24px 18px;
+  margin-bottom: 20px;
+  box-shadow: var(--a-sh-sm);
+}
+
+.trend-chart-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.trend-chart-title {
+  font-family: var(--a-font);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--a-text-2);
+  margin: 0 0 3px;
+  letter-spacing: .01em;
+}
+
+.trend-chart-sub {
+  font-family: var(--a-font);
+  font-size: 11px;
+  color: var(--a-text-4);
+  margin: 0;
+}
+
+.trend-metric-toggle {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--a-border-md);
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.trend-toggle-btn {
+  padding: 6px 14px;
+  font-family: var(--a-font);
+  font-size: 11.5px;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  color: var(--a-text-3);
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+
+.trend-toggle-btn:hover {
+  background: var(--a-surface-2);
+  color: var(--a-text-2);
+}
+
+.trend-toggle-btn.active {
+  background: var(--a-green);
+  color: #fff;
+}
+
+.trend-chart-svg-wrap {
+  margin: 0 -4px;
+}
+
+/* ── Quick Filter Chips ───────────────────────────────────────── */
+.quick-filters-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 12px;
+}
+
+.quick-filters-spacer {
+  flex: 1;
+}
+
+.quick-filter-chip {
+  padding: 6px 14px;
+  font-family: var(--a-font);
+  font-size: 12px;
+  font-weight: 600;
+  border: 1.5px solid var(--a-border-md);
+  border-radius: 20px;
+  background: var(--a-surface);
+  color: var(--a-text-3);
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+
+.quick-filter-chip:hover {
+  border-color: var(--a-green);
+  color: var(--a-green);
+  background: #f0faf4;
+}
+
+.quick-filter-chip.active {
+  background: var(--a-green);
+  border-color: var(--a-green);
+  color: #fff;
+}
+
+.archive-chip {
+  border-style: dashed;
+}
+
+.archive-chip.active {
+  background: #78350f;
+  border-color: #78350f;
+}
+
+/* ── Archive Banner ───────────────────────────────────────────── */
+.archive-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: var(--a-r);
+  padding: 10px 16px;
+  margin-bottom: 12px;
+  font-family: var(--a-font);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.archive-banner svg {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.archive-banner-close {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid #d97706;
+  color: #92400e;
+  border-radius: 4px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--a-font);
+  transition: background .15s;
+  white-space: nowrap;
+}
+
+.archive-banner-close:hover {
+  background: #fcd34d;
+}
+
+/* ── Table header with export button ─────────────────────────── */
+.admin-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-table-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-table-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-table-header h3 {
+  font-family: var(--a-font);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--a-text-3);
+  margin: 0;
+}
+
+/* ── Export CSV Button ────────────────────────────────────────── */
+.export-csv-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 15px;
+  font-family: var(--a-font);
+  font-size: 12px;
+  font-weight: 600;
+  background: transparent;
+  border: 1.5px solid var(--a-border-md);
+  border-radius: var(--a-r);
+  color: var(--a-text-3);
+  cursor: pointer;
+  transition: all .18s;
+  white-space: nowrap;
+}
+
+.export-csv-btn:hover:not(:disabled) {
+  background: #f0fdf4;
+  border-color: var(--a-green);
+  color: var(--a-green);
+}
+
+.export-csv-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── Improved Empty State ─────────────────────────────────────── */
+.admin-empty {
+  padding: 48px 20px;
+  text-align: center;
+}
+
+.admin-empty__icon {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.admin-empty__title {
+  font-family: var(--a-font);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--a-text-2);
+  margin-bottom: 6px;
+}
+
+.admin-empty__sub {
+  font-family: var(--a-font);
+  font-size: 12px;
+  color: var(--a-text-4);
+}
+
+/* ── Improved Pagination ──────────────────────────────────────── */
+.admin-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-top: 1px solid var(--a-border);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-pagination__info {
+  font-family: var(--a-font);
+  font-size: 12.5px;
+  color: var(--a-text-4);
+  font-weight: 500;
+}
+
+.admin-pagination__total {
+  color: var(--a-text-4);
+  font-weight: 400;
+}
+
+.admin-pagination__btns {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.admin-pagination__btn {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border: 1.5px solid var(--a-border);
+  border-radius: 6px;
+  background: var(--a-surface);
+  font-family: var(--a-font);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--a-text-3);
+  cursor: pointer;
+  transition: all .15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-pagination__btn:hover:not(:disabled) {
+  background: var(--a-surface-2);
+  border-color: var(--a-border-md);
+  color: var(--a-text-2);
+}
+
+.admin-pagination__btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+.admin-pagination__btn.admin-pagination__page.active {
+  background: var(--a-green);
+  border-color: var(--a-green);
+  color: #fff;
+}
+
+.admin-pagination__ellipsis {
+  font-family: var(--a-font);
+  font-size: 12px;
+  color: var(--a-text-4);
+  padding: 0 4px;
+  line-height: 34px;
+}
+
+/* ── Responsive overrides ─────────────────────────────────────── */
+@media (max-width: 768px) {
+  .trend-chart-wrap { padding: 16px 14px 14px; }
+  .trend-chart-header { gap: 8px; }
+  .quick-filters-row { gap: 5px; }
+  .quick-filter-chip { padding: 5px 11px; font-size: 11px; }
+  .admin-pagination { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .admin-pagination__btns { flex-wrap: wrap; }
+}
+
+@media (max-width: 480px) {
+  .quick-filters-row { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
+  .quick-filters-spacer { display: none; }
+  .archive-chip { flex-shrink: 0; }
+  .export-csv-btn { font-size: 11px; padding: 6px 11px; }
+}

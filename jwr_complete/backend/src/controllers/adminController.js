@@ -886,6 +886,170 @@ async function deleteOffer(req, res, next) {
   } catch (err) { next(err); }
 }
 
+/**
+ * GET /api/admin/stats/monthly
+ * Returns last 12 months of booking counts + revenue for the trend chart.
+ */
+async function getMonthlyTrend(req, res, next) {
+  try {
+    const rows = await sequelize.query(
+      `
+      SELECT
+        TO_CHAR(DATE_TRUNC('month', created_at), 'YYYY-MM') AS month,
+        COUNT(*)::int                                         AS bookings,
+        COALESCE(SUM(
+          CASE
+            WHEN payment_status = 'partial'  THEN COALESCE(paid_amount, 0)
+            WHEN payment_status = 'completed' THEN COALESCE(total_price, 0)
+            WHEN payment_status = 'refunded'
+              THEN GREATEST(
+                COALESCE(NULLIF(paid_amount,0), total_price, 0) - COALESCE(refund_amount,0),
+                0
+              )
+            ELSE 0
+          END
+        ), 0)::float                                          AS revenue
+      FROM bookings
+      WHERE created_at >= NOW() - INTERVAL '12 months'
+        AND status NOT IN ('draft')
+      GROUP BY DATE_TRUNC('month', created_at)
+      ORDER BY DATE_TRUNC('month', created_at) ASC
+      `,
+      { type: Sequelize.QueryTypes.SELECT }
+    );
+
+    // Fill in any missing months so frontend always has 12 data points
+    const months = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(1);
+      d.setMonth(d.getMonth() - i);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const label = d.toLocaleString('en', { month: 'short', year: '2-digit' });
+      months.push({ month: key, label, bookings: 0, revenue: 0 });
+    }
+
+    rows.forEach(r => {
+      const idx = months.findIndex(m => m.month === r.month);
+      if (idx !== -1) {
+        months[idx].bookings = Number(r.bookings);
+        months[idx].revenue  = Math.round(Number(r.revenue));
+      }
+    });
+
+    return res.json({ trend: months });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * GET /api/admin/export/csv
+ * Streams filtered bookings as a CSV file.
+ * Accepts same query params as getBookings.
+ */
+async function exportBookingsCSV(req, res, next) {
+  try {
+    const {
+      status,
+      startDate,
+      endDate,
+      category,
+      search,
+      sort = 'latest',
+      is_spam,
+    } = req.query;
+
+    const where = {};
+    if (status)   where.status         = status;
+    if (category) where.guest_category = category;
+    if (is_spam === 'true')  where.is_spam = true;
+    if (is_spam === 'false') where.is_spam = false;
+
+    if (startDate || endDate) {
+      where.check_in_date = {};
+      if (startDate) where.check_in_date[Op.gte] = startDate;
+      if (endDate)   where.check_in_date[Op.lte] = endDate;
+    }
+
+    if (search) {
+      const like = { [Op.iLike]: `%${search}%` };
+      where[Op.or] = [
+        { guest_name:        like },
+        { guest_email:       like },
+        { booking_reference: like },
+      ];
+    }
+
+    const order = SORT_OPTIONS[sort] || SORT_OPTIONS.latest;
+
+    const bookings = await Booking.findAll({
+      where,
+      include: [{
+        model:      Package,
+        as:         'package',
+        attributes: ['name'],
+        required:   false,
+      }],
+      order,
+      limit: 5000, // Safety cap
+    });
+
+    const esc = v => {
+      if (v === null || v === undefined) return '';
+      const s = String(v);
+      if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+        return `"${s.replace(/"/g, '""')}"`;
+      }
+      return s;
+    };
+
+    const headers = [
+      'Reference', 'Guest Name', 'Guest Email', 'Guest Phone',
+      'Package', 'Category', 'Adults', 'Children',
+      'Check-in', 'Check-out', 'Nights',
+      'Status', 'Payment Status', 'Payment Method',
+      'Total (NPR)', 'Paid (NPR)', 'Balance (NPR)',
+      'Is Spam', 'Created At',
+    ];
+
+    const lines = [headers.join(',')];
+
+    bookings.forEach(b => {
+      lines.push([
+        esc(b.booking_reference),
+        esc(b.guest_name),
+        esc(b.guest_email),
+        esc(b.guest_phone),
+        esc(b.package?.name || ''),
+        esc(b.guest_category),
+        esc(b.num_adults),
+        esc(b.num_children),
+        esc(b.check_in_date),
+        esc(b.check_out_date),
+        esc(b.duration_nights),
+        esc(b.status),
+        esc(b.payment_status),
+        esc(b.payment_method),
+        esc(Math.round(Number(b.total_price || 0))),
+        esc(Math.round(Number(b.paid_amount || 0))),
+        esc(Math.round(Number(b.balance_due || 0))),
+        esc(b.is_spam ? 'Yes' : 'No'),
+        esc(b.created_at ? new Date(b.created_at).toISOString().split('T')[0] : ''),
+      ].join(','));
+    });
+
+    const csv = lines.join('\n');
+    const filename = `jwr-bookings-${new Date().toISOString().split('T')[0]}.csv`;
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    return res.send(csv);
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   getBookings,
   getBookingById,
@@ -893,6 +1057,8 @@ module.exports = {
   deleteBooking,
   getAuditLogs,
   getDashboardStats,
+  getMonthlyTrend,
+  exportBookingsCSV,
   deleteUser,
   paymentRevenueFromValues,
   listGalleryImages,

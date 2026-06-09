@@ -9,6 +9,8 @@ const {
   deleteBooking,
   getAuditLogs,
   getDashboardStats,
+  getMonthlyTrend,
+  exportBookingsCSV,
   deleteUser,
 } = require('../controllers/adminController');
 const { listAuditLogs } = require('../controllers/auditLogController');
@@ -19,8 +21,10 @@ router.use(authenticateToken);
 router.use(requireRole(['admin', 'manager', 'staff']));
 
 // ── Stats + audit (no :id wildcard) ───────────────────────
-router.get('/audit-logs', listAuditLogs);
-router.get('/stats',      getDashboardStats);
+router.get('/audit-logs',    listAuditLogs);
+router.get('/stats',         getDashboardStats);
+router.get('/stats/monthly', getMonthlyTrend);
+router.get('/export/csv',    exportBookingsCSV);
 
 // ── Staff management (must come before /:id wildcard) ─────
 router.get(
