@@ -82,7 +82,20 @@ function serializePackage(row, rates) {
     discount: p.discount_label  || null,
     urgency:  p.urgency_text    || null,
     desc:     p.description,
-    img:      p.image_url,
+    img:      (() => {
+      // Strip external/wrong URLs; fall back to a local gallery image keyed by slug
+      const SLUG_IMGS = {
+        'chitwan-at-a-glance': '/images/gallery/resort-03.jpg',
+        'close-up-chitwan':    '/images/gallery/resort-06.jpg',
+        'explore-chitwan':     '/images/gallery/resort-09.jpg',
+      };
+      const isWrongExternal = !p.image_url
+        || p.image_url.includes('unsplash.com')
+        || p.image_url.includes('sweethomechitwan.com');
+      return isWrongExternal
+        ? (SLUG_IMGS[p.slug] || '/images/gallery/resort-03.jpg')
+        : p.image_url;
+    })(),
     includes,
     // Display prices in proper currencies
     price:        fmtUSD(foreigner / usdRate),          // USD for international

@@ -97,7 +97,7 @@ export default function Home() {
             muted
             loop
             playsInline
-            poster="https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1920&q=85"
+            poster="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1920&q=85"
           >
             <source src="/videos/jungle-intro.webm" type="video/webm" />
             <source src="/videos/jungle-intro.mp4" type="video/mp4" />

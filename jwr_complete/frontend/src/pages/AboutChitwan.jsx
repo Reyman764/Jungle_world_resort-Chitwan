@@ -5,7 +5,7 @@ import './AboutChitwan.css'
 
 const facts = [
   { img: 'https://econepaltrekkers.com/wp-content/uploads/2025/12/Terai-Region-in-Nepal.jpg', alt: 'Terai landscape in southern Nepal', label: 'Location', value: 'Southern Nepal, where the Terai meets the hills' },
-  { img: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=500&q=80', alt: 'Sal forest in Chitwan National Park', label: 'Area', value: '952 sq km of protected core wilderness' },
+  { img: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=500&q=80', alt: 'Sal forest in Chitwan National Park', label: 'Area', value: '952 sq km of protected core wilderness' },
   { img: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=500&q=80', alt: 'Chitwan National Park wilderness', label: 'UNESCO Status', value: 'Inscribed as World Heritage Site, 1984' },
   { img: 'https://rpcdn.ratopati.com/media/albums/rhino_9lvtPy7ttd.jpeg', alt: 'One-horned rhinoceros in Chitwan', label: 'One-horned Rhino', value: 'Over 700 individuals — a conservation triumph' },
   { img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJNa4VxJFXest9OqAmydJKRvcmT77rOyDS8A&s', alt: 'Bengal tiger in the wild', label: 'Bengal Tiger', value: 'More than 100 individuals, carefully protected' },
@@ -27,7 +27,7 @@ export default function AboutChitwan() {
       <PageHero
         title="About Chitwan"
         subtitle="The jewel of Nepal's lowland forests"
-        bgImage="https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1600&q=80"
+        bgImage="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1600&q=80"
       />
 
       {/* Intro */}
