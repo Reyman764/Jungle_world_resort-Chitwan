@@ -5,11 +5,16 @@
  *
  * Email sending utilities.
  *
- * Provider priority: SendGrid → Gmail SMTP → dev-console (non-production only)
+ * Provider priority: Gmail SMTP → SendGrid (legacy) → dev-console (non-production only)
+ * Configured to use Gmail SMTP with nodemailer as the free, unlimited email solution.
+ *
+ * Setup: see docs/GMAIL_SMTP_SETUP.md
  *
  * Exports:
  *   sendOtpEmail(to, otp, name)         — used by /api/verify routes
- *   sendBookingOtpEmail(to, otp)        — used by /api/otp routes (SendGrid spec template)
+ *   sendBookingOtpEmail(to, otp)        — used by /api/otp routes
+ *   sendStaffVerificationEmail(...)      — staff account activation
+ *   sendStaffPasswordResetEmail(...)     — staff password reset
  *   isEmailConfigured()
  *   hasSendGrid()
  *   hasSmtp()
