@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef, memo } from 'react'
 import BookingDetail from './BookingDetail'
 import './admin.css'
 
@@ -11,13 +11,13 @@ function authHeader() {
     : { 'Content-Type': 'application/json' }
 }
 
-function StatusBadge({ status }) {
+const StatusBadge = memo(function StatusBadge({ status }) {
   return <span className={`status-badge status-${status || 'draft'}`}>{status || 'draft'}</span>
-}
+})
 
-function PayBadge({ status }) {
+const PayBadge = memo(function PayBadge({ status }) {
   return <span className={`status-badge pay-${status || 'pending'}`}>{status || 'pending'}</span>
-}
+})
 
 // Quick filters that map to filter combos
 const QUICK_FILTERS = [
@@ -42,6 +42,7 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
   const [exporting, setExporting] = useState(false)
   const [activeQuick, setActiveQuick] = useState('all')
   const [archiveMode, setArchiveMode] = useState(false)
+  const abortRef = useRef(null) // cancel in-flight requests
 
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
@@ -58,6 +59,11 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
   }), [search, status, category, startDate, endDate, sort, pageSize, archiveMode])
 
   const loadBookings = useCallback(async (filters = applied, pg = 1) => {
+    // Cancel any in-flight request
+    if (abortRef.current) abortRef.current.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
+
     setLoading(true)
     try {
       const q = new URLSearchParams()
@@ -67,7 +73,6 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
       if (filters.startDate) q.set('startDate', filters.startDate)
       if (filters.endDate)   q.set('endDate', filters.endDate)
       if (filters.sort)      q.set('sort', filters.sort)
-      // Archive mode: filter to completed/cancelled bookings older than 90 days
       if (filters.archiveMode) {
         const cutoff = new Date()
         cutoff.setDate(cutoff.getDate() - 90)
@@ -77,7 +82,10 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
       q.set('limit', filters.pageSize || '20')
       q.set('page', String(pg))
 
-      const res = await fetch(`${API}/api/admin?${q}`, { headers: authHeader() })
+      const res = await fetch(`${API}/api/admin?${q}`, {
+        headers: authHeader(),
+        signal: controller.signal,
+      })
       const data = await res.json()
 
       if (res.ok) {
@@ -88,6 +96,8 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
       } else if (res.status === 401 || res.status === 403) {
         onAuthError?.()
       }
+    } catch (err) {
+      if (err.name === 'AbortError') return // cancelled — ignore
     } finally {
       setLoading(false)
     }

@@ -1,23 +1,44 @@
 'use strict';
 
-const express     = require('express');
-const cors        = require('cors');
-const helmet      = require('helmet');
-const morgan      = require('morgan');
-const rateLimit   = require('express-rate-limit');
-const compression = require('compression');
-const cookieParser= require('cookie-parser');
+const express      = require('express');
+const cors         = require('cors');
+const helmet       = require('helmet');
+const morgan       = require('morgan');
+const rateLimit    = require('express-rate-limit');
+const compression  = require('compression');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const app = express();
 
-// Dev helper: print rate-limit settings so it's clear what dev mode uses
-if (process.env.NODE_ENV !== 'production') {
-  console.log(`[dev] RATE_LIMIT_WINDOW_MS=${process.env.RATE_LIMIT_WINDOW_MS}, RATE_LIMIT_MAX=${process.env.RATE_LIMIT_MAX}, RATE_LIMIT_MAX_DEV=${process.env.RATE_LIMIT_MAX_DEV}`);
-}
-
 // ── Security Middleware ────────────────────────────────────
-app.use(helmet());
+app.use(helmet({
+  // Content Security Policy — blocks XSS, injection, and mixed content
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc:     ["'self'"],
+      scriptSrc:      ["'self'"],
+      styleSrc:       ["'self'", "'unsafe-inline'"],
+      imgSrc:         ["'self'", 'data:', 'blob:', 'https://res.cloudinary.com'],
+      connectSrc:     ["'self'"],
+      fontSrc:        ["'self'", 'https://fonts.gstatic.com'],
+      objectSrc:      ["'none'"],
+      baseUri:        ["'self'"],
+      frameAncestors: ["'none'"],
+      formAction:     ["'self'"],
+    },
+  },
+  // HSTS — force HTTPS in production
+  hsts: process.env.NODE_ENV === 'production'
+    ? { maxAge: 31536000, includeSubDomains: true, preload: true }
+    : false,
+  noSniff:       true,  // prevent MIME sniffing
+  hidePoweredBy: true,  // hide X-Powered-By: Express
+  frameguard:    { action: 'deny' }, // clickjacking protection
+  xssFilter:     true,
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+}));
+
 app.use(compression());
 app.use(cookieParser());
 
@@ -42,59 +63,61 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 }
 
-// ── Body Parsers ──────────────────────────────────────────
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// ── Body Parsers — tight limits prevent DoS ───────────────
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
 // ── Rate Limiting ─────────────────────────────────────────
-// Apply strict rate limits only in production. In development we avoid
-// aggressive limits so hot-reloads / multiple tabs don't lock out the dev.
+const makeLimiter = (windowMs, max, message) => rateLimit({
+  windowMs,
+  max,
+  standardHeaders: true,
+  legacyHeaders:   false,
+  message: { error: message || 'Too many requests, please try again later.' },
+});
+
 if (process.env.NODE_ENV === 'production') {
-  const limiter = rateLimit({
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-    max: parseInt(process.env.RATE_LIMIT_MAX) || 100,
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { error: 'Too many requests, please try again later.' },
-  });
-  app.use('/api/', limiter);
+  // General API: 100 req per 15 min
+  app.use('/api/', makeLimiter(
+    parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
+    parseInt(process.env.RATE_LIMIT_MAX)       || 100,
+  ));
 
-  const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 10,
-    message: { error: 'Too many auth attempts, please try again in 15 minutes.' },
-  });
-  app.use('/api/auth/login',    authLimiter);
-  app.use('/api/auth/register', authLimiter);
-  app.use('/api/auth/google',   authLimiter);
+  // Auth endpoints: 10 attempts per 15 min (brute-force protection)
+  const authStrict = makeLimiter(15 * 60 * 1000, 10,
+    'Too many auth attempts, please try again in 15 minutes.');
+  [
+    '/api/auth/login', '/api/auth/register', '/api/auth/google',
+    '/api/staff/auth/login', '/api/staff/auth/signup',
+  ].forEach(p => app.use(p, authStrict));
+
+  // OTP: 5 per 15 min (prevent abuse)
+  app.use('/api/otp', makeLimiter(15 * 60 * 1000, 5,
+    'Too many OTP requests. Please wait 15 minutes.'));
 } else {
-  // Development: use a very permissive limiter to avoid accidental lockouts
-  const devLimiter = rateLimit({
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-    max: parseInt(process.env.RATE_LIMIT_MAX_DEV) || 1000,
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { error: 'Too many requests, please try again later.' },
-  });
+  // Development: very permissive
+  const devLimiter = makeLimiter(
+    parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
+    parseInt(process.env.RATE_LIMIT_MAX_DEV)   || 1000,
+  );
   app.use('/api/', devLimiter);
-  // expose limiter for dev debugging (e.g., reset counters)
   app.locals.devLimiter = devLimiter;
-}
 
-// Development helper: reset limiter for an IP
-if (process.env.NODE_ENV !== 'production') {
+  // Dev helper: reset rate limit for an IP
   app.post('/api/dev/reset-rate-limit', express.json(), (req, res) => {
     try {
-      const ip = (req.body && req.body.ip) || req.ip || req.socket.remoteAddress
+      const ip = (req.body && req.body.ip) || req.ip || req.socket.remoteAddress;
       if (!app.locals.devLimiter || !app.locals.devLimiter.resetKey) {
-        return res.status(500).json({ error: 'Rate limiter not available' })
+        return res.status(500).json({ error: 'Rate limiter not available' });
       }
-      app.locals.devLimiter.resetKey(ip)
-      return res.json({ success: true, ip })
+      app.locals.devLimiter.resetKey(ip);
+      return res.json({ success: true, ip });
     } catch (err) {
-      return res.status(500).json({ error: err.message })
+      return res.status(500).json({ error: err.message });
     }
-  })
+  });
+
+  console.log(`[dev] Rate limit: ${process.env.RATE_LIMIT_MAX_DEV || 1000} req / ${process.env.RATE_LIMIT_WINDOW_MS || 900000}ms`);
 }
 
 // ── Health Check ──────────────────────────────────────────
@@ -116,58 +139,53 @@ app.get('/api/health/email', (req, res) => {
     sendgrid: {
       configured: hasSendGrid(),
       from:       hasSendGrid() ? from : null,
-      hint:       hasSendGrid()
-        ? null
-        : 'Set SENDGRID_API_KEY and SENDGRID_FROM_EMAIL in .env — see docs/SENDGRID_SETUP.md',
+      hint:       hasSendGrid() ? null : 'Set SENDGRID_API_KEY and SENDGRID_FROM_EMAIL in .env',
     },
     smtp: {
       configured: hasSmtp(),
       host:       hasSmtp() ? process.env.SMTP_HOST : null,
       user:       hasSmtp() ? process.env.SMTP_USER : null,
-      hint:       hasSmtp()
-        ? null
-        : 'Set SMTP_HOST, SMTP_USER, SMTP_PASS in .env — see docs/GMAIL_SMTP_SETUP.md',
+      hint:       hasSmtp() ? null : 'Set SMTP_HOST, SMTP_USER, SMTP_PASS in .env',
     },
     dev_fallback: !isEmailConfigured() && process.env.NODE_ENV !== 'production',
   });
 });
 
 // ── API Routes ────────────────────────────────────────────
-app.use('/api/auth',     require('./routes/auth'));
-app.use('/api/verify',   require('./routes/verify'));        // ✅ existing email/phone OTP (session-based)
-app.use('/api/otp',      require('./routes/otp'));           // ✅ NEW: booking OTP via SendGrid
-app.use('/api/bookings', require('./routes/bookings'));      // ✅ booking submission
-app.use('/api/packages',  require('./routes/packages'));   // ✅ public packages
-app.use('/api/admin/packages', require('./routes/adminPackages')); // ✅ package management
-app.use('/api/admin/gallery',  require('./routes/adminGallery'));  // ✅ gallery management
-app.use('/api/admin/offer',   require('./routes/adminOffer'));    // ✅ offer banner management
-app.use('/api/admin',    require('./routes/admin'));         // ✅ admin dashboard
-app.use('/api/staff/auth',    require('./routes/staffAuth'));     // ✅ staff auth portal
+app.use('/api/auth',           require('./routes/auth'));
+app.use('/api/verify',         require('./routes/verify'));
+app.use('/api/otp',            require('./routes/otp'));
+app.use('/api/bookings',       require('./routes/bookings'));
+app.use('/api/packages',       require('./routes/packages'));
+app.use('/api/admin/packages', require('./routes/adminPackages'));
+app.use('/api/admin/gallery',  require('./routes/adminGallery'));
+app.use('/api/admin/offer',    require('./routes/adminOffer'));
+app.use('/api/admin',          require('./routes/admin'));
+app.use('/api/staff/auth',     require('./routes/staffAuth'));
 
-// Public gallery endpoint (no auth required — Gallery page reads images)
+// Public endpoints (no auth required)
 app.get('/api/gallery', require('./controllers/adminController').listGalleryImages);
-// Public offer endpoint (no auth required — shows active offer popup to visitors)
 app.get('/api/offer',   require('./controllers/adminController').getOffer);
-// app.use('/api/payments',  require('./routes/payments'));  // add when ready
 
 // ── 404 Handler ───────────────────────────────────────────
 app.use((req, res) => {
-  res.status(404).json({
-    error:  'Route not found',
-    path:   req.originalUrl,
-    method: req.method,
-  });
+  res.status(404).json({ error: 'Route not found', path: req.originalUrl, method: req.method });
 });
 
 // ── Global Error Handler ──────────────────────────────────
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
-  console.error(`[ERROR] ${err.message}`);
+  if (process.env.NODE_ENV !== 'production') {
+    console.error(`[ERROR] ${err.message}`, err.stack);
+  } else {
+    console.error(`[ERROR] ${err.message}`);
+  }
+
   if (err.message && err.message.startsWith('CORS policy')) {
     return res.status(403).json({ error: err.message });
   }
-  if (err.name === 'JsonWebTokenError')  return res.status(401).json({ error: 'Invalid token' });
-  if (err.name === 'TokenExpiredError')  return res.status(401).json({ error: 'Token expired' });
+  if (err.name === 'JsonWebTokenError') return res.status(401).json({ error: 'Invalid token' });
+  if (err.name === 'TokenExpiredError') return res.status(401).json({ error: 'Token expired' });
   if (err.name === 'SequelizeValidationError') {
     return res.status(422).json({
       error:   'Validation failed',
@@ -177,6 +195,7 @@ app.use((err, req, res, next) => {
   if (err.name === 'SequelizeUniqueConstraintError') {
     return res.status(409).json({ error: 'Record already exists', field: err.errors[0]?.path });
   }
+  // Never leak stack traces or internal details in production
   res.status(err.status || 500).json({
     error: process.env.NODE_ENV === 'production' ? 'Internal Server Error' : err.message,
   });

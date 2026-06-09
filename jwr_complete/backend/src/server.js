@@ -1,6 +1,25 @@
 'use strict';
 
 require('dotenv').config();
+
+// ── Startup validation — fail fast on missing critical config ──
+const REQUIRED_IN_PROD = ['JWT_SECRET', 'DATABASE_URL'];
+if (process.env.NODE_ENV === 'production') {
+  const missing = REQUIRED_IN_PROD.filter(k => !process.env[k]);
+  if (missing.length > 0) {
+    console.error(`[STARTUP] Missing required environment variables: ${missing.join(', ')}`);
+    process.exit(1);
+  }
+}
+
+// Warn in dev if JWT_SECRET looks like the default placeholder
+if (process.env.NODE_ENV !== 'production') {
+  const secret = process.env.JWT_SECRET || '';
+  if (!secret || secret.includes('change') || secret.length < 32) {
+    console.warn('[WARNING] JWT_SECRET is missing or weak. Set a strong secret in .env before going to production.');
+  }
+}
+
 const app = require('./app');
 const { sequelize } = require('./models');
 

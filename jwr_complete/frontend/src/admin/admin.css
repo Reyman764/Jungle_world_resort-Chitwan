@@ -2373,6 +2373,8 @@
   overflow: visible !important;
   white-space: normal !important;
   text-overflow: unset !important;
+  min-height: 2.4em !important;     /* ← same fix in override context */
+  flex-wrap: wrap !important;
 }
 
 /* Left-side label text inside the head */
@@ -2548,6 +2550,7 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   min-width: 0;
+  align-items: end; /* ← inputs always bottom-aligned regardless of label height */
 }
 
 .admin-fx-price-label {
@@ -2568,6 +2571,9 @@
   letter-spacing: .07em;
   text-transform: uppercase;
   color: #253328;                   /* explicit dark — always readable */
+  min-height: 2.4em;                /* ← ensures all 3 columns share equal header height */
+  flex-wrap: wrap;
+  gap: 3px;
   margin-bottom: 2px;
 }
 

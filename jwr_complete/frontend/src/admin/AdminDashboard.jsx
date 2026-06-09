@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, memo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './admin.css'
 import BookingManager from './BookingManager'
@@ -14,7 +14,7 @@ function authHeader() {
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
-function StatCard({ label, value, sub, accent, icon }) {
+const StatCard = memo(function StatCard({ label, value, sub, accent, icon }) {
   return (
     <div className="stat-card" style={{ '--stat-accent': accent }}>
       {icon && <div className="stat-card__icon">{icon}</div>}
@@ -23,7 +23,7 @@ function StatCard({ label, value, sub, accent, icon }) {
       {sub && <div className="stat-card__sub">{sub}</div>}
     </div>
   )
-}
+})
 
 // ── Monthly Trend Chart (pure SVG, no deps) ───────────────────────
 function TrendChart({ data }) {

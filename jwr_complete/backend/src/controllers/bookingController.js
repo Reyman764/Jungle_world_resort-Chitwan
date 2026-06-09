@@ -79,6 +79,34 @@ async function createBooking(req, res, next) {
       });
     }
 
+    // ── 1b. Sanitize and length-check user inputs ─────────────
+    const sanitized = {
+      guest_name:       String(guest_name).trim().slice(0, 100),
+      guest_email:      String(guest_email).trim().toLowerCase().slice(0, 254),
+      guest_phone:      guest_phone ? String(guest_phone).trim().replace(/[^\d\s\+\-\(\)]/g, '').slice(0, 30) : null,
+      special_requests: special_requests ? String(special_requests).trim().slice(0, 1000) : null,
+    };
+
+    // Reject obviously invalid names (HTML tags, scripts)
+    if (/<[^>]*>/.test(sanitized.guest_name)) {
+      return res.status(400).json({ error: 'Guest name contains invalid characters.' });
+    }
+
+    // Basic date format check: YYYY-MM-DD
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(check_in_date)) {
+      return res.status(400).json({ error: 'check_in_date must be in YYYY-MM-DD format.' });
+    }
+    if (check_out_date && !dateRegex.test(check_out_date)) {
+      return res.status(400).json({ error: 'check_out_date must be in YYYY-MM-DD format.' });
+    }
+
+    // Validate num_adults is reasonable (1-20)
+    const numAdultsInt = parseInt(num_adults, 10);
+    if (isNaN(numAdultsInt) || numAdultsInt < 1 || numAdultsInt > 20) {
+      return res.status(400).json({ error: 'num_adults must be between 1 and 20.' });
+    }
+
     // ── 2. Resolve package ──────────────────────────────────
     // Accept both frontend short IDs and full DB slugs
     const resolvedSlug = SLUG_MAP[package_slug] || package_slug;
