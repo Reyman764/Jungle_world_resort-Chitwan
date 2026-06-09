@@ -455,7 +455,45 @@
 [data-theme="dark"] .route-item p { color: var(--text-secondary); }
 
 /* ── FOOTER silhouette ─────────────────────────────────────── */
-[data-theme="dark"] .footer__silhouette { background: var(--bg); }
+/*
+ * Fix: in dark mode the old rule set background = var(--bg) = #0d2218,
+ * which is the same colour as the SVG hill/tree fills → everything blended.
+ * Solution: gradient sky that is clearly lighter at the top, so the dark
+ * silhouettes read as shapes against a night sky.
+ */
+[data-theme="dark"] .footer__silhouette {
+  background: linear-gradient(
+    180deg,
+    #2d5a3d 0%,    /* forest-light — crisp contrast for tree tops */
+    #1c3a28 50%,   /* mid-tone transition                         */
+    #0d2218 100%   /* merges seamlessly into the footer body       */
+  );
+}
+
+/* Silhouette layers — CSS fill overrides SVG presentation attributes */
+[data-theme="dark"] .footer__hill-back {
+  fill: #142a1d;       /* slightly darker than original, crisp mid layer */
+  opacity: 0.75;       /* a touch more opaque for better layer separation */
+}
+[data-theme="dark"] .footer__hill-front { fill: #091810; }  /* very dark — pops against sky */
+[data-theme="dark"] .footer__trees      { fill: #091810; }  /* sharp tree silhouettes       */
+[data-theme="dark"] .footer__animals    { fill: #091810; stroke: #091810; opacity: 0.85; }
+
+/* Moon — warm moonlight glow instead of faint sun */
+[data-theme="dark"] .footer__moon-outer {
+  fill: #e8d09a;   /* warm ivory-gold */
+  opacity: 0.55;
+}
+[data-theme="dark"] .footer__moon-inner {
+  fill: #f0dc8c;   /* slightly brighter core */
+  opacity: 0.75;
+}
+
+/* Birds — more visible against the lighter night sky */
+[data-theme="dark"] .footer__birds {
+  stroke: #ddb86a;
+  opacity: 0.9;
+}
 
 /* ── Gradient divider / decorative lines ──────────────────── */
 [data-theme="dark"] .gradient-divider { opacity: 0.3; }

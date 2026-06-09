@@ -35,7 +35,7 @@ export default function Footer() {
             C1236 81 1240 64 1254 60 C1268 56 1272 74 1284 79 C1296 84 1300 66 1315 61
             C1330 56 1334 74 1348 78 C1362 82 1368 64 1382 60 C1396 56 1410 74 1420 78
             C1428 81 1432 70 1440 68 L1440 180 Z" 
-            fill="#1a3a2a" opacity="0.6"/>
+            className="footer__hill-back" fill="#1a3a2a" opacity="0.6"/>
           <path d="M0 180 L0 155
             C30 152 50 138 70 133 C88 129 92 145 108 148 C124 151 128 133 145 128
             C162 123 166 140 182 145 C200 150 204 132 220 127 C238 122 244 138 260 142
@@ -50,9 +50,9 @@ export default function Footer() {
             C1173 137 1176 120 1192 115 C1210 110 1214 127 1230 132 C1247 137 1250 120 1267 115
             C1284 110 1288 127 1304 131 C1322 136 1326 119 1342 114 C1360 109 1364 126 1380 130
             C1397 135 1410 118 1425 115 C1432 113 1436 120 1440 122 L1440 180 Z"
-            fill="#0d2218"/>
+            className="footer__hill-front" fill="#0d2218"/>
           {/* Trees */}
-          <g fill="#0d2218">
+          <g className="footer__trees" fill="#0d2218">
             <ellipse cx="80" cy="95" rx="18" ry="30"/>
             <rect x="77" y="118" width="6" height="22"/>
             <ellipse cx="200" cy="80" rx="22" ry="35"/>
@@ -73,17 +73,17 @@ export default function Footer() {
             <rect x="1377" y="110" width="6" height="22"/>
           </g>
           {/* Sun/Moon */}
-          <circle cx="1100" cy="60" r="30" fill="#c8973a" opacity="0.25"/>
-          <circle cx="1100" cy="60" r="20" fill="#c8973a" opacity="0.35"/>
+          <circle cx="1100" cy="60" r="30" className="footer__moon-outer" fill="#c8973a" opacity="0.25"/>
+          <circle cx="1100" cy="60" r="20" className="footer__moon-inner" fill="#c8973a" opacity="0.35"/>
           {/* Birds */}
-          <g fill="none" stroke="#c8973a" strokeWidth="1.5" opacity="0.6">
+          <g className="footer__birds" fill="none" stroke="#c8973a" strokeWidth="1.5" opacity="0.6">
             <path d="M1050 30 Q1055 26 1060 30"/>
             <path d="M1065 22 Q1070 18 1075 22"/>
             <path d="M1080 28 Q1085 24 1090 28"/>
             <path d="M1035 40 Q1040 36 1045 40"/>
           </g>
           {/* Animals silhouettes */}
-          <g fill="#0d2218" opacity="0.8">
+          <g className="footer__animals" fill="#0d2218" opacity="0.8">
             {/* Rhino */}
             <ellipse cx="420" cy="148" rx="28" ry="14"/>
             <ellipse cx="440" cy="140" rx="14" ry="10"/>
