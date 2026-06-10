@@ -1,3 +1,4 @@
+import { GALLERY_URLS } from '../utils/cloudinary'
 import React, { useEffect } from 'react'
 import PageHero from '../components/PageHero'
 import BookingWizard from '../components/BookingWizard'
@@ -39,7 +40,7 @@ export default function Contact() {
       <PageHero
         title="Book Your Stay"
         subtitle="Plan, personalise and confirm in minutes"
-        bgImage="/images/gallery/resort-pool-day1.jpg"
+        bgImage={GALLERY_URLS['resort-pool-day1']}
       />
 
       <section id="booking-section" className="booking-section">

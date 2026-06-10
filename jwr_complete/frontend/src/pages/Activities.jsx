@@ -1,3 +1,4 @@
+import { GALLERY_URLS } from '../utils/cloudinary'
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import PageHero from '../components/PageHero'
@@ -25,7 +26,7 @@ export default function Activities() {
       <PageHero
         title="In the Field"
         subtitle="Six ways to know the forest"
-        bgImage="/images/gallery/resort-pool-day1.jpg"
+        bgImage={GALLERY_URLS['resort-pool-day1']}
         breadcrumbs={[{ label:'Activities' }]}
       />
 

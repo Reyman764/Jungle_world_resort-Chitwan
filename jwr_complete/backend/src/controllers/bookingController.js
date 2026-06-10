@@ -158,21 +158,20 @@ async function createBooking(req, res, next) {
       checkOut = arrival.toISOString().split('T')[0];
     }
 
-    // ── 5. Determine prices ───────────────────────────────────
-    // Trust the values calculated on the frontend; fall back to DB prices
-    const unitPrice = parseFloat(
+    // ── 5. Calculate prices server-side (never trust frontend values) ────
+    // All price calculations are done here using DB prices only.
+    const unitPrice      = parseFloat(
       guest_category === 'foreigner' ? pkg.price_foreigner :
       guest_category === 'saarc'     ? pkg.price_saarc     :
                                        pkg.price_nepali
     );
-    const adults   = parseInt(num_adults)  || 1;
-    const children = parseInt(num_children) || 0;
-
-    const childUnitPrice  = Math.round(unitPrice * 0.5);
-    const basePrice       = parseFloat(base_price)      || (unitPrice * adults + childUnitPrice * children);
-    const serviceCharge   = parseFloat(service_charge)  || Math.round(basePrice * 0.10);
-    const vatAmount       = parseFloat(vat)             || Math.round(basePrice * 0.13);
-    const totalPrice      = parseFloat(total_price)     || (basePrice + serviceCharge + vatAmount);
+    const adults         = parseInt(num_adults, 10)  || 1;
+    const children       = parseInt(num_children, 10) || 0;
+    const childUnitPrice = Math.round(unitPrice * 0.5);
+    const basePrice      = unitPrice * adults + childUnitPrice * children;
+    const serviceCharge  = Math.round(basePrice * 0.10);
+    const vatAmount      = Math.round(basePrice * 0.13);
+    const totalPrice     = basePrice + serviceCharge + vatAmount;
 
     // ── 6. Generate unique booking reference ─────────────────
     let bookingRef;

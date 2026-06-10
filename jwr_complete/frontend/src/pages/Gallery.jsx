@@ -1,26 +1,27 @@
 import React, { useState, useEffect } from 'react'
 import PageHero from '../components/PageHero'
+import { GALLERY_URLS } from '../utils/cloudinary'
 import './Gallery.css'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 const categories = ['All', 'Wildlife', 'Resort', 'Activities', 'Landscape']
 
-// Fallback static photos (shown when no images have been uploaded yet)
+// Fallback static photos — served from Cloudinary CDN (jwr/gallery/ folder)
 const STATIC_PHOTOS = [
-  { id: 1, url: '/images/gallery/resort-01.jpg', caption: 'Jungle World Resort grounds',              category: 'Resort',    size: 'large' },
-  { id: 2, url: '/images/gallery/resort-02.jpg', caption: 'Resort surroundings at Chitwan',          category: 'Resort',    size: '' },
-  { id: 3, url: '/images/gallery/resort-03.jpg', caption: 'Jungle World Resort landscape',           category: 'Resort',    size: '' },
-  { id: 4, url: '/images/gallery/resort-04.jpg', caption: 'Resort view in the morning light',        category: 'Resort',    size: 'large' },
-  { id: 5, url: '/images/gallery/resort-05.jpg', caption: 'Evening ambience at Jungle World',        category: 'Resort',    size: '' },
-  { id: 6, url: '/images/gallery/resort-06.jpg', caption: 'Night atmosphere at the resort',          category: 'Resort',    size: '' },
-  { id: 7, url: '/images/gallery/resort-07.jpg', caption: 'Jungle World Resort at night',            category: 'Resort',    size: '' },
-  { id: 8, url: '/images/gallery/resort-08.jpg', caption: 'Resort gardens and pathways',             category: 'Resort',    size: '' },
-  { id: 9, url: '/images/gallery/resort-09.jpg', caption: 'Relaxing spaces at Jungle World',         category: 'Resort',    size: 'large' },
-  { id: 10, url: '/images/gallery/resort-10.jpg', caption: 'The beauty of Jungle World Resort',      category: 'Resort',    size: '' },
-  { id: 11, url: '/images/gallery/resort-pool-night.jpg', caption: 'Swimming pool glowing at night', category: 'Resort',    size: 'large' },
-  { id: 12, url: '/images/gallery/resort-pool-day1.jpg',  caption: 'Resort pool surrounded by palms',category: 'Resort',    size: '' },
-  { id: 13, url: '/images/gallery/resort-pool-day2.jpg',  caption: 'Crystal clear pool with jungle', category: 'Resort',    size: '' },
+  { id: 1,  url: GALLERY_URLS['resort-01'],         caption: 'Jungle World Resort grounds',              category: 'Resort', size: 'large' },
+  { id: 2,  url: GALLERY_URLS['resort-02'],         caption: 'Resort surroundings at Chitwan',           category: 'Resort', size: '' },
+  { id: 3,  url: GALLERY_URLS['resort-03'],         caption: 'Jungle World Resort landscape',            category: 'Resort', size: '' },
+  { id: 4,  url: GALLERY_URLS['resort-04'],         caption: 'Resort view in the morning light',         category: 'Resort', size: 'large' },
+  { id: 5,  url: GALLERY_URLS['resort-05'],         caption: 'Evening ambience at Jungle World',         category: 'Resort', size: '' },
+  { id: 6,  url: GALLERY_URLS['resort-06'],         caption: 'Night atmosphere at the resort',           category: 'Resort', size: '' },
+  { id: 7,  url: GALLERY_URLS['resort-07'],         caption: 'Jungle World Resort at night',             category: 'Resort', size: '' },
+  { id: 8,  url: GALLERY_URLS['resort-08'],         caption: 'Resort gardens and pathways',              category: 'Resort', size: '' },
+  { id: 9,  url: GALLERY_URLS['resort-09'],         caption: 'Relaxing spaces at Jungle World',          category: 'Resort', size: 'large' },
+  { id: 10, url: GALLERY_URLS['resort-10'],         caption: 'The beauty of Jungle World Resort',        category: 'Resort', size: '' },
+  { id: 11, url: GALLERY_URLS['resort-pool-night'], caption: 'Swimming pool glowing at night',           category: 'Resort', size: 'large' },
+  { id: 12, url: GALLERY_URLS['resort-pool-day1'],  caption: 'Resort pool surrounded by palms',          category: 'Resort', size: '' },
+  { id: 13, url: GALLERY_URLS['resort-pool-day2'],  caption: 'Crystal clear pool with jungle',           category: 'Resort', size: '' },
 ]
 
 export default function Gallery() {
@@ -93,7 +94,7 @@ export default function Gallery() {
       <PageHero
         title="Gallery"
         subtitle="Light, water, and wildlife — moments from the forest"
-        bgImage="/images/gallery/resort-pool-day1.jpg"
+        bgImage={GALLERY_URLS['resort-pool-day1']}
         breadcrumbs={[{ label: 'Gallery' }]}
       />
 

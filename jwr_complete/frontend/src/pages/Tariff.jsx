@@ -1,3 +1,4 @@
+import { GALLERY_URLS } from '../utils/cloudinary'
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import PageHero from '../components/PageHero'
@@ -78,7 +79,7 @@ export default function Tariff() {
       <PageHero
         title="Tariff & Rates"
         subtitle="Transparent pricing for every traveller"
-        bgImage="/images/gallery/resort-pool-day2.jpg"
+        bgImage={GALLERY_URLS['resort-pool-day2']}
         breadcrumbs={[{ label:'Tariff' }]}
       />
 

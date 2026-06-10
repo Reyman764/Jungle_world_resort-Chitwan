@@ -279,6 +279,14 @@ exports.changePassword = async (req, res, next) => {
     const { current_password, new_password } = req.body;
 
     const user = await User.findByPk(req.user.id);
+
+    // Google-only accounts have no password — they can't change what doesn't exist
+    if (!user.password_hash) {
+      return res.status(400).json({
+        error: 'This account uses Google sign-in and does not have a password.',
+      });
+    }
+
     const valid = await bcrypt.compare(current_password, user.password_hash);
     if (!valid) {
       return res.status(400).json({ error: 'Current password is incorrect' });

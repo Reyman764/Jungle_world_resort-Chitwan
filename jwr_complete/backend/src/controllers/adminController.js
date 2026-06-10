@@ -5,6 +5,7 @@ const { Booking, Package, User, BookingAuditLog, Payment, Review, SiteSetting, s
 const { uploadImage } = require('../utils/cloudinaryUpload');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const { getClientIp } = require('../middleware/rateLimiter');
 
 const BOOKING_STATUSES = new Set([
   'draft',
@@ -79,14 +80,6 @@ function fieldLabel(field) {
     cancellation_reason: 'Cancellation Reason',
   };
   return map[field] || field;
-}
-
-function getClientIp(req) {
-  return (
-    (req.headers['x-forwarded-for'] || '').split(',')[0].trim() ||
-    req.socket?.remoteAddress ||
-    null
-  );
 }
 
 function actorFromRequest(req) {
@@ -505,34 +498,6 @@ async function updateBooking(req, res, next) {
 
       if (auditEntries.length > 0) {
         await BookingAuditLog.bulkCreate(auditEntries, { transaction });
-      }
-
-      // Auto-anonymize guest account when booking is cancelled
-      if (changedUpdates.status === 'cancelled') {
-        try {
-          const user = await User.findByPk(booking.user_id, { transaction });
-          if (user && !['admin', 'staff'].includes(user.role)) {
-            const newEmail = `deleted-${user.id}@deleted.jwr`;
-            const randomPass = crypto.randomBytes(16).toString('hex');
-            const hashed = await bcrypt.hash(randomPass, 10);
-            await user.update({
-              email: newEmail,
-              first_name: 'Deleted',
-              last_name: 'User',
-              password_hash: hashed,
-              phone: null,
-              nationality: null,
-              profile_picture_url: null,
-              is_verified: false,
-              refresh_token: null,
-              password_reset_token: null,
-              password_reset_expires: null,
-            }, { transaction });
-          }
-        } catch (e) {
-          // don't fail the booking update for anonymization problems
-          console.error('[admin][auto-anonymize] failed to anonymize user', e);
-        }
       }
 
       refreshed = await Booking.findByPk(req.params.id, {

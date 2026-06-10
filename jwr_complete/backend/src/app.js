@@ -11,6 +11,10 @@ require('dotenv').config();
 
 const app = express();
 
+// Trust first proxy (Nginx / Heroku / Render / Railway) for accurate client IPs
+// Required for rate-limiting and audit logs to record correct IPs
+app.set('trust proxy', 1);
+
 // ── Security Middleware ────────────────────────────────────
 app.use(helmet({
   // Content Security Policy — blocks XSS, injection, and mixed content
@@ -131,16 +135,10 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-const { hasSendGrid, hasSmtp, isEmailConfigured } = require('./utils/mailer');
+const { hasSmtp, isEmailConfigured } = require('./utils/mailer');
 app.get('/api/health/email', (req, res) => {
-  const from = process.env.SENDGRID_FROM_EMAIL || process.env.SMTP_FROM || null;
   res.json({
     configured: isEmailConfigured(),
-    sendgrid: {
-      configured: hasSendGrid(),
-      from:       hasSendGrid() ? from : null,
-      hint:       hasSendGrid() ? null : 'Set SENDGRID_API_KEY and SENDGRID_FROM_EMAIL in .env',
-    },
     smtp: {
       configured: hasSmtp(),
       host:       hasSmtp() ? process.env.SMTP_HOST : null,

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { GALLERY_URLS } from '../utils/cloudinary'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
@@ -9,7 +10,7 @@ export const FALLBACK_PACKAGES = [
     id: 'glance', name: 'Chitwan at a Glance', duration: '1 Night · 2 Days', badge: '1N · 2D',
     popular: false, discount: null, urgency: '2 rooms left',
     desc: 'A quick yet immersive escape. Perfect for weekend warriors who want to experience the essence of Chitwan without a long stay.',
-    img: '/images/gallery/resort-03.jpg',
+    img: GALLERY_URLS['resort-03'],
     includes: ['Welcome drink & cultural program', 'Elephant bathing (if available)', 'Jeep safari in National Park', 'Canoe safari on Rapti River', 'Tharu village walk', 'All meals (breakfast, lunch, dinner)'],
     price: 'USD 120.91', priceINR: 'INR 6,076', priceNPR: 'NPR 5,000',
     priceOriginal: null, priceINROriginal: null,
@@ -20,7 +21,7 @@ export const FALLBACK_PACKAGES = [
     id: 'closeup', name: 'Close Up Chitwan', duration: '2 Nights · 3 Days', badge: '2N · 3D',
     popular: false, discount: '15% Off', urgency: null,
     desc: 'A more intimate look at Chitwan. Two nights give you time to slow down, breathe the forest air, and connect with nature.',
-    img: '/images/gallery/resort-06.jpg',
+    img: GALLERY_URLS['resort-06'],
     includes: ['All Day 1 activities', 'Guided jungle walk at dawn', 'Bird watching with naturalist', 'Sunset canoe ride', 'Cultural village dinner experience', 'All meals included'],
     price: 'USD 191.44', priceINR: 'INR 9,620', priceNPR: 'NPR 8,500',
     priceOriginal: null, priceINROriginal: null,
@@ -31,7 +32,7 @@ export const FALLBACK_PACKAGES = [
     id: 'explore', name: 'Explore Chitwan', duration: '3 Nights · 4 Days', badge: '3N · 4D',
     popular: true, discount: null, urgency: null,
     desc: 'The full measure of Chitwan — four days shaped by the forest, guided by naturalists who know every trail and waterhole.',
-    img: '/images/gallery/resort-09.jpg',
+    img: GALLERY_URLS['resort-09'],
     includes: ['All activities from Day 1 & 2', 'Elephant back safari (optional)', 'Naturalist-led jungle drives', 'Sunset viewpoint trek', 'Farewell Tharu cultural dinner', 'All meals + airport transfers'],
     price: 'USD 251.89', priceINR: 'INR 15,190', priceNPR: 'NPR 12,500',
     priceOriginal: null, priceINROriginal: null,

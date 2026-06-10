@@ -128,7 +128,7 @@ router.post(
     } catch (err) {
       if (err.message?.includes('Email is not configured')) {
         return res.status(503).json({
-          error: 'Email service is not configured. Set SENDGRID_API_KEY in backend .env.',
+          error: 'Email service is not configured. Set SMTP_HOST, SMTP_USER, SMTP_PASS in backend .env.',
         });
       }
       if (err?.code === 401 || err?.code === 403) {

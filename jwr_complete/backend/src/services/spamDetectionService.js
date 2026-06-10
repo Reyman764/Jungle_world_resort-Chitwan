@@ -48,9 +48,13 @@ async function analyzeBookingForSpam(bookingData, ipAddress) {
   }
 
   if (bookingData.check_in_date && bookingData.check_out_date) {
-    if (await hasOverlappingBookings(email, bookingData.check_in_date, bookingData.check_out_date)) {
-      factors.push({ level: 'medium' });
-      reasons.push('Overlapping dates with existing booking');
+    try {
+      if (await hasOverlappingBookings(email, bookingData.check_in_date, bookingData.check_out_date)) {
+        factors.push({ level: 'medium' });
+        reasons.push('Overlapping dates with existing booking');
+      }
+    } catch (overlapErr) {
+      console.warn('[spam] overlap check failed:', overlapErr.message);
     }
   }
 

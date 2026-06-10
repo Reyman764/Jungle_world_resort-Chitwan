@@ -3,7 +3,7 @@
 require('dotenv').config();
 
 // ── Startup validation — fail fast on missing critical config ──
-const REQUIRED_IN_PROD = ['JWT_SECRET', 'DATABASE_URL'];
+const REQUIRED_IN_PROD = ['JWT_SECRET', 'JWT_REFRESH_SECRET', 'DATABASE_URL', 'SMTP_USER', 'SMTP_PASS'];
 if (process.env.NODE_ENV === 'production') {
   const missing = REQUIRED_IN_PROD.filter(k => !process.env[k]);
   if (missing.length > 0) {
@@ -17,6 +17,10 @@ if (process.env.NODE_ENV !== 'production') {
   const secret = process.env.JWT_SECRET || '';
   if (!secret || secret.includes('change') || secret.length < 32) {
     console.warn('[WARNING] JWT_SECRET is missing or weak. Set a strong secret in .env before going to production.');
+  }
+  const refreshSecret = process.env.JWT_REFRESH_SECRET || '';
+  if (!refreshSecret || refreshSecret.length < 32) {
+    console.warn('[WARNING] JWT_REFRESH_SECRET is missing or weak. Set a strong secret in .env.');
   }
 }
 
@@ -56,6 +60,14 @@ async function start() {
     console.error('❌ Database connection failed:', err.message);
     console.error('   Check your DATABASE_URL in .env');
     process.exit(1);
+  }
+
+  // Verify SMTP on startup (non-blocking in dev)
+  const { verifySmtpConnection } = require('./utils/mailer');
+  const smtpOk = await verifySmtpConnection();
+  if (!smtpOk && process.env.NODE_ENV === 'production') {
+    console.error('❌ SMTP connection failed. Emails will not be delivered.');
+    // Don't exit — server can still run, booking can proceed without email
   }
 
   server = app.listen(PORT, () => {
