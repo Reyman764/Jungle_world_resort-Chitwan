@@ -8,8 +8,6 @@ const {
   checkEmail,
   sendEmailOtp,
   confirmEmailOtp,
-  sendPhoneOtp,
-  confirmPhoneOtp,
 } = require('../controllers/verifyController');
 
 // ── Rate limits ───────────────────────────────────────────
@@ -65,33 +63,6 @@ router.post(
   ],
   validate,
   confirmEmailOtp
-);
-
-// POST /api/verify/send-phone-otp
-router.post(
-  '/send-phone-otp',
-  sendLimiter,
-  [
-    body('session_id').notEmpty().withMessage('session_id is required'),
-    body('phone').isMobilePhone('any').withMessage('Valid phone number required'),
-  ],
-  validate,
-  sendPhoneOtp
-);
-
-// POST /api/verify/confirm-phone-otp
-router.post(
-  '/confirm-phone-otp',
-  confirmLimiter,
-  [
-    body('session_id').notEmpty().withMessage('session_id is required'),
-    body('otp')
-      .notEmpty().withMessage('OTP is required')
-      .isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits')
-      .isNumeric().withMessage('OTP must contain only digits'),
-  ],
-  validate,
-  confirmPhoneOtp
 );
 
 module.exports = router;

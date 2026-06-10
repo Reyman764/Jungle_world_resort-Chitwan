@@ -414,7 +414,6 @@ async function deleteBooking(req, res, next) {
       await booking.destroy({ transaction });
 
       hardDeleted = true;
-      console.log(`[admin] Hard-deleted draft ${bookingReference} by ${actorName}`);
     });
 
     if (!hardDeleted) {
