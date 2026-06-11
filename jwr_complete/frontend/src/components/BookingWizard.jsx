@@ -607,6 +607,7 @@ export default function BookingWizard({ preselect }) {
                     className={`pkg-card-pick ${pkg?.id === p.id ? 'selected' : ''}`}
                     onClick={() => setPkg(p)}
                     aria-pressed={pkg?.id === p.id}
+                    aria-label={`Select ${p.name} package${pkg?.id === p.id ? ' (selected)' : ''}`}
                   >
                     <div className="pkg-card-pick__img">
                       <img src={p.img} alt={p.name} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
@@ -861,8 +862,9 @@ export default function BookingWizard({ preselect }) {
                           className="verif-btn verif-btn--primary"
                           onClick={handleSendEmailOtp}
                           disabled={verif.emailLoading || !isValidEmail(form.email)}
+                          aria-label="Send email verification code"
                         >
-                          {verif.emailLoading ? <span className="verif-spinner" /> : 'Send verification code'}
+                          {verif.emailLoading ? <span className="verif-spinner" aria-hidden="true" /> : 'Send verification code'}
                         </button>
                       ) : (
                         <div className="verif-card__otp-block">
@@ -880,8 +882,9 @@ export default function BookingWizard({ preselect }) {
                               className="verif-btn verif-btn--primary"
                               onClick={() => handleVerifyEmailOtp()}
                               disabled={verif.emailLoading || verif.emailOtp.length !== 6}
+                              aria-label="Confirm verification code"
                             >
-                              {verif.emailLoading ? <span className="verif-spinner" /> : 'Confirm code'}
+                              {verif.emailLoading ? <span className="verif-spinner" aria-hidden="true" /> : 'Confirm code'}
                             </button>
                             <button
                               type="button"

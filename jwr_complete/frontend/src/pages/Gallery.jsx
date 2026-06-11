@@ -135,10 +135,13 @@ export default function Gallery() {
               >
                 <img
                   src={photo.url}
-                  srcSet={`${photo.url} 800w`}
-                  sizes="(max-width: 768px) 100vw, 33vw"
+                  srcSet={`${photo.url.replace('w_800', 'w_400')} 400w, ${photo.url} 800w, ${photo.url.replace('w_800', 'w_1200')} 1200w`}
+                  sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 33vw"
                   alt={photo.caption}
-                  loading="lazy"
+                  width={photo.size === 'large' ? 900 : 600}
+                  height={photo.size === 'large' ? 600 : 450}
+                  loading={idx < 4 ? 'eager' : 'lazy'}
+                  decoding="async"
                   referrerPolicy="no-referrer-when-downgrade"
                 />
                 <div className="gallery-item__overlay" aria-hidden="true">

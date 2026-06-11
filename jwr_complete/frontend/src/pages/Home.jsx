@@ -192,7 +192,7 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-              <Link to="/about-chitwan" className="btn-primary" style={{ marginTop: '32px' }}><span>Learn More</span></Link>
+              <Link to="/about-chitwan" className="btn-primary" aria-label="Learn more about Chitwan National Park" style={{ marginTop: '32px' }}><span>Learn More</span></Link>
             </div>
           </div>
         </div>

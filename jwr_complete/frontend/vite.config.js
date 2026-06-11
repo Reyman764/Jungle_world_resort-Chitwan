@@ -5,32 +5,49 @@ export default defineConfig({
   plugins: [react()],
   base: './',
   build: {
-    // Phase 5: Bundle optimization
     target: 'es2015',
     minify: 'terser',
     terserOptions: {
       compress: {
         drop_console: true,
         drop_debugger: true,
+        pure_funcs: ['console.log', 'console.info'],
       },
+      mangle: { toplevel: false },
     },
     rollupOptions: {
       output: {
-        // Manual chunks to split vendor code
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          router: ['react-router-dom'],
+        manualChunks(id) {
+          // React core — smallest possible chunk loaded on every route
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+            return 'react-core'
+          }
+          // Router
+          if (id.includes('node_modules/react-router-dom') || id.includes('node_modules/react-router/')) {
+            return 'router'
+          }
+          // Everything else in node_modules → vendor
+          if (id.includes('node_modules')) {
+            return 'vendor'
+          }
+          // Admin code — only loaded on /admin/* routes
+          if (id.includes('/src/admin/')) {
+            return 'admin'
+          }
+          // Staff auth pages
+          if (id.includes('/src/pages/Staff') || id.includes('/src/pages/Forgot') ||
+              id.includes('/src/pages/Reset') || id.includes('/src/pages/Verify')) {
+            return 'staff-auth'
+          }
         },
       },
     },
-    // Enable CSS code splitting
     cssCodeSplit: true,
-    // Chunk size warnings
-    chunkSizeWarningLimit: 500,
-    // Asset optimization
+    chunkSizeWarningLimit: 600,
     assetsInlineLimit: 4096,
+    // Emit compressed sizes so Vite reports real payloads
+    reportCompressedSize: true,
   },
-  // CSS optimization
   css: {
     devSourcemap: true,
   },

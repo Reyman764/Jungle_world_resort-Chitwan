@@ -4,26 +4,25 @@
 
 .page-hero {
   position: relative;
+  /* Explicit height prevents CLS — browser reserves the space before img loads */
   height: 52vh;
   min-height: 360px;
   max-height: 520px;
   display: flex;
   align-items: flex-end;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
   overflow: hidden;
+  /* Stable background colour while image loads — prevents flash */
+  background-color: #0a1e12;
 }
 
-/* Parallax-lite: keep image slightly larger so it can shift */
-.page-hero::before {
-  content: '';
+/* LCP background image — absolute-fills the section */
+.page-hero__bg-img {
   position: absolute;
-  inset: -8% 0;
-  background: inherit;
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
   z-index: 0;
 }
 

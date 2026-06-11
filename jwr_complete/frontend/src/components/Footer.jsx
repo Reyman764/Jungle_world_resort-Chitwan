@@ -149,7 +149,7 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div className="footer__col">
-            <h4 className="footer__heading">Quick Links</h4>
+            <h2 className="footer__heading">Quick Links</h2>
             <ul className="footer__links">
               {quickLinks.map(l => (
                 <li key={l.to}>
@@ -161,7 +161,7 @@ export default function Footer() {
 
           {/* Contact */}
           <div className="footer__col">
-            <h4 className="footer__heading">Contact Info</h4>
+            <h2 className="footer__heading">Contact Info</h2>
             <div className="footer__contact">
               <div className="contact-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="15" height="15"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
@@ -187,10 +187,11 @@ export default function Footer() {
 
           {/* Newsletter */}
           <div className="footer__col">
-            <h4 className="footer__heading">Newsletter</h4>
+            <h2 className="footer__heading">Newsletter</h2>
             <p className="footer__newsletter-text">Subscribe for travel tips & exclusive offers from the heart of Chitwan.</p>
             <div className="footer__newsletter">
-              <input type="email" placeholder="Your email address" />
+              <label htmlFor="footer-email" className="sr-only">Email address for newsletter</label>
+              <input id="footer-email" type="email" placeholder="Your email address" aria-label="Email address for newsletter" />
               <button>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12,5 19,12 12,19"/></svg>
               </button>

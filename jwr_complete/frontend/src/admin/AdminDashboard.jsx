@@ -300,8 +300,9 @@ function ChangeMyPassword() {
               { name: 'confirm',     label: 'Confirm New Password', placeholder: 'Repeat new password' },
             ].map(({ name, label, placeholder }) => (
               <div className="pwd-panel__field" key={name}>
-                <label>{label}</label>
+                <label htmlFor={`pwd-${name}`}>{label}</label>
                 <input
+                  id={`pwd-${name}`}
                   type="password"
                   className="pwd-panel__input"
                   placeholder={placeholder}

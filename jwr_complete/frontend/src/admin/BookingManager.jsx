@@ -262,8 +262,9 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
       {/* ── Filters Bar ───────────────────────────────────────── */}
       <div className="admin-filters">
         <div className="admin-filter-group grow">
-          <label className="admin-filter-label">Search</label>
+          <label htmlFor="bm-search" className="admin-filter-label">Search</label>
           <input
+            id="bm-search"
             type="text"
             className="admin-filter-input"
             placeholder="Guest name, email, or reference…"
@@ -273,8 +274,8 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
           />
         </div>
         <div className="admin-filter-group">
-          <label className="admin-filter-label">Status</label>
-          <select className="admin-filter-select" value={status} onChange={e => setStatus(e.target.value)}>
+          <label htmlFor="bm-status" className="admin-filter-label">Status</label>
+          <select id="bm-status" className="admin-filter-select" value={status} onChange={e => setStatus(e.target.value)}>
             <option value="">All</option>
             <option value="draft">Draft</option>
             <option value="confirmed">Confirmed</option>
@@ -285,8 +286,8 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
           </select>
         </div>
         <div className="admin-filter-group">
-          <label className="admin-filter-label">Category</label>
-          <select className="admin-filter-select" value={category} onChange={e => setCategory(e.target.value)}>
+          <label htmlFor="bm-category" className="admin-filter-label">Category</label>
+          <select id="bm-category" className="admin-filter-select" value={category} onChange={e => setCategory(e.target.value)}>
             <option value="">All</option>
             <option value="foreigner">Foreigner</option>
             <option value="saarc">SAARC</option>
@@ -294,16 +295,16 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
           </select>
         </div>
         <div className="admin-filter-group">
-          <label className="admin-filter-label">From</label>
-          <input type="date" className="admin-filter-input" value={startDate} onChange={e => setStartDate(e.target.value)} />
+          <label htmlFor="bm-from" className="admin-filter-label">From</label>
+          <input id="bm-from" type="date" className="admin-filter-input" value={startDate} onChange={e => setStartDate(e.target.value)} />
         </div>
         <div className="admin-filter-group">
-          <label className="admin-filter-label">To</label>
-          <input type="date" className="admin-filter-input" value={endDate} onChange={e => setEndDate(e.target.value)} />
+          <label htmlFor="bm-to" className="admin-filter-label">To</label>
+          <input id="bm-to" type="date" className="admin-filter-input" value={endDate} onChange={e => setEndDate(e.target.value)} />
         </div>
         <div className="admin-filter-group">
-          <label className="admin-filter-label">Sort</label>
-          <select className="admin-filter-select" value={sort} onChange={e => setSort(e.target.value)}>
+          <label htmlFor="bm-sort" className="admin-filter-label">Sort</label>
+          <select id="bm-sort" className="admin-filter-select" value={sort} onChange={e => setSort(e.target.value)}>
             <option value="latest">Latest</option>
             <option value="oldest">Oldest</option>
             <option value="highest_value">Highest value</option>
@@ -311,8 +312,8 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
           </select>
         </div>
         <div className="admin-filter-group">
-          <label className="admin-filter-label">Per page</label>
-          <select className="admin-filter-select" value={pageSize} onChange={e => setPageSize(e.target.value)}>
+          <label htmlFor="bm-perpage" className="admin-filter-label">Per page</label>
+          <select id="bm-perpage" className="admin-filter-select" value={pageSize} onChange={e => setPageSize(e.target.value)}>
             <option value="10">10</option>
             <option value="20">20</option>
             <option value="50">50</option>

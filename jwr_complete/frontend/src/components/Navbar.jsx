@@ -178,6 +178,7 @@ export default function Navbar({ theme, toggleTheme }) {
           ref={drawerRef}
           className={`navbar__drawer${menuOpen ? ' navbar__drawer--open' : ''}`}
           aria-hidden={!menuOpen}
+          {...(!menuOpen ? { inert: '' } : {})}
         >
           <div className="drawer__scroll">
             {links.map(l => (

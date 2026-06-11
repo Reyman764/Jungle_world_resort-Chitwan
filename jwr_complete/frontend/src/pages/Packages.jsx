@@ -84,7 +84,7 @@ export default function Packages() {
                   <PackageBadges urgency={pkg.urgency} discount={pkg.discount} variant="inline" />
                   <p className="pkg-detail__desc">{pkg.desc}</p>
                   <div className="pkg-detail__includes">
-                    <h4>What's Included</h4>
+                    <h3>What's Included</h3>
                     <ul>
                       {pkg.includes.map((item, j) => (
                         <li key={j}>

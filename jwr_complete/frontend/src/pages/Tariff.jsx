@@ -96,7 +96,9 @@ export default function Tariff() {
           </div>
           <div className="tariff-table-wrap reveal">
             {loading ? (
-              <p style={{ textAlign:'center', color:'var(--text-secondary)', padding:'32px 0' }}>Loading rates…</p>
+              <div style={{ minHeight: '320px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '32px 0' }}>Loading rates…</p>
+              </div>
             ) : (
               <table className="tariff-table">
                 <thead>
@@ -151,7 +153,7 @@ export default function Tariff() {
               </p>
               <div className="incl-excl">
                 <div>
-                  <h4 style={{ color:'var(--forest-light)', marginBottom:'12px', fontSize:'13px', textTransform:'uppercase', letterSpacing:'0.1em' }}>Includes</h4>
+                  <h3 style={{ color:'var(--forest-light)', marginBottom:'12px', fontSize:'13px', textTransform:'uppercase', letterSpacing:'0.1em' }}>Includes</h3>
                   {includes.slice(0,3).map((item, i) => <p key={i} style={{ fontSize:'13px', color:'var(--text-secondary)', marginBottom:'6px' }}>• {item}</p>)}
                 </div>
               </div>
@@ -159,8 +161,8 @@ export default function Tariff() {
             <div className="calc-widget reveal-right">
               <h3 className="calc-title">Calculate Your Trip Cost</h3>
 
-              <label className="calc-label">Package</label>
-              <select className="calc-select" value={calcPkg} onChange={e => setCalcPkg(Number(e.target.value))}>
+              <label className="calc-label" htmlFor="calc-pkg">Package</label>
+              <select id="calc-pkg" className="calc-select" value={calcPkg} onChange={e => setCalcPkg(Number(e.target.value))}>
                 {tariffRows.map((t, i) => <option key={i} value={i}>{t.name}</option>)}
               </select>
 
