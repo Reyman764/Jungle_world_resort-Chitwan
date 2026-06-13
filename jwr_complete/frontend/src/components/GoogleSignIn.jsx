@@ -23,6 +23,23 @@ function loadGoogleScript() {
 }
 
 /**
+ * Returns true if the client ID looks like a placeholder (e.g. contains 'xxx')
+ * rather than a real Google OAuth 2.0 client ID.
+ * Real client IDs look like: 123456789012-abcdefgh.apps.googleusercontent.com
+ */
+function isPlaceholder(id) {
+  if (!id) return true
+  // Placeholder patterns used in env.example files
+  if (/x{3,}/i.test(id)) return true
+  // Must end with .apps.googleusercontent.com
+  if (!id.endsWith('.apps.googleusercontent.com')) return true
+  // The numeric prefix must be digits only (before the first dash)
+  const prefix = id.split('-')[0]
+  if (!/^\d+$/.test(prefix)) return true
+  return false
+}
+
+/**
  * Google Sign-In button for guest booking.
  * @param {{ onCredential: (credential: string) => void, onError?: (msg: string) => void, disabled?: boolean }} props
  */
@@ -32,8 +49,10 @@ export default function GoogleSignIn({ onCredential, onError, disabled }) {
   const [ready, setReady] = useState(false)
   const [loadError, setLoadError] = useState(null)
 
+  const configured = clientId && !isPlaceholder(clientId)
+
   useEffect(() => {
-    if (!clientId || disabled) return
+    if (!configured || disabled) return
 
     let cancelled = false
 
@@ -68,12 +87,13 @@ export default function GoogleSignIn({ onCredential, onError, disabled }) {
       })
 
     return () => { cancelled = true }
-  }, [clientId, disabled, onCredential, onError])
+  }, [configured, disabled, onCredential, onError])
 
-  if (!clientId) {
+  if (!configured) {
     return (
       <p className="google-signin__missing">
-        Google sign-in is not configured. Add <code>VITE_GOOGLE_CLIENT_ID</code> to your frontend environment.
+        Google sign-in is not configured —{' '}
+        add a valid <code>VITE_GOOGLE_CLIENT_ID</code> to your <code>.env</code>.
       </p>
     )
   }

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, memo } from 'react'
 import BookingDetail from './BookingDetail'
+import QuickUpdateModal from './QuickUpdateModal'
+import ReceiptModal from './ReceiptModal'
 import './admin.css'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
@@ -36,6 +38,8 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
   const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(true)
   const [selectedId, setSelectedId] = useState(null)
+  const [selectedUpdateId, setSelectedUpdateId] = useState(null)
+  const [receiptBookingId, setReceiptBookingId] = useState(null)
   const [toast, setToast] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
@@ -410,6 +414,12 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
                     <td className="amount">NPR {Math.round(Number(b.total_price || 0)).toLocaleString()}</td>
                     <td className="admin-table-actions">
                       <button type="button" className="admin-view-btn" onClick={() => setSelectedId(b.id)}>View</button>
+                      <button type="button" className="admin-update-btn" onClick={() => setSelectedUpdateId(b.id)}>Update</button>
+                      {b.payment_status === 'completed' && (
+                        <button type="button" className="admin-receipt-btn" onClick={() => setReceiptBookingId(b.id)}>
+                          Receipt
+                        </button>
+                      )}
                       {b.status === 'draft' && (
                         <button
                           type="button"
@@ -490,8 +500,23 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
         />
       )}
 
+      {selectedUpdateId && (
+        <QuickUpdateModal
+          bookingId={selectedUpdateId}
+          onClose={() => setSelectedUpdateId(null)}
+          onUpdate={() => { loadBookings(applied, page); onStatsRefresh?.() }}
+        />
+      )}
+
+      {receiptBookingId && (
+        <ReceiptModal
+          bookingId={receiptBookingId}
+          onClose={() => setReceiptBookingId(null)}
+        />
+      )}
+
       {deleteTarget && (
-        <div className="delete-confirm-overlay">
+        <div className="delete-confirm-overlay" style={{ position: 'fixed', zIndex: 1000 }}>
           <div className="delete-confirm-box">
             <div className="delete-confirm-icon">🗑️</div>
             <h3 className="delete-confirm-title">Delete Draft Booking?</h3>

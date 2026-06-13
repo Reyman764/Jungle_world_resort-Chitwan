@@ -1936,3 +1936,66 @@
 [data-theme="dark"] .pkg-urgency-text { color: #fca5a5; }
 [data-theme="dark"] .pkg-urgency-text svg { color: #fca5a5; }
 [data-theme="dark"] .pkg-discount-badge { background: rgba(45,90,61,0.85); }
+
+/* ── Discount / savings styles ─────────────────────────────────────────────── */
+
+/* Package card: strikethrough original price */
+.pkg-price-orig {
+  font-family: var(--font-body);
+  font-size: 0.8em;
+  font-weight: 400;
+  color: var(--text-light);
+  text-decoration: line-through;
+  text-decoration-color: var(--text-light);
+  margin-right: 4px;
+}
+
+/* Category card: strikethrough original price */
+.cat-price-orig {
+  font-size: 0.85em;
+  color: var(--text-light);
+  text-decoration: line-through;
+  text-decoration-color: var(--text-light);
+  margin-right: 5px;
+  font-weight: 400;
+}
+
+/* Price breakdown: strikethrough unit price in the adults row */
+.pb-orig-unit {
+  font-size: 0.88em;
+  color: var(--text-light);
+  text-decoration: line-through;
+  text-decoration-color: var(--text-light);
+  margin-right: 4px;
+  font-style: normal;
+}
+
+/* Savings row in price breakdown */
+.pb-row--savings {
+  color: #2a7a3b;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.pb-row--savings span { align-items: center; }
+.pb-savings-amt {
+  color: #2a7a3b;
+  font-weight: 700;
+}
+
+/* Success page savings row */
+.success-row--savings .success-savings {
+  color: #2a7a3b;
+}
+
+/* Dark mode overrides */
+[data-theme="dark"] .pkg-price-orig,
+[data-theme="dark"] .cat-price-orig,
+[data-theme="dark"] .pb-orig-unit {
+  color: var(--text-muted, rgba(255,255,255,0.4));
+  text-decoration-color: var(--text-muted, rgba(255,255,255,0.4));
+}
+[data-theme="dark"] .pb-row--savings,
+[data-theme="dark"] .pb-savings-amt,
+[data-theme="dark"] .success-row--savings .success-savings {
+  color: #6ecf80;
+}

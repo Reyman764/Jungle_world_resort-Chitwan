@@ -106,29 +106,31 @@ function fmtPrice(amount) {
   return `NPR ${Number(amount).toLocaleString()}`
 }
 
-/** Show unit price in the correct display currency for the selected category */
-function fmtCatPrice(nprAmount, category, rates) {
-  if (category === 'foreigner') {
-    const rate = rates?.usd_to_npr || 132
-    return `USD ${(Number(nprAmount) / rate).toFixed(2)}`
-  }
-  if (category === 'saarc') {
-    const rate = rates?.inr_to_npr || 1.58
-    return `INR ${Math.round(Number(nprAmount) / rate).toLocaleString('en-IN')}`
-  }
-  return `NPR ${Number(nprAmount).toLocaleString('en-IN')}`
+/** All prices display in NPR — category only affects which tier value is used */
+function fmtCatPrice(nprAmount) {
+  return `NPR ${Math.round(Number(nprAmount)).toLocaleString('en-IN')}`
 }
 
 function PriceBreakdown({ pkg, category, adults, children, compact, currencyRates }) {
   if (!pkg) return null
-  const unitPrice  = pkg.prices[category]
-  const childPrice = Math.round(unitPrice * 0.5)
-  const base       = unitPrice * adults + childPrice * children
-  const service    = Math.round(base * 0.10)
-  const vat        = Math.round(base * 0.13)
-  const grand      = base + service + vat
-  const unitFmt    = fmtCatPrice(unitPrice,  category, currencyRates)
-  const childFmt   = fmtCatPrice(childPrice, category, currencyRates)
+
+  const unitPrice     = pkg.prices[category]
+  const origUnitPrice = pkg.prices_original?.[category] ?? unitPrice
+  const hasDiscount   = origUnitPrice > unitPrice
+
+  const childPrice    = Math.round(unitPrice * 0.5)
+  const base          = unitPrice * adults + childPrice * children
+  const service       = Math.round(base * 0.10)
+  const vat           = Math.round(base * 0.13)
+  const grand         = base + service + vat
+
+  // Original base (before discount) — used to show how much was saved
+  const origBase  = hasDiscount ? (origUnitPrice * adults + Math.round(origUnitPrice * 0.5) * children) : base
+  const savings   = hasDiscount ? (origBase - base) : 0
+
+  const unitFmt     = fmtCatPrice(unitPrice)
+  const origUnitFmt = hasDiscount ? fmtCatPrice(origUnitPrice) : null
+  const childFmt    = fmtCatPrice(childPrice)
 
   if (compact) return (
     <div className="price-compact">
@@ -142,13 +144,30 @@ function PriceBreakdown({ pkg, category, adults, children, compact, currencyRate
       <div className="pb-title">Price Breakdown</div>
       <div className="pb-rows">
         <div className="pb-row">
-          <span>{adults} Adult{adults > 1 ? 's' : ''} × {unitFmt}</span>
+          <span>
+            {adults} Adult{adults > 1 ? 's' : ''} ×{' '}
+            {hasDiscount && (
+              <span className="pb-orig-unit">{origUnitFmt}</span>
+            )}
+            {unitFmt}
+          </span>
           <span>{fmtPrice(unitPrice * adults)}</span>
         </div>
         {children > 0 && (
           <div className="pb-row">
             <span>{children} Child{children > 1 ? 'ren' : ''} × {childFmt} <em>(50%)</em></span>
             <span>{fmtPrice(childPrice * children)}</span>
+          </div>
+        )}
+        {hasDiscount && savings > 0 && (
+          <div className="pb-row pb-row--savings">
+            <span>
+              <svg viewBox="0 0 14 14" fill="none" width="12" height="12" aria-hidden="true" style={{marginRight:'4px',verticalAlign:'middle'}}>
+                <path d="M2 7l3.5 3.5L12 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Package discount
+            </span>
+            <span className="pb-savings-amt">−{fmtPrice(savings)}</span>
           </div>
         )}
         <div className="pb-divider" />
@@ -441,12 +460,16 @@ export default function BookingWizard({ preselect }) {
 
     try {
       // ── Calculate price (mirrors PriceBreakdown logic) ──────
-      const unitPrice   = pkg.prices[category]
-      const childPrice  = Math.round(unitPrice * 0.5)
-      const base        = unitPrice * adults + childPrice * children
-      const service     = Math.round(base * 0.10)
-      const vatAmt      = Math.round(base * 0.13)
-      const total       = base + service + vatAmt
+      const unitPrice      = pkg.prices[category]
+      const origUnitPrice  = pkg.prices_original?.[category] ?? unitPrice
+      const hasDiscount    = origUnitPrice > unitPrice
+      const childPrice     = Math.round(unitPrice * 0.5)
+      const base           = unitPrice * adults + childPrice * children
+      const service        = Math.round(base * 0.10)
+      const vatAmt         = Math.round(base * 0.13)
+      const total          = base + service + vatAmt
+      const origBase       = hasDiscount ? (origUnitPrice * adults + Math.round(origUnitPrice * 0.5) * children) : base
+      const discountAmount = hasDiscount ? (origBase - base) : 0
 
       const payload = {
         package_slug:       pkg.id,
@@ -461,6 +484,7 @@ export default function BookingWizard({ preselect }) {
         special_requests:   form.requests.trim() || null,
         currency:           'NPR',
         base_price:         base,
+        discount_amount:    discountAmount || null,
         service_charge:     service,
         vat:                vatAmt,
         total_price:        total,
@@ -504,10 +528,13 @@ export default function BookingWizard({ preselect }) {
 
   /* ── Submitted state ── */
   if (sent) {
-    const unitPrice = pkg.prices[category]
-    const childP    = Math.round(unitPrice * 0.5)
-    const base      = unitPrice * adults + childP * children
-    const grand     = base + Math.round(base * 0.10) + Math.round(base * 0.13)
+    const unitPrice     = pkg.prices[category]
+    const origUnitPrice = pkg.prices_original?.[category] ?? unitPrice
+    const childP        = Math.round(unitPrice * 0.5)
+    const base          = unitPrice * adults + childP * children
+    const grand         = base + Math.round(base * 0.10) + Math.round(base * 0.13)
+    const origBase      = origUnitPrice > unitPrice ? (origUnitPrice * adults + Math.round(origUnitPrice * 0.5) * children) : base
+    const savedAmt      = origBase - base
 
     return (
       <div className="wizard-success">
@@ -536,6 +563,12 @@ export default function BookingWizard({ preselect }) {
           <div className="success-row"><span>Arrival</span><strong>{formatDisplayDate(form.arrival)}</strong></div>
           {form.departure && (
             <div className="success-row"><span>Departure</span><strong>{formatDisplayDate(form.departure)}</strong></div>
+          )}
+          {savedAmt > 0 && (
+            <div className="success-row success-row--savings">
+              <span>You saved</span>
+              <strong className="success-savings">−{fmtPrice(savedAmt)}</strong>
+            </div>
           )}
           <div className="success-row"><span>Estimate</span><strong>{fmtPrice(grand)}</strong></div>
           <div className="success-row success-row--verified">
@@ -635,7 +668,10 @@ export default function BookingWizard({ preselect }) {
                       </ul>
                       <div className="pkg-card-pick__price-row">
                         <span className="pkg-from">From</span>
-                        <span className="pkg-price">{fmtCatPrice(p.prices[category], category, currencyRates)}</span>
+                        {p.prices_original?.[category] && p.prices_original[category] > p.prices[category] && (
+                          <span className="pkg-price-orig">{fmtCatPrice(p.prices_original[category])}</span>
+                        )}
+                        <span className="pkg-price">{fmtCatPrice(p.prices[category])}</span>
                         <span className="pkg-per">/ person</span>
                       </div>
                     </div>
@@ -678,8 +714,10 @@ export default function BookingWizard({ preselect }) {
                       </div>
                       {pkg && (
                         <span className="cat-price">
-                          {fmtCatPrice(pkg.prices[cat.id], cat.id, currencyRates)}
-                          <span className="cat-price-sub"> ≈ NPR {pkg.prices[cat.id].toLocaleString()}</span>
+                          {pkg.prices_original?.[cat.id] && pkg.prices_original[cat.id] > pkg.prices[cat.id] && (
+                            <span className="cat-price-orig">{fmtCatPrice(pkg.prices_original[cat.id])}</span>
+                          )}
+                          {fmtCatPrice(pkg.prices[cat.id])}
                         </span>
                       )}
                     </button>

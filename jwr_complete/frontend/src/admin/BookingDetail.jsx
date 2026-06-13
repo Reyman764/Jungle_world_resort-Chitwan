@@ -37,16 +37,7 @@ function PayBadge({ status }) {
 export default function BookingDetail({ bookingId, onClose, onUpdate }) {
   const [booking, setBooking] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [saving,  setSaving]  = useState(false)
   const [toast,   setToast]   = useState(null) // { type: 'success'|'error', msg }
-
-  // Editable fields
-  const [status,        setStatus]        = useState('')
-  const [paymentStatus, setPaymentStatus] = useState('')
-  const [paymentMethod, setPaymentMethod] = useState('')
-  const [paidAmount,    setPaidAmount]    = useState('')
-  const [refundAmount,  setRefundAmount]  = useState('')
-  const [adminNotes,    setAdminNotes]    = useState('')
 
   const navigate = useNavigate()
 
@@ -63,12 +54,6 @@ export default function BookingDetail({ bookingId, onClose, onUpdate }) {
       .then(d => {
         if (d.booking) {
           setBooking(d.booking)
-          setStatus(d.booking.status         || 'draft')
-          setPaymentStatus(d.booking.payment_status || 'pending')
-          setPaymentMethod(d.booking.payment_method || 'pay_at_hotel')
-          setPaidAmount(d.booking.paid_amount  ?? '0')
-          setRefundAmount(d.booking.refund_amount ?? '0')
-          setAdminNotes(d.booking.admin_notes  || '')
         }
       })
       .finally(() => setLoading(false))
@@ -85,64 +70,6 @@ export default function BookingDetail({ bookingId, onClose, onUpdate }) {
   function showToast(type, msg) {
     setToast({ type, msg })
     setTimeout(() => setToast(null), 3500)
-  }
-
-  function handlePaymentStatusChange(nextStatus) {
-    const total = Number(booking?.total_price || 0)
-    const paid = Number(paidAmount || 0)
-
-    setPaymentStatus(nextStatus)
-
-    if (nextStatus === 'completed') {
-      setPaidAmount(String(total))
-      setRefundAmount('0')
-    } else if (nextStatus === 'pending' || nextStatus === 'failed') {
-      setPaidAmount('0')
-      setRefundAmount('0')
-    } else if (nextStatus === 'partial') {
-      setRefundAmount('0')
-    } else if (nextStatus === 'refunded' && Number(refundAmount || 0) === 0) {
-      setRefundAmount(String(paid > 0 ? paid : total))
-    }
-  }
-
-  // ── Save booking update ───────────────────────────────
-  async function handleSave() {
-    setSaving(true)
-    try {
-      const res  = await fetch(`${API}/api/admin/${bookingId}`, {
-        method:  'PATCH',
-        headers: authHeader(),
-        body: JSON.stringify({
-          status,
-          payment_status: paymentStatus,
-          payment_method: paymentMethod,
-          paid_amount:    parseFloat(paidAmount) || 0,
-          refund_amount:  parseFloat(refundAmount) || 0,
-          admin_notes:    adminNotes,
-        }),
-      })
-      const data = await res.json()
-
-      if (res.ok) {
-        setBooking(data.booking)
-        setStatus(data.booking.status || 'draft')
-        setPaymentStatus(data.booking.payment_status || 'pending')
-        setPaymentMethod(data.booking.payment_method || 'pay_at_hotel')
-        setPaidAmount(data.booking.paid_amount ?? '0')
-        setRefundAmount(data.booking.refund_amount ?? '0')
-        setAdminNotes(data.booking.admin_notes || '')
-        showToast('success', 'Booking updated successfully')
-        // Audit log lives on a separate page now
-        if (onUpdate) onUpdate()
-      } else {
-        showToast('error', data.error || 'Failed to save changes')
-      }
-    } catch {
-      showToast('error', 'Network error — please try again')
-    } finally {
-      setSaving(false)
-    }
   }
 
   async function handleDeleteGuest() {
@@ -286,118 +213,8 @@ export default function BookingDetail({ bookingId, onClose, onUpdate }) {
                 )}
               </div>
 
-              {/* Edit Form */}
-              <div className="edit-section">
-                <div className="edit-section__title">Update Booking</div>
-
-                <div className="edit-grid">
-                  <div className="edit-form-group">
-                    <label className="edit-form-label">Booking Status</label>
-                    <select
-                      className="edit-form-select"
-                      value={status}
-                      onChange={e => setStatus(e.target.value)}
-                    >
-                      <option value="draft">Draft</option>
-                      <option value="confirmed">Confirmed</option>
-                      <option value="checked_in">Checked In</option>
-                      <option value="checked_out">Checked Out</option>
-                      <option value="cancelled">Cancelled</option>
-                      <option value="no_show">No Show</option>
-                    </select>
-                  </div>
-
-                  <div className="edit-form-group">
-                    <label className="edit-form-label">Payment Status</label>
-                    <select
-                      className="edit-form-select"
-                      value={paymentStatus}
-                      onChange={e => handlePaymentStatusChange(e.target.value)}
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="partial">Partial</option>
-                      <option value="completed">Completed</option>
-                      <option value="refunded">Refunded</option>
-                      <option value="failed">Failed</option>
-                    </select>
-                  </div>
-
-                  <div className="edit-form-group">
-                    <label className="edit-form-label">Payment Method</label>
-                    <select
-                      className="edit-form-select"
-                      value={paymentMethod}
-                      onChange={e => setPaymentMethod(e.target.value)}
-                    >
-                      <option value="pay_at_hotel">Pay At Hotel</option>
-                      <option value="cash">Cash</option>
-                      <option value="bank_transfer">Bank Transfer</option>
-                      <option value="khalti">Khalti</option>
-                      <option value="stripe">Stripe</option>
-                    </select>
-                  </div>
-
-                  <div className="edit-form-group">
-                    <label className="edit-form-label">Paid Amount (NPR)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      className="edit-form-input"
-                      value={paidAmount}
-                      onChange={e => setPaidAmount(e.target.value)}
-                      placeholder="0.00"
-                    />
-                  </div>
-
-                  {paymentStatus === 'refunded' && (
-                    <div className="edit-form-group">
-                      <label className="edit-form-label">Refund Amount (NPR)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        className="edit-form-input"
-                        value={refundAmount}
-                        onChange={e => setRefundAmount(e.target.value)}
-                        placeholder="0.00"
-                      />
-                    </div>
-                  )}
-
-                  <div className="edit-form-group edit-form-group--full">
-                    <label className="edit-form-label">
-                      Internal Notes (visible to staff only)
-                    </label>
-                    <textarea
-                      className="edit-form-textarea"
-                      value={adminNotes}
-                      onChange={e => setAdminNotes(e.target.value)}
-                      placeholder="Add internal notes about this booking…"
-                    />
-                  </div>
-                </div>
-
-                {/* Payment status hint */}
-                <div className="payment-hint">
-                  <span className="payment-hint__icon">ℹ️</span>
-                  <span>
-                    Revenue rule: <strong>Pending / Failed</strong> = NPR 0 counted ·{' '}
-                    <strong>Partial</strong> = paid amount only ·{' '}
-                    <strong>Completed</strong> = full total ·{' '}
-                    <strong>Refunded</strong> = paid amount minus refund amount
-                  </span>
-                </div>
-
-                {toast && (
-                  <div className={`admin-toast admin-toast--${toast.type}`} style={{ marginTop: 8 }}>
-                    {toast.msg}
-                  </div>
-                )}
-              </div>
-
-              {/* Audit log moved to its own page */}
-              <div className="audit-action" style={{ marginTop: 12 }}>
+              {/* Audit log page */}
+              <div className="audit-action" style={{ marginTop: 4 }}>
                 <button
                   className="view-audit-btn"
                   onClick={() => navigate(`/admin/bookings/${bookingId}/audit-logs`)}
@@ -409,6 +226,12 @@ export default function BookingDetail({ bookingId, onClose, onUpdate }) {
                   View Change History
                 </button>
               </div>
+
+              {toast && (
+                <div className={`admin-toast admin-toast--${toast.type}`} style={{ margin: '10px 0 0' }}>
+                  {toast.msg}
+                </div>
+              )}
 
             </div>
 
@@ -435,24 +258,6 @@ export default function BookingDetail({ bookingId, onClose, onUpdate }) {
                 </button>
               )}
               <button className="modal-cancel-btn" onClick={onClose}>Close</button>
-              <button className="modal-save-btn" onClick={handleSave} disabled={saving}>
-                {saving ? (
-                  <>
-                    <div
-                      className="admin-spinner admin-spinner--sm"
-                      style={{ borderTopColor: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}
-                    />
-                    Saving…
-                  </>
-                ) : (
-                  <>
-                    <svg viewBox="0 0 16 16" fill="none" width="13" height="13">
-                      <path d="M13 4L6.5 11 3 7.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    Save Changes
-                  </>
-                )}
-              </button>
             </div>
 
             {/* Delete Confirmation */}

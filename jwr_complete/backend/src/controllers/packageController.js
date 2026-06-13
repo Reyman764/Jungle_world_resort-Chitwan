@@ -10,7 +10,34 @@ const PROMO_DEFAULTS = {
 };
 
 const CURRENCY_RATES_KEY = 'currency_rates';
-const DEFAULT_RATES = { usd_to_npr: 132, inr_to_npr: 1.58 };
+const DEFAULT_RATES = { usd_to_npr: 133, inr_to_npr: 1.60 };
+
+// ── Live rate cache (1-hour TTL) ─────────────────────────────
+const _rateCache = { data: null, ts: 0, TTL: 60 * 60 * 1000 };
+
+async function fetchLiveRates() {
+  const now = Date.now();
+  if (_rateCache.data && (now - _rateCache.ts) < _rateCache.TTL) return _rateCache.data;
+  try {
+    const res  = await fetch('https://open.er-api.com/v6/latest/USD', {
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!res.ok) throw new Error('API error');
+    const json = await res.json();
+    const usd_to_npr = Number(json?.rates?.NPR);
+    const usd_to_inr = Number(json?.rates?.INR);
+    if (!usd_to_npr || !usd_to_inr) throw new Error('Missing rates');
+    const rates = {
+      usd_to_npr,
+      inr_to_npr:  usd_to_npr / usd_to_inr,
+      fetched_at:  new Date().toISOString(),
+      source:      'live',
+    };
+    _rateCache.data = rates;
+    _rateCache.ts   = now;
+    return rates;
+  } catch { return null; }
+}
 
 const UPDATABLE_FIELDS = [
   'name', 'description', 'duration_nights', 'duration_days',
@@ -22,16 +49,6 @@ const UPDATABLE_FIELDS = [
 
 function fmtNPR(amount) {
   return `NPR ${Math.round(Number(amount)).toLocaleString('en-IN')}`;
-}
-
-function fmtUSD(amount) {
-  const n = Number(amount);
-  if (!Number.isFinite(n)) return 'USD 0.00';
-  return `USD ${n.toFixed(2)}`;
-}
-
-function fmtINR(amount) {
-  return `INR ${Math.round(Number(amount)).toLocaleString('en-IN')}`;
 }
 
 function effectivePrice(regular, discount) {
@@ -49,13 +66,19 @@ async function getCurrencyRatesFromDB() {
   return {
     usd_to_npr: Number(val.usd_to_npr) || DEFAULT_RATES.usd_to_npr,
     inr_to_npr: Number(val.inr_to_npr) || DEFAULT_RATES.inr_to_npr,
+    source:     'db',
   };
+}
+
+/** Primary entry point: live API → DB fallback → hardcoded defaults */
+async function getCurrencyRates() {
+  const live = await fetchLiveRates();
+  if (live) return live;
+  return getCurrencyRatesFromDB();
 }
 
 function serializePackage(row, rates) {
   const p = row.get ? row.get({ plain: true }) : row;
-  const usdRate = (rates && Number(rates.usd_to_npr)) || DEFAULT_RATES.usd_to_npr;
-  const inrRate = (rates && Number(rates.inr_to_npr)) || DEFAULT_RATES.inr_to_npr;
 
   const foreigner = effectivePrice(p.price_foreigner, p.price_foreigner_discount);
   const saarc     = effectivePrice(p.price_saarc,     p.price_saarc_discount);
@@ -68,6 +91,10 @@ function serializePackage(row, rates) {
   const hasSaarcDiscount = p.price_saarc_discount != null
     && Number(p.price_saarc_discount) > 0
     && Number(p.price_saarc_discount) < Number(p.price_saarc);
+
+  const hasNepaliDiscount = p.price_nepali_discount != null
+    && Number(p.price_nepali_discount) > 0
+    && Number(p.price_nepali_discount) < Number(p.price_nepali);
 
   const includes = Array.isArray(p.includes) ? p.includes : (p.includes ? JSON.parse(p.includes) : []);
 
@@ -97,20 +124,31 @@ function serializePackage(row, rates) {
         : p.image_url;
     })(),
     includes,
-    // Display prices in proper currencies
-    price:        fmtUSD(foreigner / usdRate),          // USD for international
-    priceINR:     fmtINR(saarc    / inrRate),           // INR for SAARC
-    priceNPR:     fmtNPR(nepali),                       // NPR for Nepali
-    // "Before discount" originals in proper currency
-    priceOriginal:    hasForeignerDiscount ? fmtUSD(Number(p.price_foreigner) / usdRate) : null,
-    priceINROriginal: hasSaarcDiscount     ? fmtINR(Number(p.price_saarc)     / inrRate)  : null,
-    // NPR equivalents for reference / booking math (booking wizard still works in NPR)
+    // Display prices: all in NPR
+    price:        fmtNPR(foreigner),
+    priceINR:     fmtNPR(saarc),
+    priceNPR:     fmtNPR(nepali),
+    priceOriginal:    hasForeignerDiscount ? fmtNPR(Number(p.price_foreigner)) : null,
+    priceINROriginal: hasSaarcDiscount     ? fmtNPR(Number(p.price_saarc))     : null,
+    priceNPROriginal: hasNepaliDiscount    ? fmtNPR(Number(p.price_nepali))    : null,
+    // NPR values for booking math
     priceNPREquiv: {
       foreigner: Math.round(foreigner),
       saarc:     Math.round(saarc),
     },
-    // Raw numeric NPR values for booking calculations
+    // Raw numeric NPR values for booking calculations (effective/discounted prices)
     prices: { foreigner, saarc, nepali },
+    // Raw original prices before any discount — exposed so the booking wizard can show savings
+    prices_original: {
+      foreigner: Number(p.price_foreigner),
+      saarc:     Number(p.price_saarc),
+      nepali:    Number(p.price_nepali),
+    },
+    has_discounts: {
+      foreigner: hasForeignerDiscount,
+      saarc:     hasSaarcDiscount,
+      nepali:    hasNepaliDiscount,
+    },
     sortOrder: p.sort_order,
     isActive:  p.is_active,
     // Raw values for admin forms (NPR stored)
@@ -149,7 +187,7 @@ async function respondWithPackages(res, where = {}) {
   const [rows, promo, rates] = await Promise.all([
     Package.findAll({ where, order: [['sort_order', 'ASC'], ['name', 'ASC']] }),
     getPromoSettings(),
-    getCurrencyRatesFromDB(),
+    getCurrencyRates(),
   ]);
   res.json({
     packages: rows.map(r => serializePackage(r, rates)),
@@ -182,7 +220,7 @@ async function updatePackage(req, res, next) {
     }
 
     await pkg.update(updates);
-    const rates = await getCurrencyRatesFromDB();
+    const rates = await getCurrencyRates();
     res.json({ package: serializePackage(pkg, rates) });
   } catch (err) { next(err); }
 }
@@ -205,10 +243,10 @@ async function updatePromoSettings(req, res, next) {
   } catch (err) { next(err); }
 }
 
-/** GET /api/admin/packages/currency-rates */
+/** GET /api/admin/packages/currency-rates — returns live rates (cached 1 hr) */
 async function getCurrencyRatesHandler(req, res, next) {
   try {
-    const rates = await getCurrencyRatesFromDB();
+    const rates = await getCurrencyRates();
     res.json({ currencyRates: rates });
   } catch (err) { next(err); }
 }
@@ -236,7 +274,8 @@ async function updateCurrencyRatesHandler(req, res, next) {
     });
 
     await row.update({ value: { ...row.value, ...updates } });
-    const rates = await getCurrencyRatesFromDB();
+    _rateCache.data = null; // invalidate live cache so next call re-fetches
+    const rates = await getCurrencyRates();
     res.json({ currencyRates: rates, message: 'Exchange rates updated' });
   } catch (err) { next(err); }
 }
@@ -255,7 +294,7 @@ async function uploadPackageImage(req, res, next) {
     });
 
     await pkg.update({ image_url: imageUrl });
-    const rates = await getCurrencyRatesFromDB();
+    const rates = await getCurrencyRates();
     res.json({ package: serializePackage(pkg, rates) });
   } catch (err) { next(err); }
 }
