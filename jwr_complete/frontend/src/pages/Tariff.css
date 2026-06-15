@@ -355,3 +355,40 @@
   font-size: 0.85em;
   opacity: 0.65;
 }
+
+/* ── Mobile responsive ── */
+@media (max-width: 768px) {
+  /* Tariff table: allow horizontal scroll, min-width so columns don't crush */
+  .tariff-table-scroll {
+    -webkit-overflow-scrolling: touch;
+    border-radius: 10px;
+    box-shadow: var(--shadow-md);
+  }
+  .tariff-table { min-width: 480px; }
+  .tariff-table th,
+  .tariff-table td { padding: 12px 10px; font-size: 12px; }
+  .tariff-table th:first-child,
+  .tariff-table td:first-child { padding-left: 14px; }
+
+  /* Scroll hint below table */
+  .tariff-table-wrap::after {
+    content: 'swipe to see all columns →';
+    display: block;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-secondary);
+    padding: 6px 0 0;
+    opacity: 0.65;
+    letter-spacing: 0.04em;
+  }
+
+  /* Calculator: stack to single column */
+  .calc-inner { grid-template-columns: 1fr; gap: 32px; }
+  .calc-info { order: 2; }
+  .calc-widget { order: 1; }
+  .calc-cat-group { gap: 6px; }
+  .calc-cat-btn { padding: 8px 10px; font-size: 11px; }
+
+  /* Remove the 900px two-col fix that doesn't apply on small screens */
+  .tariff-section .container { padding: 0 16px; }
+}

@@ -111,7 +111,7 @@ function fmtCatPrice(nprAmount) {
   return `NPR ${Math.round(Number(nprAmount)).toLocaleString('en-IN')}`
 }
 
-function PriceBreakdown({ pkg, category, adults, children, compact, currencyRates }) {
+function PriceBreakdown({ pkg, category, adults, children, compact }) {
   if (!pkg) return null
 
   const unitPrice     = pkg.prices[category]
@@ -195,7 +195,7 @@ function PriceBreakdown({ pkg, category, adults, children, compact, currencyRate
 }
 
 export default function BookingWizard({ preselect }) {
-  const { packages: PACKAGES, loading: packagesLoading, currencyRates } = usePackages()
+  const { packages: PACKAGES, loading: packagesLoading } = usePackages()
   const [step, setStep]         = useState(0)
   const [pkg, setPkg]           = useState(null)
   const [category, setCategory] = useState('nepali')
@@ -1029,7 +1029,7 @@ export default function BookingWizard({ preselect }) {
                 </div>
               </div>
               <div className="review-price-full">
-                <PriceBreakdown pkg={pkg} category={category} adults={adults} children={children} currencyRates={currencyRates} />
+                <PriceBreakdown pkg={pkg} category={category} adults={adults} children={children} />
               </div>
             </div>
           )}
@@ -1123,7 +1123,7 @@ export default function BookingWizard({ preselect }) {
                   )}
                 </div>
 
-                <PriceBreakdown pkg={pkg} category={category} adults={adults} children={children} currencyRates={currencyRates} />
+                <PriceBreakdown pkg={pkg} category={category} adults={adults} children={children} />
 
                 <div className="sidebar-trust">
                   <div className="trust-row">

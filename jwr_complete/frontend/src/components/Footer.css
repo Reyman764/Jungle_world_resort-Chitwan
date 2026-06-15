@@ -224,13 +224,53 @@
 
 @media (max-width: 600px) {
   .footer__grid {
-    grid-template-columns: 1fr;
-    gap: 32px;
-    padding: 48px 0 40px;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px 12px;
+    padding: 36px 0 28px;
   }
+
+  /* Brand and newsletter span full row */
+  .footer__brand { grid-column: 1 / -1; margin-bottom: 4px; }
+  .footer__col:last-child { grid-column: 1 / -1; }
+
+  /* Brand tighter */
+  .footer__about { font-size: 12.5px; margin-bottom: 14px; line-height: 1.6; }
+  .footer__logo-text { font-size: 17px; }
+  .footer__logo-sub { font-size: 9px; }
+  .footer__socials { gap: 8px; margin-top: 14px; }
+  .footer__social { width: 34px; height: 34px; }
+
+  /* Section headings */
+  .footer__heading { font-size: 9.5px; letter-spacing: 0.2em; margin-bottom: 14px; }
+
+  /* Quick Links */
+  .footer__links { gap: 7px; }
+  .footer__links a { font-size: 12.5px; }
+
+  /* Contact Info — narrow column, break long text */
+  .footer__contact { gap: 10px; }
+  .contact-item {
+    font-size: 11.5px;
+    gap: 6px;
+    flex-wrap: wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+  .contact-item svg { width: 13px; height: 13px; margin-top: 2px; }
+  .contact-item strong { font-size: 10.5px; }
+
+  /* Newsletter */
+  .footer__newsletter-text { font-size: 12px; margin-bottom: 12px; }
+  .footer__newsletter { flex-direction: column; gap: 8px; }
+  .footer__newsletter input { width: 100%; border-radius: 8px; padding: 11px 14px; font-size: 13px; }
+  .footer__newsletter button { width: 100%; border-radius: 8px; justify-content: center; padding: 11px 14px; font-size: 12px; }
+
+  /* Bottom bar */
   .footer__bottom-inner {
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
     text-align: center;
+    font-size: 11px;
+    padding: 14px 0;
   }
 }

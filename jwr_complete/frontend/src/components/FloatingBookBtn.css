@@ -107,3 +107,8 @@
   .float-btn__sub { display: none; }
   .float-btn__main { padding: 12px 16px; }
 }
+
+/* Hide entirely on mobile — it covers content and is annoying */
+@media (max-width: 768px) {
+  .float-btn { display: none !important; }
+}

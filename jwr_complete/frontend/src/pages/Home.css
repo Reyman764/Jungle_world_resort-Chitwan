@@ -321,9 +321,49 @@
   .features-grid { grid-template-columns: 1fr; }
   .stats-grid { grid-template-columns: repeat(2,1fr); }
   .testimonial-card { padding: 40px 24px; }
+
+  /* Hero on mobile */
+  .hero { min-height: 100svh; min-height: 100vh; }
+  .hero__content { padding: 0 20px; }
+  .hero__content h1 { font-size: clamp(2.2rem,10vw,3.2rem); }
+  .hero__subtitle { font-size: 0.92rem; margin-bottom: 28px; }
+  .hero__actions { flex-direction: column; align-items: center; gap: 12px; }
+  .hero__actions .btn-primary,
+  .hero__actions .btn-outline { width: 100%; max-width: 260px; justify-content: center; }
+
+  /* ── Package cards: compact horizontal on mobile ── */
+  .packages-section { padding: 64px 0; }
+  .packages-grid { grid-template-columns: 1fr; gap: 14px; max-width: 100%; margin: 0; }
+  .pkg-card {
+    display: grid;
+    grid-template-columns: 116px 1fr;
+    border-radius: 14px;
+    overflow: hidden;
+    min-height: 130px;
+    box-shadow: 0 2px 16px rgba(13,34,24,.10);
+  }
+  .pkg-card:hover { transform: none; box-shadow: 0 2px 16px rgba(13,34,24,.10); }
+  .pkg-card__image {
+    height: 100%;
+    min-height: 130px;
+    max-height: 180px;
+    border-radius: 0;
+  }
+  .pkg-card__image img { border-radius: 0; }
+  .pkg-card__image::after { display: none; }
+  .pkg-card__body { padding: 14px 14px 16px; display: flex; flex-direction: column; justify-content: space-between; }
+  .pkg-card__name { font-size: 1.05rem; margin-bottom: 4px; line-height: 1.2; }
+  .pkg-card__desc { display: none; }
+  .pkg-card__footer { flex-direction: row; align-items: center; justify-content: space-between; gap: 6px; margin-top: auto; }
+  .pkg-card__btn { width: auto; font-size: 10px; padding: 7px 14px; }
+  .pkg-card__badge { top: 8px; left: 8px; font-size: 9px; padding: 3px 8px; }
+  .pkg-card__popular { top: 8px; right: 8px; font-size: 9px; padding: 3px 8px; }
 }
 @media (max-width: 480px) {
   .activities-grid { grid-template-columns: 1fr; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
   .intro__features { grid-template-columns: 1fr; }
+  /* Full-width horizontal package cards on small phones */
+  .packages-grid { max-width: 100%; }
+  .pkg-card { grid-template-columns: 110px 1fr; }
 }

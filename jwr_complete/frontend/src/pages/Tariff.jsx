@@ -2,7 +2,7 @@ import { GALLERY_URLS } from '../utils/cloudinary'
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import PageHero from '../components/PageHero'
-import { usePackages, FALLBACK_RATES } from '../hooks/usePackages'
+import { usePackages } from '../hooks/usePackages'
 import './Tariff.css'
 
 const roomRates = [
@@ -26,31 +26,24 @@ const excludes = [
   'Transport to/from Sauraha (unless specified)',
 ]
 
-function fmtUSD(nprVal, rate) {
-  return `USD ${(Number(nprVal) / (rate || 132)).toFixed(2)}`
-}
-function fmtINR(nprVal, rate) {
-  return `INR ${Math.round(Number(nprVal) / (rate || 1.58)).toLocaleString('en-IN')}`
-}
 function fmtNPR(val) {
   return `NPR ${Math.round(Number(val)).toLocaleString('en-IN')}`
 }
 
 export default function Tariff() {
-  const { packages, currencyRates, loading } = usePackages()
-  const rates = currencyRates || FALLBACK_RATES
+  const { packages, loading } = usePackages()
 
   // Price Calculator Widget
   const [calcPkg, setCalcPkg] = useState(0)
   const [calcCat, setCalcCat] = useState('foreigner') // foreigner | saarc | nepali
   const [calcPax, setCalcPax] = useState(2)
 
-  // Build display rows from API packages
+  // Build display rows — all prices in NPR
   const tariffRows = packages.map(pkg => ({
     name:     pkg.name,
     popular:  pkg.popular,
-    foreigner: fmtUSD(pkg.prices.foreigner, rates.usd_to_npr),
-    saarc:     fmtINR(pkg.prices.saarc,     rates.inr_to_npr),
+    foreigner: fmtNPR(pkg.prices.foreigner),
+    saarc:     fmtNPR(pkg.prices.saarc),
     nepali:    fmtNPR(pkg.prices.nepali),
     fVal:     pkg.prices.foreigner,  // NPR
     sVal:     pkg.prices.saarc,      // NPR
@@ -65,14 +58,7 @@ export default function Tariff() {
   const svcAmount  = Math.round(total * 0.10)
   const grandTotal = total + vatAmount + svcAmount
 
-  // Display unit price in proper currency
-  function unitDisplay() {
-    if (!selected) return { native: '—', npr: '' }
-    if (calcCat === 'foreigner') return { native: `USD ${(unitNPR / rates.usd_to_npr).toFixed(2)}`, npr: `NPR ${unitNPR.toLocaleString('en-IN')}` }
-    if (calcCat === 'saarc')     return { native: `INR ${Math.round(unitNPR / rates.inr_to_npr).toLocaleString('en-IN')}`, npr: `NPR ${unitNPR.toLocaleString('en-IN')}` }
-    return { native: `NPR ${unitNPR.toLocaleString('en-IN')}`, npr: '' }
-  }
-  const { native: unitNative, npr: unitNprLabel } = unitDisplay()
+  const unitDisplay = unitNPR ? `NPR ${unitNPR.toLocaleString('en-IN')}` : '—'
 
   return (
     <main>
@@ -91,7 +77,7 @@ export default function Tariff() {
             <h2 className="section-title">Per Person Pricing</h2>
             <span className="section-divider center" />
             <p style={{ color:'var(--text-secondary)', fontSize:'0.87rem', marginTop:12 }}>
-              International prices in USD · SAARC in INR · All totals settled in NPR
+              All package prices are shown in NPR — the currency charged at checkout
             </p>
           </div>
           <div className="tariff-table-wrap reveal">
@@ -100,12 +86,13 @@ export default function Tariff() {
                 <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '32px 0' }}>Loading rates…</p>
               </div>
             ) : (
+              <div className="tariff-table-scroll">
               <table className="tariff-table">
                 <thead>
                   <tr>
                     <th>Package</th>
-                    <th>International <span className="tariff-th-sub">(USD)</span></th>
-                    <th>SAARC <span className="tariff-th-sub">(INR)</span></th>
+                    <th>International <span className="tariff-th-sub">(NPR)</span></th>
+                    <th>SAARC <span className="tariff-th-sub">(NPR)</span></th>
                     <th>Nepali <span className="tariff-th-sub">(NPR)</span></th>
                     <th></th>
                   </tr>
@@ -119,11 +106,9 @@ export default function Tariff() {
                       </td>
                       <td className="price-cell">
                         <span className="price-cell__main">{row.foreigner}</span>
-                        <span className="price-cell__sub">≈ {fmtNPR(row.fVal)}</span>
                       </td>
                       <td className="price-cell">
                         <span className="price-cell__main">{row.saarc}</span>
-                        <span className="price-cell__sub">≈ {fmtNPR(row.sVal)}</span>
                       </td>
                       <td className="price-cell">
                         <span className="price-cell__main">{row.nepali}</span>
@@ -133,6 +118,7 @@ export default function Tariff() {
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         </div>
@@ -168,7 +154,7 @@ export default function Tariff() {
 
               <label className="calc-label">Guest Category</label>
               <div className="calc-cat-group">
-                {[['foreigner','International (USD)'],['saarc','SAARC (INR)'],['nepali','Nepali (NPR)']].map(([val, label]) => (
+                {[['foreigner','International'],['saarc','SAARC'],['nepali','Nepali']].map(([val, label]) => (
                   <button key={val} className={`calc-cat-btn ${calcCat === val ? 'active' : ''}`} onClick={() => setCalcCat(val)}>{label}</button>
                 ))}
               </div>
@@ -182,10 +168,7 @@ export default function Tariff() {
 
               <div className="calc-result">
                 <div className="calc-line">
-                  <span>
-                    Base ({calcPax} × {unitNative}
-                    {unitNprLabel && <span className="calc-npr-eq"> = {unitNprLabel}</span>})
-                  </span>
+                  <span>Base ({calcPax} × {unitDisplay})</span>
                   <span>NPR {total.toLocaleString('en-IN')}</span>
                 </div>
                 <div className="calc-line">
