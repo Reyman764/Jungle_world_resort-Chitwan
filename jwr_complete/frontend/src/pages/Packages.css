@@ -76,15 +76,19 @@
 
 .pkg-detail__badge {
   position: absolute;
-  bottom: 24px;
-  right: 24px;
-  background: rgba(13,34,24,0.9);
-  color: var(--gold-light);
+  top: 16px;
+  right: 16px;
+  background: var(--gold-rich);
+  color: var(--forest-deep);
   font-family: var(--font-body);
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 800;
   letter-spacing: 0.12em;
-  padding: 8px 16px;
+  text-transform: uppercase;
+  padding: 6px 16px;
+  border-radius: 50px;
+  z-index: 3;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
 }
 
 .pkg-detail__name {
@@ -229,17 +233,17 @@
   .pkg-detail:last-child { margin-bottom: 0; padding-bottom: 0; }
   .pkg-detail--reverse { direction: ltr; }
 
-  /* Image: fixed 200px height, no stretching */
+  /* Image: taller on mobile so nothing feels cut */
   .pkg-detail__image {
     aspect-ratio: unset;
-    height: 200px;
+    height: 240px;
     border-radius: 20px 20px 0 0;
-    max-height: 200px;
+    max-height: 240px;
   }
   .pkg-detail__image img {
     border-radius: 0;
-    height: 200px;
-    object-position: center 30%;
+    height: 240px;
+    object-position: center 40%;
   }
   .pkg-detail__image:hover img { transform: none; }
 
@@ -299,25 +303,18 @@
 
   /* Badges */
   .pkg-detail__popular { top: 12px; left: 12px; font-size: 9px; padding: 4px 10px; }
-  .pkg-detail__badge { top: 12px; right: 12px; font-size: 9px; padding: 3px 8px; }
+  .pkg-detail__badge { top: 12px; right: 12px; font-size: 9px; font-weight: 800; padding: 4px 11px; border-radius: 50px; }
 
-  /* Compare section */
+  /* Compare section — medium tablets: slight scroll OK */
   .compare-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 12px; }
   .compare-header-row,
-  .compare-feature-row { min-width: 560px; }
+  .compare-feature-row { min-width: 520px; }
 }
 
 @media (max-width: 600px) {
-  .compare-section { padding: 32px 0 60px; }
-  .compare-header-row,
-  .compare-feature-row { grid-template-columns: 110px repeat(3, 1fr); min-width: 480px; }
-  .compare-label-col { font-size: 10px; padding: 11px 8px; }
-  .compare-pkg-price-sub { display: none; }
-  .compare-pkg-info { padding: 12px 8px 16px; }
-  .compare-book-btn { font-size: 8px; padding: 7px 12px; }
-  .compare-pkg-img-wrap { height: 80px; }
-  .pkg-detail__image { height: 170px; }
-  .pkg-detail__image img { height: 170px; }
+  .compare-section { padding: 28px 0 60px; }
+  .pkg-detail__image { height: 200px; max-height: 200px; }
+  .pkg-detail__image img { height: 200px; }
 }
 /* ── V2 ADDITIONS ── */
 .view-toggle { display: inline-flex; gap: 0; border: 1.5px solid var(--forest-light); border-radius: 50px; overflow: hidden; margin-top: 28px; }
@@ -616,7 +613,7 @@
 }
 
 /* ── Responsive ── */
-@media (max-width: 860px) {
+@media (max-width: 860px) and (min-width: 541px) {
   .compare-header-row,
   .compare-feature-row {
     grid-template-columns: 150px repeat(3, 1fr);
@@ -627,4 +624,89 @@
   .compare-pkg-price { font-size: 1.25rem; }
 }
 
+/* ══════════════════════════════════════════════════════
+   PHONE COMPARISON: all 3 packages visible, no scroll
+   ══════════════════════════════════════════════════════ */
+@media (max-width: 540px) {
+  /* Wrapper: no horizontal overflow */
+  .compare-wrapper {
+    overflow: visible !important;
+    border-radius: 16px;
+  }
 
+  /* Header row: hide the empty label cell, 3 equal package cols */
+  .compare-header-row {
+    grid-template-columns: repeat(3, 1fr) !important;
+    min-width: unset !important;
+  }
+  .compare-label-col--header { display: none !important; }
+
+  /* Package header cards */
+  .compare-pkg-img-wrap { height: 78px; }
+  .compare-pkg-info { padding: 10px 5px 14px; gap: 2px; }
+  .compare-pkg-duration {
+    font-size: 7.5px;
+    letter-spacing: 0.14em;
+    margin-bottom: 3px;
+  }
+  .compare-pkg-name {
+    font-size: 0.76rem;
+    line-height: 1.15;
+    margin-bottom: 5px;
+  }
+  .compare-pkg-price { font-size: 1rem; margin-bottom: 2px; }
+  .compare-pkg-price-sub { display: none; }
+  .compare-pkg-badge {
+    font-size: 7px;
+    padding: 3px 8px;
+    margin-bottom: 6px;
+  }
+  .compare-book-btn {
+    font-size: 7px;
+    padding: 5px 8px;
+    margin-top: 6px;
+    letter-spacing: 0.06em;
+  }
+
+  /* Feature rows: label takes 1fr, three 52px icon columns */
+  .compare-feature-row {
+    grid-template-columns: 1fr 52px 52px 52px !important;
+    min-width: unset !important;
+  }
+  .compare-label-col {
+    font-size: 10.5px;
+    padding: 12px 6px 12px 12px;
+    line-height: 1.4;
+  }
+  .compare-check-col {
+    width: 52px;
+    padding: 12px 2px;
+    justify-content: center;
+  }
+  .compare-tick svg,
+  .compare-cross svg { width: 17px; height: 17px; }
+
+  /* Section label inside the feature table */
+  .compare-features-section-label {
+    font-size: 8.5px;
+    padding: 8px 12px;
+    letter-spacing: 0.2em;
+  }
+
+}
+
+
+
+/* ── Mobile toggle & comparison scroll hint ── */
+@media (max-width: 540px) {
+  .view-toggle { margin-top: 22px; }
+  .toggle-btn { padding: 9px 22px; font-size: 11px; }
+
+  /* Slim scroll hint for medium phones before the full phone layout kicks in */
+  .compare-wrapper::-webkit-scrollbar { height: 3px; }
+  .compare-wrapper::-webkit-scrollbar-track { background: var(--surface-2); }
+  .compare-wrapper::-webkit-scrollbar-thumb { background: var(--gold-rich); border-radius: 4px; }
+
+  /* Ensure the comparison section container doesn't add extra horizontal padding */
+  .compare-section .container { padding-left: 16px; padding-right: 16px; }
+}

@@ -248,7 +248,7 @@ export default function Home() {
           <div className="packages-grid">
             {packages.map((pkg, i) => (
               <div key={pkg.id} className={`pkg-card glossy-card reveal reveal-delay-${i + 1} ${pkg.highlight ? 'pkg-card--featured' : ''}`}>
-                <div className="pkg-card__image" style={{ aspectRatio: '16/9' }}>
+                <div className="pkg-card__image">
                   <img
                     src={pkg.img}
                     srcSet={`${pkg.img.replace('w=800', 'w=400')} 400w, ${pkg.img} 800w`}
