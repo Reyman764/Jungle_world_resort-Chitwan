@@ -1960,7 +1960,7 @@
   font-weight: 400;
 }
 
-/* Price breakdown: strikethrough unit price in the adults row */
+/* Price breakdown: strikethrough original per-person price */
 .pb-orig-unit {
   font-size: 0.88em;
   color: var(--text-light);
@@ -1968,6 +1968,15 @@
   text-decoration-color: var(--text-light);
   margin-right: 4px;
   font-style: normal;
+}
+
+/* Per-person rows shown above guest lines when discount exists */
+.pb-row--per-person {
+  font-size: 12.5px;
+  color: var(--text-light);
+}
+.pb-row--per-person .pb-orig-unit {
+  font-size: 1em;
 }
 
 /* Savings row in price breakdown */
@@ -1980,6 +1989,16 @@
 .pb-savings-amt {
   color: #2a7a3b;
   font-weight: 700;
+}
+
+/* Discounted per-person price row */
+.pb-row--discounted-unit {
+  font-size: 13px;
+  color: var(--text-heading);
+}
+.pb-row--discounted-unit strong {
+  font-weight: 700;
+  color: var(--gold-rich);
 }
 
 /* Success page savings row */
@@ -1998,4 +2017,13 @@
 [data-theme="dark"] .pb-savings-amt,
 [data-theme="dark"] .success-row--savings .success-savings {
   color: #6ecf80;
+}
+[data-theme="dark"] .pb-row--per-person {
+  color: var(--text-muted, rgba(255,255,255,0.45));
+}
+[data-theme="dark"] .pb-row--discounted-unit {
+  color: var(--text-heading);
+}
+[data-theme="dark"] .pb-row--discounted-unit strong {
+  color: var(--gold-light);
 }

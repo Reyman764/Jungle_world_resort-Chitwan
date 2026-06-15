@@ -533,6 +533,60 @@
 .pay-refunded  { background: #eff6ff; color: #1e3a8a; }
 .pay-failed    { background: #fef2f2; color: #991b1b; }
 
+/* ── Premium "Paid in Full" badge ───────────────────────────────── */
+.pay-badge-completed {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px 4px 7px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #0d9e70 0%, #15803d 100%);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  white-space: nowrap;
+  box-shadow:
+    0 1px 4px rgba(13, 158, 112, .40),
+    inset 0 1px 0 rgba(255, 255, 255, .20);
+  animation: paid-glow 3s ease-in-out infinite;
+}
+
+.pay-badge-completed__check {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.15));
+}
+
+@keyframes paid-glow {
+  0%, 100% {
+    box-shadow:
+      0 1px 4px rgba(13, 158, 112, .40),
+      inset 0 1px 0 rgba(255, 255, 255, .20);
+  }
+  50% {
+    box-shadow:
+      0 1px 10px rgba(13, 158, 112, .65),
+      0 0 18px rgba(13, 158, 112, .18),
+      inset 0 1px 0 rgba(255, 255, 255, .28);
+  }
+}
+
+/* ── Fully-paid row: left accent + tinted background ─────────────── */
+.booking-row--fully-paid td:first-child {
+  border-left: 3px solid #15803d;
+  padding-left: 13px;
+}
+
+.booking-row--fully-paid {
+  background: linear-gradient(
+    90deg,
+    rgba(13, 158, 112, .045) 0px,
+    transparent 180px
+  ) !important;
+}
+
 /* ── View button ─────────────────────────────────────────── */
 .admin-view-btn {
   background: transparent;

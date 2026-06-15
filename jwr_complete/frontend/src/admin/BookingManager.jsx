@@ -18,6 +18,18 @@ const StatusBadge = memo(function StatusBadge({ status }) {
 })
 
 const PayBadge = memo(function PayBadge({ status }) {
+  if (status === 'completed') {
+    return (
+      <span className="pay-badge-completed" aria-label="Payment completed">
+        <svg className="pay-badge-completed__check" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <circle cx="8" cy="8" r="6.75" stroke="currentColor" strokeWidth="1.5" opacity="0.45" />
+          <path d="M4.5 8.2l2.3 2.5 4.7-5.4" stroke="currentColor" strokeWidth="2"
+                strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        Paid in Full
+      </span>
+    )
+  }
   return <span className={`status-badge pay-${status || 'pending'}`}>{status || 'pending'}</span>
 })
 
@@ -404,7 +416,13 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
               </thead>
               <tbody>
                 {bookings.map(b => (
-                  <tr key={b.id} className={b.is_spam ? 'admin-table-row--spam' : ''}>
+                  <tr
+                    key={b.id}
+                    className={[
+                      b.is_spam ? 'admin-table-row--spam' : '',
+                      b.payment_status === 'completed' ? 'booking-row--fully-paid' : '',
+                    ].filter(Boolean).join(' ')}
+                  >
                     <td><strong>{b.booking_reference}</strong></td>
                     <td className="guest-name">{b.guest_name}</td>
                     <td>{b.package?.name || '—'}</td>

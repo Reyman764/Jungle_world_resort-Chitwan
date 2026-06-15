@@ -111,22 +111,55 @@ function fmtCatPrice(nprAmount) {
   return `NPR ${Math.round(Number(nprAmount)).toLocaleString('en-IN')}`
 }
 
+// ── Discount helpers ──────────────────────────────────────────────────────
+/** Parse "15% Off", "10%", etc. → decimal (0.15) or null */
+function parseDiscountPct(label) {
+  if (!label) return null
+  const m = String(label).match(/(\d+(?:\.\d+)?)\s*%/)
+  return m ? Number(m[1]) / 100 : null
+}
+
+/**
+ * Resolve the effective (discounted) unit price for a package + category.
+ * Priority:
+ *   1. prices_original > prices  →  database-backed discount
+ *   2. pkg.discount label like "15% Off"  →  compute from original price
+ *   3. No discount
+ */
+function resolvePackagePrice(pkg, category) {
+  const origUnit = pkg.prices_original?.[category] ?? pkg.prices[category]
+  let unit = pkg.prices[category]
+  let hasDiscount = origUnit > unit
+  let discountPct = hasDiscount ? (1 - unit / origUnit) : 0
+
+  if (!hasDiscount && pkg.discount) {
+    const pct = parseDiscountPct(pkg.discount)
+    if (pct && pct > 0) {
+      const discounted = Math.round(origUnit * (1 - pct))
+      if (discounted < origUnit) {
+        unit        = discounted
+        hasDiscount = true
+        discountPct = pct
+      }
+    }
+  }
+
+  return { unit, origUnit, hasDiscount, discountPct }
+}
+
 function PriceBreakdown({ pkg, category, adults, children, compact }) {
   if (!pkg) return null
 
-  const unitPrice     = pkg.prices[category]
-  const origUnitPrice = pkg.prices_original?.[category] ?? unitPrice
-  const hasDiscount   = origUnitPrice > unitPrice
+  const { unit: unitPrice, origUnit: origUnitPrice, hasDiscount, discountPct } = resolvePackagePrice(pkg, category)
 
-  const childPrice    = Math.round(unitPrice * 0.5)
-  const base          = unitPrice * adults + childPrice * children
-  const service       = Math.round(base * 0.10)
-  const vat           = Math.round(base * 0.13)
-  const grand         = base + service + vat
+  const discountPctLabel  = hasDiscount ? Math.round(discountPct * 100) + '%' : null
+  const discountPerPerson = hasDiscount ? (origUnitPrice - unitPrice) : 0
 
-  // Original base (before discount) — used to show how much was saved
-  const origBase  = hasDiscount ? (origUnitPrice * adults + Math.round(origUnitPrice * 0.5) * children) : base
-  const savings   = hasDiscount ? (origBase - base) : 0
+  const childPrice = Math.round(unitPrice * 0.5)
+  const base       = unitPrice * adults + childPrice * children
+  const service    = Math.round(base * 0.10)
+  const vat        = Math.round(base * 0.13)
+  const grand      = base + service + vat
 
   const unitFmt     = fmtCatPrice(unitPrice)
   const origUnitFmt = hasDiscount ? fmtCatPrice(origUnitPrice) : null
@@ -143,14 +176,36 @@ function PriceBreakdown({ pkg, category, adults, children, compact }) {
     <div className="price-breakdown">
       <div className="pb-title">Price Breakdown</div>
       <div className="pb-rows">
-        <div className="pb-row">
-          <span>
-            {adults} Adult{adults > 1 ? 's' : ''} ×{' '}
-            {hasDiscount && (
+
+        {/* ── Per-person discount section ── */}
+        {hasDiscount && (
+          <>
+            <div className="pb-row pb-row--per-person">
+              <span>Per person (original)</span>
               <span className="pb-orig-unit">{origUnitFmt}</span>
-            )}
-            {unitFmt}
-          </span>
+            </div>
+            <div className="pb-row pb-row--savings">
+              <span>
+                <svg viewBox="0 0 14 14" fill="none" width="12" height="12" aria-hidden="true"
+                     style={{ marginRight: '4px', verticalAlign: 'middle' }}>
+                  <path d="M2 7l3.5 3.5L12 3.5" stroke="currentColor" strokeWidth="2"
+                        strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Discount{discountPctLabel ? ` (${discountPctLabel})` : ''}
+              </span>
+              <span className="pb-savings-amt">−{fmtPrice(discountPerPerson)}</span>
+            </div>
+            <div className="pb-row pb-row--discounted-unit">
+              <span>Per person (after discount)</span>
+              <strong>{unitFmt}</strong>
+            </div>
+            <div className="pb-divider" />
+          </>
+        )}
+
+        {/* ── Guest lines ── */}
+        <div className="pb-row">
+          <span>{adults} Adult{adults > 1 ? 's' : ''} × {unitFmt}</span>
           <span>{fmtPrice(unitPrice * adults)}</span>
         </div>
         {children > 0 && (
@@ -159,17 +214,7 @@ function PriceBreakdown({ pkg, category, adults, children, compact }) {
             <span>{fmtPrice(childPrice * children)}</span>
           </div>
         )}
-        {hasDiscount && savings > 0 && (
-          <div className="pb-row pb-row--savings">
-            <span>
-              <svg viewBox="0 0 14 14" fill="none" width="12" height="12" aria-hidden="true" style={{marginRight:'4px',verticalAlign:'middle'}}>
-                <path d="M2 7l3.5 3.5L12 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              Package discount
-            </span>
-            <span className="pb-savings-amt">−{fmtPrice(savings)}</span>
-          </div>
-        )}
+
         <div className="pb-divider" />
         <div className="pb-row pb-row--sub">
           <span>Subtotal</span>
@@ -460,9 +505,7 @@ export default function BookingWizard({ preselect }) {
 
     try {
       // ── Calculate price (mirrors PriceBreakdown logic) ──────
-      const unitPrice      = pkg.prices[category]
-      const origUnitPrice  = pkg.prices_original?.[category] ?? unitPrice
-      const hasDiscount    = origUnitPrice > unitPrice
+      const { unit: unitPrice, origUnit: origUnitPrice, hasDiscount } = resolvePackagePrice(pkg, category)
       const childPrice     = Math.round(unitPrice * 0.5)
       const base           = unitPrice * adults + childPrice * children
       const service        = Math.round(base * 0.10)
@@ -528,12 +571,11 @@ export default function BookingWizard({ preselect }) {
 
   /* ── Submitted state ── */
   if (sent) {
-    const unitPrice     = pkg.prices[category]
-    const origUnitPrice = pkg.prices_original?.[category] ?? unitPrice
+    const { unit: unitPrice, origUnit: origUnitPrice, hasDiscount: hdsc } = resolvePackagePrice(pkg, category)
     const childP        = Math.round(unitPrice * 0.5)
     const base          = unitPrice * adults + childP * children
     const grand         = base + Math.round(base * 0.10) + Math.round(base * 0.13)
-    const origBase      = origUnitPrice > unitPrice ? (origUnitPrice * adults + Math.round(origUnitPrice * 0.5) * children) : base
+    const origBase      = hdsc ? (origUnitPrice * adults + Math.round(origUnitPrice * 0.5) * children) : base
     const savedAmt      = origBase - base
 
     return (

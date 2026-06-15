@@ -25,12 +25,14 @@ export const FALLBACK_PACKAGES = [
     desc: 'A more intimate look at Chitwan. Two nights give you time to slow down, breathe the forest air, and connect with nature.',
     img: GALLERY_URLS['resort-06'],
     includes: ['All Day 1 activities', 'Guided jungle walk at dawn', 'Bird watching with naturalist', 'Sunset canoe ride', 'Cultural village dinner experience', 'All meals included'],
+    // Display strings (original / pre-discount for marketing reference)
     price: 'USD 191.44', priceINR: 'INR 9,620', priceNPR: 'NPR 8,500',
-    priceOriginal: null, priceINROriginal: null, priceNPROriginal: null,
-    priceNPREquiv: { foreigner: 25270, saarc: 15200 },
-    prices: { foreigner: 25270, saarc: 15200, nepali: 8500 },
+    priceOriginal: 'USD 225.00', priceINROriginal: 'INR 11,318', priceNPROriginal: 'NPR 10,000',
+    priceNPREquiv: { foreigner: 21480, saarc: 12920 },
+    // 15% discount applied: nepali 8500→7225, saarc 15200→12920, foreigner 25270→21480
+    prices:          { foreigner: 21480, saarc: 12920, nepali: 7225 },
     prices_original: { foreigner: 25270, saarc: 15200, nepali: 8500 },
-    has_discounts: { foreigner: false, saarc: false, nepali: false },
+    has_discounts:   { foreigner: true,  saarc: true,  nepali: true  },
   },
   {
     id: 'explore', name: 'Explore Chitwan', duration: '3 Nights · 4 Days', badge: '3N · 4D',
