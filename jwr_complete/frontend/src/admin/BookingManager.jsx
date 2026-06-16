@@ -20,13 +20,11 @@ const StatusBadge = memo(function StatusBadge({ status }) {
 const PayBadge = memo(function PayBadge({ status }) {
   if (status === 'completed') {
     return (
-      <span className="pay-badge-completed" aria-label="Payment completed">
-        <svg className="pay-badge-completed__check" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <circle cx="8" cy="8" r="6.75" stroke="currentColor" strokeWidth="1.5" opacity="0.45" />
-          <path d="M4.5 8.2l2.3 2.5 4.7-5.4" stroke="currentColor" strokeWidth="2"
-                strokeLinecap="round" strokeLinejoin="round" />
+      <span className="pay-badge-completed" title="Paid in Full" aria-label="Paid in Full">
+        <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M2.5 7l3 3.5 6-7" stroke="currentColor" strokeWidth="2.2"
+                strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
-        Paid in Full
       </span>
     )
   }
@@ -35,12 +33,13 @@ const PayBadge = memo(function PayBadge({ status }) {
 
 // Quick filters that map to filter combos
 const QUICK_FILTERS = [
-  { label: 'All',             key: 'all',            status: '',            extra: {} },
-  { label: '⚠ Pending Pay',  key: 'pending_pay',    status: 'confirmed',   extra: { paymentStatus: 'pending' } },
-  { label: '✓ Confirmed',    key: 'confirmed',       status: 'confirmed',   extra: {} },
-  { label: '🏕 Checked In',   key: 'checked_in',     status: 'checked_in',  extra: {} },
-  { label: '✗ Cancelled',    key: 'cancelled',       status: 'cancelled',   extra: {} },
-  { label: '⏳ Draft',        key: 'draft',           status: 'draft',       extra: {} },
+  { label: 'All',            key: 'all',         status: '',           paymentStatus: '' },
+  { label: '⚠ Pending Pay', key: 'pending_pay', status: 'confirmed',  paymentStatus: 'pending' },
+  { label: '✓ Confirmed',   key: 'confirmed',   status: 'confirmed',  paymentStatus: '' },
+  { label: '🏕 Checked In',  key: 'checked_in',  status: 'checked_in', paymentStatus: '' },
+  { label: '✗ Cancelled',   key: 'cancelled',   status: 'cancelled',  paymentStatus: '' },
+  { label: '⏳ Draft',       key: 'draft',       status: 'draft',      paymentStatus: '' },
+  { label: 'Paid',          key: 'paid',        status: '',           paymentStatus: 'completed', isPaidFilter: true },
 ]
 
 export default function BookingManager({ onStatsRefresh, onAuthError }) {
@@ -62,6 +61,7 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
 
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
+  const [paymentStatus, setPaymentStatus] = useState('')
   const [category, setCategory] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -70,9 +70,9 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
   const [applied, setApplied] = useState({})
 
   const buildFilters = useCallback(() => ({
-    search, status, category, startDate, endDate, sort, pageSize,
+    search, status, paymentStatus, category, startDate, endDate, sort, pageSize,
     ...(archiveMode ? { archiveMode: 'true' } : {}),
-  }), [search, status, category, startDate, endDate, sort, pageSize, archiveMode])
+  }), [search, status, paymentStatus, category, startDate, endDate, sort, pageSize, archiveMode])
 
   const loadBookings = useCallback(async (filters = applied, pg = 1) => {
     // Cancel any in-flight request
@@ -83,12 +83,13 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
     setLoading(true)
     try {
       const q = new URLSearchParams()
-      if (filters.search)    q.set('search', filters.search)
-      if (filters.status)    q.set('status', filters.status)
-      if (filters.category)  q.set('category', filters.category)
-      if (filters.startDate) q.set('startDate', filters.startDate)
-      if (filters.endDate)   q.set('endDate', filters.endDate)
-      if (filters.sort)      q.set('sort', filters.sort)
+      if (filters.search)         q.set('search', filters.search)
+      if (filters.status)         q.set('status', filters.status)
+      if (filters.paymentStatus)  q.set('payment_status', filters.paymentStatus)
+      if (filters.category)       q.set('category', filters.category)
+      if (filters.startDate)      q.set('startDate', filters.startDate)
+      if (filters.endDate)        q.set('endDate', filters.endDate)
+      if (filters.sort)           q.set('sort', filters.sort)
       if (filters.archiveMode) {
         const cutoff = new Date()
         cutoff.setDate(cutoff.getDate() - 90)
@@ -137,7 +138,7 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
   }
 
   function handleClear() {
-    setSearch(''); setStatus(''); setCategory(''); setStartDate(''); setEndDate('')
+    setSearch(''); setStatus(''); setPaymentStatus(''); setCategory(''); setStartDate(''); setEndDate('')
     setSort('latest'); setPageSize('20'); setActiveQuick('all'); setArchiveMode(false)
     const f = { search: '', status: '', category: '', startDate: '', endDate: '', sort: 'latest', pageSize: '20' }
     setApplied(f)
@@ -147,8 +148,9 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
   function handleQuickFilter(qf) {
     setActiveQuick(qf.key)
     setStatus(qf.status)
+    setPaymentStatus(qf.paymentStatus || '')
     setArchiveMode(false)
-    const f = { search, status: qf.status, category, startDate, endDate, sort, pageSize }
+    const f = { search, status: qf.status, paymentStatus: qf.paymentStatus || '', category, startDate, endDate, sort, pageSize }
     setApplied(f)
     loadBookings(f, 1)
   }
@@ -245,10 +247,23 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
           <button
             key={qf.key}
             type="button"
-            className={`quick-filter-chip${activeQuick === qf.key && !archiveMode ? ' active' : ''}`}
+            className={[
+              'quick-filter-chip',
+              qf.isPaidFilter ? 'quick-filter-chip--paid' : '',
+              activeQuick === qf.key && !archiveMode ? 'active' : '',
+            ].filter(Boolean).join(' ')}
             onClick={() => handleQuickFilter(qf)}
           >
-            {qf.label}
+            {qf.isPaidFilter ? (
+              <>
+                <svg viewBox="0 0 14 14" fill="none" width="13" height="13"
+                     style={{ flexShrink: 0 }} aria-hidden="true">
+                  <path d="M2.5 7l3 3.5 6-7" stroke="currentColor" strokeWidth="2.2"
+                        strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Paid
+              </>
+            ) : qf.label}
           </button>
         ))}
         <div className="quick-filters-spacer" />

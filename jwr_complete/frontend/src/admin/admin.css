@@ -533,37 +533,36 @@
 .pay-refunded  { background: #eff6ff; color: #1e3a8a; }
 .pay-failed    { background: #fef2f2; color: #991b1b; }
 
-/* ── Premium "Paid in Full" badge ───────────────────────────────── */
+/* ── Premium tick-only "Paid" badge (circle with ✓) ────────────── */
 .pay-badge-completed {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 11px 4px 7px;
-  border-radius: 20px;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
   background: linear-gradient(135deg, #0d9e70 0%, #15803d 100%);
   color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: .04em;
-  white-space: nowrap;
   box-shadow:
-    0 1px 4px rgba(13, 158, 112, .40),
-    inset 0 1px 0 rgba(255, 255, 255, .20);
+    0 1px 3px rgba(13, 158, 112, .42),
+    inset 0 1px 0 rgba(255, 255, 255, .22);
   animation: paid-glow 3s ease-in-out infinite;
+  cursor: default;
+  flex-shrink: 0;
+  vertical-align: middle;
 }
 
-.pay-badge-completed__check {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-  filter: drop-shadow(0 1px 1px rgba(0,0,0,.15));
+.pay-badge-completed svg {
+  width: 10px;
+  height: 10px;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.12));
 }
 
 @keyframes paid-glow {
   0%, 100% {
     box-shadow:
-      0 1px 4px rgba(13, 158, 112, .40),
-      inset 0 1px 0 rgba(255, 255, 255, .20);
+      0 1px 4px rgba(13, 158, 112, .42),
+      inset 0 1px 0 rgba(255, 255, 255, .22);
   }
   50% {
     box-shadow:
@@ -573,19 +572,155 @@
   }
 }
 
-/* ── Fully-paid row: left accent + tinted background ─────────────── */
+/* ── Fully-paid row: accent left stripe + tinted bg ─────────────── */
 .booking-row--fully-paid td:first-child {
   border-left: 3px solid #15803d;
   padding-left: 13px;
 }
-
 .booking-row--fully-paid {
-  background: linear-gradient(
-    90deg,
-    rgba(13, 158, 112, .045) 0px,
-    transparent 180px
-  ) !important;
+  background: linear-gradient(90deg, rgba(13,158,112,.045) 0px, transparent 180px) !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Fully Paid Bookings Section (AdminDashboard)
+   ═══════════════════════════════════════════════════════════════════ */
+.paid-section {
+  background: var(--a-surface);
+  border: 1px solid var(--a-border);
+  border-top: 3px solid #15803d;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 28px;
+  box-shadow: 0 1px 5px rgba(0,0,0,.06);
+}
+
+.paid-section__header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 22px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  gap: 12px;
+  text-align: left;
+  transition: background .12s;
+}
+.paid-section__header:hover { background: rgba(13,158,112,.03); }
+
+.paid-section__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.paid-section__seal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0d9e70 0%, #15803d 100%);
+  color: #fff;
+  box-shadow: 0 1px 4px rgba(13,158,112,.35);
+  flex-shrink: 0;
+}
+.paid-section__seal svg { width: 16px; height: 16px; }
+
+.paid-section__title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--a-text-1);
+  letter-spacing: -.01em;
+}
+
+.paid-section__pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 10px;
+  background: #15803d;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.paid-section__right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.paid-section__revenue {
+  font-size: 12.5px;
+  color: var(--a-text-2);
+}
+.paid-section__revenue strong { color: #15803d; font-weight: 700; }
+
+.paid-section__chevron {
+  color: var(--a-text-3);
+  transition: transform .22s ease;
+  flex-shrink: 0;
+}
+.paid-section__chevron.open { transform: rotate(180deg); }
+
+.paid-section__body { border-top: 1px solid var(--a-border); }
+
+.paid-section__state {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 22px;
+  color: var(--a-text-3);
+  font-size: 13.5px;
+}
+.paid-section__state--err { color: var(--a-danger); }
+
+.paid-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(13,158,112,.18);
+  border-top-color: #15803d;
+  border-radius: 50%;
+  animation: ps-spin .7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes ps-spin { to { transform: rotate(360deg); } }
+
+.paid-section__table-wrap { overflow-x: auto; }
+
+.paid-table {
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.paid-table tbody tr.paid-table__row {
+  cursor: pointer;
+  transition: background .1s, border-left-color .1s;
+  border-left: 2px solid transparent;
+}
+.paid-table tbody tr.paid-table__row:hover {
+  background: rgba(13,158,112,.05);
+  border-left-color: #15803d;
+}
+
+.paid-table__ref {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: #15803d;
+  letter-spacing: .02em;
+}
+
+.paid-table__amount strong { color: #15803d; font-size: 13px; }
 
 /* ── View button ─────────────────────────────────────────── */
 .admin-view-btn {
@@ -3950,6 +4085,35 @@
 .archive-chip.active {
   background: #78350f;
   border-color: #78350f;
+}
+
+/* ── Paid quick-filter chip ──────────────────────────────────── */
+.quick-filter-chip--paid {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-color: #15803d;
+  color: #15803d;
+  background: #f0fdf4;
+}
+
+.quick-filter-chip--paid:hover {
+  background: #dcfce7;
+  border-color: #15803d;
+  color: #15803d;
+}
+
+.quick-filter-chip--paid.active {
+  background: linear-gradient(135deg, #0d9e70 0%, #15803d 100%);
+  border-color: #15803d;
+  color: #fff;
+  box-shadow: 0 1px 6px rgba(13,158,112,.35);
+  animation: paid-chip-glow 3s ease-in-out infinite;
+}
+
+@keyframes paid-chip-glow {
+  0%, 100% { box-shadow: 0 1px 6px rgba(13,158,112,.35); }
+  50%       { box-shadow: 0 1px 12px rgba(13,158,112,.6), 0 0 20px rgba(13,158,112,.15); }
 }
 
 /* ── Archive Banner ───────────────────────────────────────────── */

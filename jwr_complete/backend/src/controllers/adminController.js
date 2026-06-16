@@ -315,6 +315,7 @@ async function getBookings(req, res, next) {
       limit: limitParam,
       sort = 'latest',
       is_spam,
+      payment_status,
     } = req.query;
 
     const limit = Math.min(Math.max(parseInt(limitParam, 10) || 20, 1), 100);
@@ -322,6 +323,7 @@ async function getBookings(req, res, next) {
     const where = {};
 
     if (status) where.status = status;
+    if (payment_status) where.payment_status = payment_status;
     if (category) where.guest_category = category;
     if (is_spam === 'true') where.is_spam = true;
     else if (is_spam === 'false') where.is_spam = false;
