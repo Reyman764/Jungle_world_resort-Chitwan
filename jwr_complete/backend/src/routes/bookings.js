@@ -4,7 +4,7 @@ const router = require('express').Router();
 const { body }  = require('express-validator');
 const { validate } = require('../middleware/validate');
 const { createBooking, getBookingByReference } = require('../controllers/bookingController');
-const { rateLimiterMiddleware } = require('../middleware/rateLimiter');
+const { rateLimiterMiddleware, bookingLookupRateLimiter } = require('../middleware/rateLimiter');
 
 // ── Validation rules for booking creation ─────────────────
 const bookingRules = [
@@ -42,6 +42,6 @@ const bookingRules = [
 router.post('/', rateLimiterMiddleware, bookingRules, validate, createBooking);
 
 // GET /api/bookings/:reference  — public: look up a booking
-router.get('/:reference', getBookingByReference);
+router.get('/:reference', bookingLookupRateLimiter, getBookingByReference);
 
 module.exports = router;

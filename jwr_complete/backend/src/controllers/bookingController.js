@@ -8,6 +8,7 @@ const { generateBookingReference } = require('../utils/bookingRef');
 const { analyzeBookingForSpam } = require('../services/spamDetectionService');
 const { logAuditEvent } = require('./auditLogController');
 const { getClientIp } = require('../middleware/rateLimiter');
+const { JWT_SECRET } = require('../config/jwt');
 
 /**
  * Map frontend package IDs → database slugs
@@ -55,7 +56,7 @@ async function createBooking(req, res, next) {
     try {
       const decoded = jwt.verify(
         verification_token,
-        process.env.JWT_SECRET || 'dev-secret-change-in-production'
+        JWT_SECRET
       );
       if (!decoded.email_verified) throw new Error('Email not verified');
       // Ensure the verified email matches the booking email
@@ -286,7 +287,19 @@ async function getBookingByReference(req, res, next) {
       include: [
         { model: Package, as: 'package', attributes: ['name', 'badge', 'image_url'] },
       ],
-      attributes: { exclude: ['user_id'] }, // don't expose user_id publicly
+      // Explicit allowlist (not just "exclude user_id") — this is a
+      // public, unauthenticated endpoint, so internal-only fields like
+      // admin_notes, spam flags, and marketing tracking must never be
+      // returned here regardless of what fields get added to the model
+      // in the future.
+      attributes: [
+        'id', 'booking_reference', 'package_id',
+        'guest_name', 'guest_email', 'guest_phone', 'guest_nationality', 'guest_category',
+        'check_in_date', 'check_out_date', 'num_adults', 'num_children', 'special_requests',
+        'currency', 'base_price', 'service_charge', 'vat', 'total_price', 'paid_amount', 'balance_due',
+        'status', 'payment_status', 'payment_method',
+        'created_at', 'updated_at',
+      ],
     });
 
     if (!booking) {

@@ -6,13 +6,14 @@ const { OAuth2Client } = require('google-auth-library');
 const { Op } = require('sequelize');
 const { User } = require('../models');
 const { issueVerificationToken } = require('../utils/verificationToken');
+const { JWT_SECRET, JWT_EXPIRE } = require('../config/jwt');
 
 // ── Token helpers ─────────────────────────────────────────
 function generateAccessToken(user) {
   return jwt.sign(
     { id: user.id, email: user.email, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRE || '7d' }
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRE }
   );
 }
 

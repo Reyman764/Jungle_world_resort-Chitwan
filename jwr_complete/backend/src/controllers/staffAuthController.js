@@ -10,9 +10,7 @@
 const jwt = require('jsonwebtoken');
 const { User } = require('../models');
 const staffAuthService = require('../services/staffAuthService');
-
-const JWT_SECRET   = process.env.JWT_SECRET   || 'change-me-in-production';
-const JWT_EXPIRES  = process.env.JWT_EXPIRES_IN || '7d';
+const { JWT_SECRET, JWT_EXPIRE } = require('../config/jwt');
 
 // ── Helpers ────────────────────────────────────────────────────
 
@@ -33,7 +31,7 @@ function generateJwt(staff) {
   return jwt.sign(
     { id: staff.id, email: staff.email, role: staff.role },
     JWT_SECRET,
-    { expiresIn: JWT_EXPIRES }
+    { expiresIn: JWT_EXPIRE }
   );
 }
 

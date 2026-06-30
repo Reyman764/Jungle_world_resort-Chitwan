@@ -3,20 +3,19 @@
 const router = require('express').Router();
 const multer = require('multer');
 const { authenticateToken, requireRole } = require('../middleware/auth');
+const { imageFileFilter } = require('../utils/cloudinaryUpload');
 const {
   getOffer,
   uploadOffer,
   deleteOffer,
 } = require('../controllers/adminController');
 
-// Multer: memory storage, 10 MB limit, images only
+// Multer: memory storage, 10 MB limit, explicit safe image types only
+// (no image/svg+xml — SVGs can carry embedded scripts).
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) return cb(null, true);
-    cb(new Error('Only image files are allowed'));
-  },
+  fileFilter: imageFileFilter,
 });
 
 // Admin routes require auth + admin role

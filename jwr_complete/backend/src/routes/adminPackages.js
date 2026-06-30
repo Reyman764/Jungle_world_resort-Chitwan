@@ -3,6 +3,7 @@
 const router = require('express').Router();
 const multer = require('multer');
 const { authenticateToken, requireRole } = require('../middleware/auth');
+const { imageFileFilter } = require('../utils/cloudinaryUpload');
 const {
   listAdminPackages,
   updatePackage,
@@ -12,14 +13,12 @@ const {
   updateCurrencyRatesHandler,
 } = require('../controllers/packageController');
 
-// Multer: store upload in memory (max 5 MB, images only)
+// Multer: store upload in memory (max 5 MB), explicit safe image types only
+// (no image/svg+xml — SVGs can carry embedded scripts).
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) return cb(null, true);
-    cb(new Error('Only image files are allowed'));
-  },
+  fileFilter: imageFileFilter,
 });
 
 router.use(authenticateToken);

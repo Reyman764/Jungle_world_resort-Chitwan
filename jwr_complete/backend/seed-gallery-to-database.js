@@ -1,5 +1,5 @@
 /**
- * scripts/seed-gallery-to-database.js
+ * backend/seed-gallery-to-database.js
  *
  * ONE-TIME SEED SCRIPT — run after upload-gallery-to-cloudinary.js
  *
@@ -8,12 +8,14 @@
  *
  * This allows the admin Gallery page to display all images.
  *
- * Usage:
- *   cd jwr_complete
- *   node scripts/seed-gallery-to-database.js
+ * Usage (from anywhere — the .env path below is resolved relative to
+ * this file, not to your current directory):
+ *   node backend/seed-gallery-to-database.js
+ *   # or, from inside backend/:
+ *   node seed-gallery-to-database.js
  */
 
-require('dotenv').config({ path: './backend/.env' })
+require('dotenv').config({ path: require('path').resolve(__dirname, '.env') })
 const { Sequelize } = require('sequelize')
 
 // Gallery image data — points to URLs already in Cloudinary

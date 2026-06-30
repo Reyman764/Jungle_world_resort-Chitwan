@@ -100,11 +100,6 @@ export default function VerifyEmail() {
               Back to Sign In
             </Link>
           )}
-          {status !== 'verifying' && (
-            <Link to="/staff/signup" className="staff-auth-link">
-              Create a new account
-            </Link>
-          )}
           <Link to="/" className="staff-auth-back">← Back to website</Link>
         </div>
 

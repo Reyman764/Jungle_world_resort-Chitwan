@@ -14,6 +14,30 @@
 const crypto = require('crypto');
 const https  = require('https');
 
+// ── Upload validation ──────────────────────────────────────────────────────
+// Explicit allowlist instead of a broad `image/*` check. This excludes
+// image/svg+xml on purpose: SVGs can embed <script> and event-handler
+// attributes, and our Supabase Storage fallback below serves the raw
+// buffer back with the client-supplied Content-Type with no re-encoding,
+// which would make an uploaded "image" a stored-XSS vector if it were
+// actually SVG/HTML wearing an image mimetype.
+const ALLOWED_IMAGE_MIMETYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+]);
+
+function isAllowedImageMimetype(mimetype) {
+  return ALLOWED_IMAGE_MIMETYPES.has(String(mimetype || '').toLowerCase());
+}
+
+/** Shared multer fileFilter used by every admin image-upload route. */
+function imageFileFilter(_req, file, cb) {
+  if (isAllowedImageMimetype(file.mimetype)) return cb(null, true);
+  cb(new Error('Only JPEG, PNG, WEBP, or GIF image files are allowed'));
+}
+
 // ── Cloudinary ───────────────────────────────────────────────────────────────
 
 function cloudinaryConfigured() {
@@ -159,4 +183,11 @@ async function uploadImage(buffer, opts = {}) {
   );
 }
 
-module.exports = { uploadImage, cloudinaryConfigured, supabaseConfigured };
+module.exports = {
+  uploadImage,
+  cloudinaryConfigured,
+  supabaseConfigured,
+  isAllowedImageMimetype,
+  imageFileFilter,
+  ALLOWED_IMAGE_MIMETYPES,
+};

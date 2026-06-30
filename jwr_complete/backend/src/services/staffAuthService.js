@@ -14,6 +14,7 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const { Op } = require('sequelize');
 const { User, StaffToken, StaffAuditLog, sequelize } = require('../models');
+const { JWT_SECRET } = require('../config/jwt');
 const {
   sendStaffVerificationEmail,
   sendStaffPasswordResetEmail,
@@ -48,33 +49,39 @@ function publicStaffInfo(user) {
   };
 }
 
-/** Generate a URL-safe random token and its bcrypt hash */
-async function generateTokenPair() {
+/**
+ * Hash a raw token for storage/lookup.
+ *
+ * Tokens here are 256 bits of crypto.randomBytes output — already
+ * far too high-entropy to brute-force, so unlike a password they don't
+ * need bcrypt's deliberately-slow, salted hashing. HMAC-SHA256 (keyed
+ * with JWT_SECRET so a leaked DB dump alone isn't enough to forge a
+ * valid-looking hash) is the standard approach for this kind of
+ * high-entropy "bearer" token, and — critically — it's deterministic,
+ * so a token row can be looked up directly by its hash instead of
+ * fetching candidate rows and comparing one by one.
+ */
+function hashToken(rawToken) {
+  return crypto.createHmac('sha256', JWT_SECRET).update(rawToken).digest('hex');
+}
+
+/** Generate a URL-safe random token and its lookup hash */
+function generateTokenPair() {
   const rawToken = crypto.randomBytes(32).toString('hex');
-  const tokenHash = await bcrypt.hash(rawToken, BCRYPT_ROUNDS);
-  return { rawToken, tokenHash };
+  return { rawToken, tokenHash: hashToken(rawToken) };
 }
 
 /** Find a valid, unused staff token row matching the raw token */
 async function findValidToken(rawToken, tokenType, transaction = null) {
-  const now = new Date();
-
-  const candidates = await StaffToken.findAll({
+  return StaffToken.findOne({
     where: {
+      token_hash: hashToken(rawToken),
       token_type: tokenType,
       used_at: null,
-      expires_at: { [Op.gt]: now },
+      expires_at: { [Op.gt]: new Date() },
     },
-    order: [['created_at', 'DESC']],
-    limit: 50,
     ...(transaction ? { transaction } : {}),
   });
-
-  for (const row of candidates) {
-    const match = await bcrypt.compare(rawToken, row.token_hash);
-    if (match) return row;
-  }
-  return null;
 }
 
 // ── Audit logging ─────────────────────────────────────────────

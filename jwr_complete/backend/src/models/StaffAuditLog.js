@@ -9,8 +9,11 @@ module.exports = (sequelize, DataTypes) => {
     },
     staff_id: {
       type: DataTypes.UUID,
-      allowNull: false,
-      // References users.id — staffAuthService stores staff in the users table
+      allowNull: true,
+      // References users.id (nullable — ON DELETE SET NULL). When a staff
+      // account is permanently deleted, its audit history is kept with
+      // staff_id cleared rather than being cascade-deleted; the `details`
+      // text retains the staff member's email for context.
     },
     action: {
       type: DataTypes.STRING(50),

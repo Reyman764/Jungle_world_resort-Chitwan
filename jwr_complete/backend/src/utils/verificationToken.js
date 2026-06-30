@@ -1,9 +1,10 @@
 'use strict';
 
 const jwt = require('jsonwebtoken');
+const { JWT_SECRET } = require('../config/jwt');
 
 function jwtSecret() {
-  return process.env.JWT_SECRET || 'dev-secret-change-in-production';
+  return JWT_SECRET;
 }
 
 /**

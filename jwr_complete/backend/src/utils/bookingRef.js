@@ -1,14 +1,28 @@
 'use strict';
 
+const { randomInt } = require('crypto');
+
+const REF_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
 /**
- * Generates a unique booking reference like: JWR-20240515-4F2K
+ * Generates a unique booking reference like: JWR-20240515-4F2K9X
+ *
+ * The trailing segment is the only thing standing between a stranger
+ * and someone else's booking details (GET /api/bookings/:reference is
+ * public/unauthenticated), so it's generated with a CSPRNG rather than
+ * Math.random() and uses 6 characters (36^6 ≈ 2.2 billion combinations
+ * per day) instead of 4 (36^4 ≈ 1.7 million) to make guessing/enumeration
+ * impractical even before rate limiting is factored in.
  */
 function generateBookingReference() {
   const date   = new Date();
   const year   = date.getFullYear();
   const month  = String(date.getMonth() + 1).padStart(2, '0');
   const day    = String(date.getDate()).padStart(2, '0');
-  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  let random = '';
+  for (let i = 0; i < 6; i++) {
+    random += REF_CHARS[randomInt(0, REF_CHARS.length)];
+  }
   return `JWR-${year}${month}${day}-${random}`;
 }
 

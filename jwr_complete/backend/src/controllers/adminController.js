@@ -963,7 +963,15 @@ async function exportBookingsCSV(req, res, next) {
 
     const esc = v => {
       if (v === null || v === undefined) return '';
-      const s = String(v);
+      let s = String(v);
+      // Neutralize CSV/spreadsheet formula injection: a leading
+      // =, +, -, @, tab, or CR makes Excel/Sheets treat the cell as a
+      // formula. These fields (guest name/phone) come straight from the
+      // public booking form, so prefix a literal apostrophe to force
+      // text interpretation — the standard OWASP mitigation for this.
+      if (/^[=+\-@\t\r]/.test(s)) {
+        s = `'${s}`;
+      }
       if (s.includes(',') || s.includes('"') || s.includes('\n')) {
         return `"${s.replace(/"/g, '""')}"`;
       }

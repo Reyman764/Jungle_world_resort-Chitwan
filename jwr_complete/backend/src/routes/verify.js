@@ -4,65 +4,26 @@ const router    = require('express').Router();
 const rateLimit = require('express-rate-limit');
 const { body }  = require('express-validator');
 const { validate } = require('../middleware/validate');
-const {
-  checkEmail,
-  sendEmailOtp,
-  confirmEmailOtp,
-} = require('../controllers/verifyController');
+const { checkEmail } = require('../controllers/verifyController');
 
-// ── Rate limits ───────────────────────────────────────────
-// Sending OTPs: max 5 per 15 min per IP (prevents SMS/email bombing)
-const sendLimiter = rateLimit({
+// Max 5 checks per 15 min per IP — this hits an MX/DNS lookup per call.
+const checkLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
-  message: { error: 'Too many OTP requests. Please wait 15 minutes and try again.' },
+  message: { error: 'Too many requests. Please wait 15 minutes and try again.' },
 });
 
-// Confirming OTPs: max 10 per 15 min per IP (brute-force guard)
-const confirmLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  message: { error: 'Too many verification attempts. Please wait 15 minutes.' },
-});
-
-// ── Routes ────────────────────────────────────────────────
-
-// POST /api/verify/check-email — validate deliverability before OTP
+// POST /api/verify/check-email — validate deliverability before OTP.
+// (The OTP send/confirm steps themselves live under /api/otp — see
+// routes/otp.js — which is the implementation the frontend uses.)
 router.post(
   '/check-email',
-  sendLimiter,
+  checkLimiter,
   [
     body('email').isEmail().withMessage('Valid email address required').normalizeEmail(),
   ],
   validate,
   checkEmail
-);
-
-// POST /api/verify/send-email-otp
-router.post(
-  '/send-email-otp',
-  sendLimiter,
-  [
-    body('email').isEmail().withMessage('Valid email address required').normalizeEmail(),
-    body('name').optional().trim().isLength({ max: 100 }),
-  ],
-  validate,
-  sendEmailOtp
-);
-
-// POST /api/verify/confirm-email-otp
-router.post(
-  '/confirm-email-otp',
-  confirmLimiter,
-  [
-    body('session_id').notEmpty().withMessage('session_id is required'),
-    body('otp')
-      .notEmpty().withMessage('OTP is required')
-      .isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits')
-      .isNumeric().withMessage('OTP must contain only digits'),
-  ],
-  validate,
-  confirmEmailOtp
 );
 
 module.exports = router;

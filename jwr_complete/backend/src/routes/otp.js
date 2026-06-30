@@ -3,7 +3,7 @@
 /**
  * backend/src/routes/otp.js
  *
- * SendGrid OTP endpoints for Jungle World Resort booking flow.
+ * Email OTP endpoints for the Jungle World Resort booking flow.
  *
  * POST /api/otp/send-code   — generate & email a 6-digit code
  * POST /api/otp/verify-code — confirm code, return JWT
@@ -15,26 +15,21 @@ const router    = require('express').Router();
 const rateLimit = require('express-rate-limit');
 const { body }  = require('express-validator');
 const bcrypt    = require('bcryptjs');
-const jwt       = require('jsonwebtoken');
 const { Op }    = require('sequelize');
 const { validate }         = require('../middleware/validate');
 const { VerificationToken } = require('../models');
 const { sendBookingOtpEmail } = require('../utils/mailer');
+const { issueVerificationToken } = require('../utils/verificationToken');
 
 // ── Constants ─────────────────────────────────────────────
 const OTP_TTL_MS     = 10 * 60 * 1000;  // 10 minutes
 const COOLDOWN_MS    = 2  * 60 * 1000;  // 2-min cooldown per email
 const MAX_ATTEMPTS   = 5;
-const JWT_EXPIRES_IN = '1h';
 
 function generateOtp() {
   const { randomInt } = require('crypto');
   // Guaranteed 6 digits: 100000–999999
   return String(randomInt(100000, 1000000));
-}
-
-function jwtSecret() {
-  return process.env.JWT_SECRET || 'dev-secret-change-in-production';
 }
 
 // ── Per-IP rate limiters ──────────────────────────────────
@@ -126,12 +121,12 @@ router.post(
         }),
       });
     } catch (err) {
-      if (err.message?.includes('Email is not configured')) {
+      if (err.isMailerUnconfigured) {
         return res.status(503).json({
           error: 'Email service is not configured. Set SMTP_HOST, SMTP_USER, SMTP_PASS in backend .env.',
         });
       }
-      if (err?.code === 401 || err?.code === 403) {
+      if (err.isMailerError) {
         return res.status(503).json({
           error: 'Email service error. Please try again or contact support.',
         });
@@ -201,16 +196,9 @@ router.post(
       // ── Mark as used (can't be verified again) ────────────
       await token.update({ is_valid: false, verified_at: new Date() });
 
-      // ── Issue 1-hour verification JWT ─────────────────────
-      const verificationToken = jwt.sign(
-        {
-          email:          email,
-          email_verified: true,
-          via:            'otp',
-        },
-        jwtSecret(),
-        { expiresIn: JWT_EXPIRES_IN }
-      );
+      // ── Issue verification JWT (shared issuer/secret with the
+      //    rest of the app — see utils/verificationToken.js) ──
+      const verificationToken = issueVerificationToken({ email, via: 'otp' });
 
       return res.status(200).json({
         success:            true,

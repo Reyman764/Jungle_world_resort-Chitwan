@@ -3,12 +3,19 @@ require('dotenv').config();
 (async () => {
   try {
     const API = process.env.TEST_API_URL || 'http://localhost:3000';
-    const emailOrId = process.argv[2] || 'reymankhadgi077@gmail.com';
+    const emailOrId = process.argv[2] || process.env.TEST_DELETE_TARGET || 'guest@example.com';
+    const managerEmail = process.env.TEST_EMAIL || 'manager@jungleworldresort.com';
+    const managerPassword = process.env.TEST_PASSWORD;
+
+    if (!managerPassword) {
+      console.error('Set TEST_PASSWORD (the seeded manager password) in your environment before running this script.');
+      process.exit(1);
+    }
 
     // Login as manager
     const login = await fetch(`${API}/api/auth/login`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'manager@jungleworldresort.com', password: 'Password123!' })
+      body: JSON.stringify({ email: managerEmail, password: managerPassword })
     });
     const L = await login.json();
     const token = L.access_token;

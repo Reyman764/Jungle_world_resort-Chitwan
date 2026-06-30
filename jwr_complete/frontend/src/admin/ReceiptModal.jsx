@@ -14,6 +14,26 @@ function fmt(n) {
   return Math.round(Number(n || 0)).toLocaleString()
 }
 
+/**
+ * Escape a value for safe injection into an HTML string.
+ * Used by buildPrintDoc — guest-supplied fields (name, phone,
+ * nationality, special_requests) are returned from the backend
+ * and injected into a document.write() HTML template, making any
+ * unescaped field a stored-XSS vector.  We escape here (in
+ * addition to the backend's validation) following the defence-in-depth
+ * principle: the print window is admin-only, but XSS in any context
+ * is still a security issue.
+ */
+function esc(raw) {
+  if (raw === null || raw === undefined) return ''
+  return String(raw)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+}
+
 // Generates a standalone HTML document for printing
 function buildPrintDoc(booking) {
   const issueDate = new Date().toLocaleDateString('en-GB', {
@@ -102,7 +122,7 @@ function buildPrintDoc(booking) {
     </div>
     <div class="hdr-meta">
       <div class="rtitle">Payment Receipt</div>
-      <div class="rref">${booking.booking_reference}</div>
+      <div class="rref">${esc(booking.booking_reference)}</div>
       <div class="issue">Issued · ${issueDate}</div>
     </div>
   </div>
@@ -110,23 +130,23 @@ function buildPrintDoc(booking) {
   <div class="info-grid">
     <div class="info-cell">
       <div class="meta-label">Guest</div>
-      <div class="meta-val">${booking.guest_name}</div>
-      <div class="meta-sub">${booking.guest_email || ''}</div>
-      ${booking.guest_phone ? `<div class="meta-sub">${booking.guest_phone}</div>` : ''}
-      ${booking.guest_nationality ? `<div class="meta-sub">${booking.guest_nationality}</div>` : ''}
+      <div class="meta-val">${esc(booking.guest_name)}</div>
+      <div class="meta-sub">${esc(booking.guest_email)}</div>
+      ${booking.guest_phone ? `<div class="meta-sub">${esc(booking.guest_phone)}</div>` : ''}
+      ${booking.guest_nationality ? `<div class="meta-sub">${esc(booking.guest_nationality)}</div>` : ''}
     </div>
     <div class="info-cell info-cell-mid">
       <div class="meta-label">Stay Details</div>
-      <div class="meta-val">${booking.package?.name || '—'}</div>
-      <div class="meta-sub">Check-in · ${booking.check_in_date}</div>
-      ${booking.check_out_date ? `<div class="meta-sub">Check-out · ${booking.check_out_date}</div>` : ''}
-      <div class="meta-sub">${guests}</div>
+      <div class="meta-val">${esc(booking.package?.name || '—')}</div>
+      <div class="meta-sub">Check-in · ${esc(booking.check_in_date)}</div>
+      ${booking.check_out_date ? `<div class="meta-sub">Check-out · ${esc(booking.check_out_date)}</div>` : ''}
+      <div class="meta-sub">${esc(guests)}</div>
     </div>
     <div class="info-cell">
       <div class="meta-label">Payment</div>
-      <div class="meta-val" style="text-transform: capitalize">${(booking.payment_method || 'pay_at_hotel').replace(/_/g, ' ')}</div>
-      <div class="pay-badge pay-${booking.payment_status}">${booking.payment_status}</div>
-      <div class="meta-sub">Source · ${booking.source || 'Direct'}</div>
+      <div class="meta-val" style="text-transform: capitalize">${esc((booking.payment_method || 'pay_at_hotel').replace(/_/g, ' '))}</div>
+      <div class="pay-badge pay-${esc(booking.payment_status)}">${esc(booking.payment_status)}</div>
+      <div class="meta-sub">Source · ${esc(booking.source || 'Direct')}</div>
     </div>
   </div>
   <div class="pricing-row">
@@ -135,7 +155,7 @@ function buildPrintDoc(booking) {
       <table>
         <thead><tr><th>Description</th><th>Amount (NPR)</th></tr></thead>
         <tbody>
-          <tr><td>${booking.package?.name || '—'}</td><td>${fmt(booking.base_price)}</td></tr>
+          <tr><td>${esc(booking.package?.name || '—')}</td><td>${fmt(booking.base_price)}</td></tr>
           <tr><td>Service Charge (10%)</td><td>${fmt(booking.service_charge)}</td></tr>
           <tr><td>VAT (13%)</td><td>${fmt(booking.vat)}</td></tr>
         </tbody>

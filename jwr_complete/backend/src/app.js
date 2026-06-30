@@ -91,8 +91,10 @@ if (process.env.NODE_ENV === 'production') {
   const authStrict = makeLimiter(15 * 60 * 1000, 10,
     'Too many auth attempts, please try again in 15 minutes.');
   [
-    '/api/auth/login', '/api/auth/register', '/api/auth/google',
-    '/api/staff/auth/login', '/api/staff/auth/signup',
+    '/api/auth/login', '/api/auth/register', '/api/auth/google', '/api/auth/refresh',
+    '/api/staff/auth/login',
+    '/api/staff/auth/request-password-reset', '/api/staff/auth/reset-password',
+    '/api/staff/auth/verify-email',
   ].forEach(p => app.use(p, authStrict));
 
   // OTP: 5 per 15 min (prevent abuse)
@@ -137,15 +139,19 @@ app.get('/api/health', (req, res) => {
 
 const { hasSmtp, isEmailConfigured } = require('./utils/mailer');
 app.get('/api/health/email', (req, res) => {
+  const isProd = process.env.NODE_ENV === 'production';
   res.json({
     configured: isEmailConfigured(),
     smtp: {
       configured: hasSmtp(),
-      host:       hasSmtp() ? process.env.SMTP_HOST : null,
-      user:       hasSmtp() ? process.env.SMTP_USER : null,
-      hint:       hasSmtp() ? null : 'Set SMTP_HOST, SMTP_USER, SMTP_PASS in .env',
+      // Host/user are real infra details (e.g. the Gmail address used to
+      // send mail) — useful for local debugging but not something this
+      // public, unauthenticated endpoint should hand out in production.
+      host: !isProd && hasSmtp() ? process.env.SMTP_HOST : undefined,
+      user: !isProd && hasSmtp() ? process.env.SMTP_USER : undefined,
+      hint: hasSmtp() ? null : 'Set SMTP_HOST, SMTP_USER, SMTP_PASS in .env',
     },
-    dev_fallback: !isEmailConfigured() && process.env.NODE_ENV !== 'production',
+    dev_fallback: !isEmailConfigured() && !isProd,
   });
 });
 

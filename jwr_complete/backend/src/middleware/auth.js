@@ -2,6 +2,7 @@
 
 const jwt = require('jsonwebtoken');
 const { User } = require('../models');
+const { JWT_SECRET } = require('../config/jwt');
 
 /**
  * Protect routes — requires valid JWT access token
@@ -17,7 +18,7 @@ async function authenticateToken(req, res, next) {
       return res.status(401).json({ error: 'Access token required' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET);
 
     const user = await User.findByPk(decoded.id, {
       attributes: { exclude: ['password_hash', 'refresh_token', 'password_reset_token'] },
@@ -71,7 +72,7 @@ async function optionalAuth(req, res, next) {
       : null;
 
     if (token) {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, JWT_SECRET);
       const user = await User.findByPk(decoded.id, {
         attributes: { exclude: ['password_hash', 'refresh_token', 'password_reset_token'] },
       });
@@ -115,7 +116,7 @@ async function authenticateStaffToken(req, res, next) {
       return res.status(401).json({ error: 'Access token required' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET);
 
     const STAFF_ROLES = ['staff', 'admin', 'manager'];
     if (!decoded.role || !STAFF_ROLES.includes(decoded.role)) {

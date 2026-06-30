@@ -5,7 +5,12 @@ export default defineConfig({
   plugins: [react()],
   base: './',
   build: {
-    target: 'es2015',
+    // es2020 covers ~97%+ of global browser traffic without forcing
+    // unnecessary down-leveling of modern syntax (classes, arrow fns,
+    // optional chaining) — es2015 was shipping more verbose, polyfilled
+    // output than this app's audience needs, which Lighthouse flags
+    // under "avoid serving legacy JavaScript to modern browsers".
+    target: 'es2020',
     minify: 'terser',
     terserOptions: {
       compress: {

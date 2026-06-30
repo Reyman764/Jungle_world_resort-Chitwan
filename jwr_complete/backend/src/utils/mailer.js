@@ -113,15 +113,20 @@ async function dispatchEmail(payload) {
     } catch (smtpErr) {
       const msg = formatSmtpError(smtpErr);
       console.error('[mailer] SMTP error:', msg);
-      throw new Error(msg);
+      const wrapped = new Error(msg);
+      wrapped.isMailerError = true;
+      throw wrapped;
     }
   }
 
   // Production: hard fail — we always have SMTP configured
   if (process.env.NODE_ENV === 'production') {
-    throw new Error(
+    const wrapped = new Error(
       'Email is not configured. Set SMTP_HOST, SMTP_USER, SMTP_PASS in your server environment.'
     );
+    wrapped.isMailerError  = true;
+    wrapped.isMailerUnconfigured = true;
+    throw wrapped;
   }
 
   // Dev fallback: log to console

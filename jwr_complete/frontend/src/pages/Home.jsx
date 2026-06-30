@@ -5,9 +5,9 @@ import PackageBadges from '../components/PackageBadges'
 import './Home.css'
 
 const activities = [
-  { name:'Jungle Safari', desc:'Thrilling jeep safaris through the core zone of Chitwan — home to tigers, rhinos, and leopards.', img:'https://www.junglesafariresort.com/images/jeep_safari03.jpg' },
-  { name:'Canoe Riding', desc:'Glide silently along the Rapti River, spotting gharials, marsh muggers and kingfishers.', img:'https://www.junglesafariresort.com/images/canoe_ride03.jpg' },
-  { name:'Elephant Bathing', desc:'A rare chance to interact with the gentle giants — bathe and bond with resident elephants.', img:'https://media.evendo.com/locations-resized/DestinationDetails/original/ffe9e933-67c3-4a94-a433-e17b9271aeaa' },
+  { name:'Jungle Safari', desc:'Thrilling jeep safaris through the core zone of Chitwan — home to tigers, rhinos, and leopards.', img:'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=600&q=80' },
+  { name:'Canoe Riding', desc:'Glide silently along the Rapti River, spotting gharials, marsh muggers and kingfishers.', img:'https://images.unsplash.com/photo-1439066290691-510066268af5?auto=format&fit=crop&w=600&q=80' },
+  { name:'Elephant Bathing', desc:'A rare chance to interact with the gentle giants — bathe and bond with resident elephants.', img:'https://images.unsplash.com/photo-1636744115333-27d51fda2eae?auto=format&fit=crop&w=600&q=80' },
   { name:'Bird Watching', desc:'Chitwan hosts 544+ bird species. Dawn walks with expert naturalist guides are a birder\'s paradise.', img:'https://images.unsplash.com/photo-1444464666168-49d633b86797?auto=format&fit=crop&w=600&q=80' },
 ]
 
@@ -211,11 +211,11 @@ export default function Home() {
           <div className="features-grid">
             {[
               { img:'https://jungleworldchitwan.com/storage/ss-image/July2024/Z6JzV7Lle9MQuzPZ4R3p.JPG', alt:'Deluxe eco cottage at Jungle World Resort', title:'Deluxe Eco Cottages', desc:'24-hour AC cottages with attached bath, blending luxury with nature.' },
-              { img:'https://www.junglesafariresort.com/images/jungle_walk01.jpg', alt:'Guided jungle walk through sal forest', title:'Guided Jungle Walks', desc:'Expert naturalists lead you through the forest on foot — safe and thrilling.' },
-              { img:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8VC_su3MZkfO8kWUey_jeHm9Pb8HWXOcz_A&s', alt:'Fresh local and international cuisine', title:'Local & International Cuisine', desc:'Fresh meals prepared daily featuring local Tharu recipes and favorites.' },
+              { img:'https://images.unsplash.com/photo-1575489272413-cb506258027e?auto=format&fit=crop&w=600&q=80', alt:'Guided jungle walk through sal forest', title:'Guided Jungle Walks', desc:'Expert naturalists lead you through the forest on foot — safe and thrilling.' },
+              { img:'https://images.unsplash.com/photo-1588644525273-f37b60d78512?auto=format&fit=crop&w=600&q=80', alt:'Fresh local and international cuisine', title:'Local & International Cuisine', desc:'Fresh meals prepared daily featuring local Tharu recipes and favorites.' },
               { img:'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?auto=format&fit=crop&w=600&q=80', alt:'Wildlife encounter in Chitwan National Park', title:'Wildlife Encounters', desc:'One-horned rhinos, Bengal tigers, gharials and 544+ bird species await.' },
-              { img:'https://www.junglesafariresort.com/images/canoe_ride03.jpg', alt:'Canoe safari on the Rapti River at dawn', title:'River Canoe Safaris', desc:'Glide along the Rapti River at dawn for crocodile and birding sessions.' },
-              { img:'https://kasararesort.com/wp-content/themes/yootheme/cache/40/niti-dancing-6fbbd0dd-405e1eea.webp', alt:'Tharu cultural stick dance performance', title:'Tharu Cultural Program', desc:'Authentic Tharu stick dance performances by local artists each evening.' },
+              { img:'https://images.unsplash.com/photo-1439066290691-510066268af5?auto=format&fit=crop&w=600&q=80', alt:'Canoe safari on the Rapti River at dawn', title:'River Canoe Safaris', desc:'Glide along the Rapti River at dawn for crocodile and birding sessions.' },
+              { img:'https://images.unsplash.com/photo-1751083384534-e4d49e674712?auto=format&fit=crop&w=600&q=80', alt:'Tharu cultural stick dance performance', title:'Tharu Cultural Program', desc:'Authentic Tharu stick dance performances by local artists each evening.' },
             ].map((f, i) => (
               <div key={i} className={`feature-card glossy-card reveal reveal-delay-${(i % 4) + 1}`}>
                 <div className="feature-card__image">
