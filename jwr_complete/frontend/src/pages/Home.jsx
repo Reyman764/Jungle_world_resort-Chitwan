@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { usePackages } from '../hooks/usePackages'
 import PackageBadges from '../components/PackageBadges'
+import { GALLERY_URLS } from '../utils/cloudinary'
 import './Home.css'
 
 const activities = [
@@ -152,7 +153,7 @@ export default function Home() {
               <div className="intro__image-stack">
                 <div className="intro__img intro__img--main">
                   <img
-                    src="https://jungleworldchitwan.com/storage/ss-image/July2024/P9YVmQYAekaMiR5AVC68.JPG"
+                    src={GALLERY_URLS['resort-04']}
                     alt="Jungle World Resort aerial view showing lush green surroundings"
                     loading="lazy"
                     style={{ aspectRatio: '4/3', objectFit: 'cover', width: '100%' }}
@@ -160,7 +161,7 @@ export default function Home() {
                 </div>
                 <div className="intro__img intro__img--accent">
                   <img
-                    src="https://jungleworldchitwan.com/storage/ss-image/July2024/W8bbWxMJNa8NiXwvAOpn.JPG"
+                    src={GALLERY_URLS['resort-pool-day1']}
                     alt="Resort swimming pool surrounded by tropical vegetation"
                     loading="lazy"
                     style={{ aspectRatio: '1/1', objectFit: 'cover', width: '100%' }}
@@ -210,7 +211,7 @@ export default function Home() {
           <span className="section-divider center reveal reveal-delay-2" />
           <div className="features-grid">
             {[
-              { img:'https://jungleworldchitwan.com/storage/ss-image/July2024/Z6JzV7Lle9MQuzPZ4R3p.JPG', alt:'Deluxe eco cottage at Jungle World Resort', title:'Deluxe Eco Cottages', desc:'24-hour AC cottages with attached bath, blending luxury with nature.' },
+              { img: GALLERY_URLS['resort-08'], alt:'Deluxe eco cottage at Jungle World Resort', title:'Deluxe Eco Cottages', desc:'24-hour AC cottages with attached bath, blending luxury with nature.' },
               { img:'https://images.unsplash.com/photo-1575489272413-cb506258027e?auto=format&fit=crop&w=600&q=80', alt:'Guided jungle walk through sal forest', title:'Guided Jungle Walks', desc:'Expert naturalists lead you through the forest on foot — safe and thrilling.' },
               { img:'https://images.unsplash.com/photo-1588644525273-f37b60d78512?auto=format&fit=crop&w=600&q=80', alt:'Fresh local and international cuisine', title:'Local & International Cuisine', desc:'Fresh meals prepared daily featuring local Tharu recipes and favorites.' },
               { img:'https://images.unsplash.com/photo-1564760055775-d63b17a55c44?auto=format&fit=crop&w=600&q=80', alt:'Wildlife encounter in Chitwan National Park', title:'Wildlife Encounters', desc:'One-horned rhinos, Bengal tigers, gharials and 544+ bird species await.' },

@@ -5,12 +5,7 @@ Use your Gmail account to send OTP codes. No SendGrid account needed.
 ## 1. Turn on 2-Step Verification
 
 1. Open [Google Account → Security](https://myaccount.google.com/security)
-2. Enable **2-Step Verification** (required for app passwords)
-
-## 2. Create an App Password
-
-1. On the same Security page, search for **App passwords**  
-   Or go to: [https://myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
+2. Enable **2-St77 ](https://myaccount.google.com/apppasswords)
 2. Select app: **Mail**
 3. Select device: **Windows Computer** (or Other)
 4. Click **Generate**

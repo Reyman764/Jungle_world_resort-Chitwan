@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import GoogleSignIn from './GoogleSignIn'
 import { usePackages } from '../hooks/usePackages'
 import PackageBadges from './PackageBadges'
 import './BookingWizard.css'
@@ -267,12 +266,10 @@ export default function BookingWizard({ preselect }) {
     devOtp:        null,
     token:         null,
     authMethod:    null,
-    googleProfile: null,
   }
 
   const [verif, setVerif] = useState(initialVerif)
   const [emailCheck, setEmailCheck] = useState({ status: 'idle', message: '' })
-  const [googleError, setGoogleError] = useState('')
 
   const apiUrl      = import.meta.env.VITE_API_URL || 'http://localhost:3000'
   const selectedCat = CATEGORIES.find(c => c.id === category)
@@ -350,7 +347,6 @@ export default function BookingWizard({ preselect }) {
     // Reset email verification if the email field changes
     if (name === 'email') {
       setEmailCheck({ status: 'idle', message: '' })
-      setGoogleError('')
       setVerif(v => ({
         ...initialVerif,
         emailResendIn: v.emailResendIn,
@@ -377,47 +373,6 @@ export default function BookingWizard({ preselect }) {
       setEmailCheck({ status: 'valid', message: d.message || 'Email looks good — we can send your code here.' })
     } catch {
       setEmailCheck({ status: 'idle', message: '' })
-    }
-  }
-
-  const handleGoogleCredential = async (credential) => {
-    setGoogleError('')
-    setVerif(v => ({ ...v, emailLoading: true, emailError: '' }))
-    try {
-      const r = await fetch(`${apiUrl}/api/auth/google`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ credential }),
-      })
-      const d = await r.json()
-      if (!r.ok) throw new Error(d.error || 'Google sign-in failed')
-
-      const profile = d.profile || {}
-      const fullName = profile.name || [d.user?.first_name, d.user?.last_name].filter(Boolean).join(' ')
-
-      setForm(f => ({
-        ...f,
-        name:  f.name.trim() || fullName || f.name,
-        email: profile.email || d.user?.email || f.email,
-      }))
-
-      if (d.access_token) localStorage.setItem('jwr_guest_token', d.access_token)
-      if (d.user) localStorage.setItem('jwr_guest_user', JSON.stringify(d.user))
-
-      setVerif(v => ({
-        ...v,
-        emailVerified: true,
-        token: d.verification_token,
-        authMethod: 'google',
-        googleProfile: profile,
-        emailLoading: false,
-        emailError: '',
-      }))
-      setEmailCheck({ status: 'valid', message: 'Signed in with Google — your email is verified.' })
-      setErrors(prev => ({ ...prev, emailVerify: '', email: '' }))
-    } catch (err) {
-      setGoogleError(err.message)
-      setVerif(v => ({ ...v, emailLoading: false }))
     }
   }
 
@@ -818,7 +773,6 @@ export default function BookingWizard({ preselect }) {
                       onBlur={handleEmailBlur}
                       placeholder="your@email.com"
                       autoComplete="email"
-                      readOnly={verif.emailVerified && verif.authMethod === 'google'}
                     />
                     {errors.email && <span className="field-error">{errors.email}</span>}
                     {!errors.email && emailCheck.status === 'checking' && (
@@ -862,7 +816,7 @@ export default function BookingWizard({ preselect }) {
                 </div>
               </div>
 
-              {/* ── Sign in & email verification ── */}
+              {/* ── Email verification ── */}
               <div className={`verif-section ${verif.emailVerified ? 'verif-section--complete' : ''}`}>
                 <div className="verif-section__header">
                   <div className="verif-section__title">
@@ -872,50 +826,14 @@ export default function BookingWizard({ preselect }) {
                     </svg>
                     <div>
                       <span>Confirm it's really you</span>
-                      <p>
-                        {verif.emailVerified && verif.authMethod === 'google'
-                          ? 'Signed in with Google — your email is verified by Google.'
-                          : 'Sign in with Google for instant verification, or we send a 6-digit code to your inbox.'}
-                      </p>
+                      <p>We'll send a 6-digit verification code to your inbox.</p>
                     </div>
                   </div>
                   {verif.emailVerified && (
-                    <span className="verif-badge">
-                      {verif.authMethod === 'google' ? 'Google' : 'Verified'}
-                    </span>
+                    <span className="verif-badge">Verified</span>
                   )}
                 </div>
 
-                {!verif.emailVerified && (
-                  <div className="auth-block">
-                    <GoogleSignIn
-                      onCredential={handleGoogleCredential}
-                      onError={setGoogleError}
-                      disabled={verif.emailLoading}
-                    />
-                    {googleError && <p className="verif-error" role="alert">{googleError}</p>}
-                    <div className="auth-divider" aria-hidden="true">
-                      <span>or verify with email code</span>
-                    </div>
-                  </div>
-                )}
-
-                {verif.emailVerified && verif.authMethod === 'google' && verif.googleProfile && (
-                  <div className="verif-card verif-card--done verif-card--google">
-                    <div className="google-profile">
-                      {verif.googleProfile.picture && (
-                        <img src={verif.googleProfile.picture} alt="" width={40} height={40} className="google-profile__img" />
-                      )}
-                      <div>
-                        <strong>{verif.googleProfile.name}</strong>
-                        <span>{verif.googleProfile.email}</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {verif.authMethod !== 'google' && (
-                <>
                 <div className="verif-steps" aria-label="Verification progress">
                   <div className={`verif-step-pill ${!verif.emailSent && !verif.emailVerified ? 'active' : verif.emailVerified || verif.emailSent ? 'done' : ''}`}>
                     <span>1</span> Enter email
@@ -1012,8 +930,6 @@ export default function BookingWizard({ preselect }) {
                 {errors.emailVerify && (
                   <p className="field-error verif-section__error" role="alert">{errors.emailVerify}</p>
                 )}
-                </>
-                )}
               </div>
             </div>
           )}
@@ -1060,7 +976,7 @@ export default function BookingWizard({ preselect }) {
                     <strong className="review-verified">
                       {form.email}
                       <span className="verified-pill">
-                        {verif.authMethod === 'google' ? 'Google verified' : 'Verified'}
+                        Verified
                       </span>
                     </strong>
                   </div>
@@ -1158,7 +1074,7 @@ export default function BookingWizard({ preselect }) {
                       <span>Email status</span>
                       <span>
                         {verif.emailVerified
-                          ? (verif.authMethod === 'google' ? 'Google' : 'Verified')
+                          ? 'Verified'
                           : verif.emailSent ? 'Awaiting code' : 'Not verified'}
                       </span>
                     </div>

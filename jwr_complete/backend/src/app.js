@@ -51,10 +51,18 @@ const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://localhost:5173',
   process.env.ADMIN_URL    || 'http://localhost:5174',
 ];
+// Vite auto-bumps to the next free port (5175, 5176, ...) whenever 5173/5174
+// are already occupied by a previous session, which silently breaks CORS.
+// In development, allow any localhost/127.0.0.1 origin on any port so this
+// stops happening; production still uses the explicit allowlist only.
+const isLocalhostOrigin = (origin) => /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
+    if (process.env.NODE_ENV !== 'production' && isLocalhostOrigin(origin)) {
+      return callback(null, true);
+    }
     callback(new Error(`CORS policy: origin ${origin} not allowed`));
   },
   credentials: true,

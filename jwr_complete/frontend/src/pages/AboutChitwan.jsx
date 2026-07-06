@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import PageHero from '../components/PageHero'
+import { GALLERY_URLS } from '../utils/cloudinary'
 import './AboutChitwan.css'
 
 const facts = [
@@ -139,7 +140,7 @@ export default function AboutChitwan() {
             </div>
             <div className="getting-there__image">
               <img
-                src="https://jungleworldchitwan.com/storage/ss-image/July2024/trKqvGlTewKvUuBLsXVb.JPG"
+                src={GALLERY_URLS['resort-04']}
                 alt="Resort"
                 loading="lazy"
               />
