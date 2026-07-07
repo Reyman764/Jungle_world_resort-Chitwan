@@ -59,6 +59,10 @@ Booking.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 Package.hasMany(Booking, { foreignKey: 'package_id', as: 'bookings' });
 Booking.belongsTo(Package, { foreignKey: 'package_id', as: 'package' });
 
+// User → Bookings they soft-deleted (recycle bin "deleted by", nullable)
+User.hasMany(Booking, { foreignKey: 'deleted_by_id', as: 'deleted_bookings' });
+Booking.belongsTo(User, { foreignKey: 'deleted_by_id', as: 'deleter' });
+
 // Booking → Payments (one-to-many)
 Booking.hasMany(Payment, { foreignKey: 'booking_id', as: 'payments' });
 Payment.belongsTo(Booking, { foreignKey: 'booking_id', as: 'booking' });

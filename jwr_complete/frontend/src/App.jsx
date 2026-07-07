@@ -30,6 +30,7 @@ const StaffDashboard  = lazy(() => import('./pages/StaffDashboard'))
 const AdminDashboard = lazy(() => import('./admin/AdminDashboard'))
 const AuditLogs      = lazy(() => import('./admin/AuditLogs'))
 const AuditLogPage   = lazy(() => import('./admin/AuditLogPage'))
+const RecycleBin     = lazy(() => import('./admin/RecycleBin'))
 
 function PageLoader() {
   return (
@@ -142,6 +143,7 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/admin/dashboard"              element={<AdminDashboard />} />
             <Route path="/admin/audit-logs"             element={<AuditLogPage />} />
+            <Route path="/admin/recycle-bin"            element={<RecycleBin />} />
             <Route path="/admin/bookings/:id/audit-logs" element={<AuditLogs />} />
           </Route>
 

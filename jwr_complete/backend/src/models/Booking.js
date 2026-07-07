@@ -176,6 +176,30 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.UUID,
       allowNull: true,
     },
+
+    // ── Recycle Bin (soft delete) ─────────────────────────
+    // deleted_at IS NULL  -> active booking (default, normal state)
+    // deleted_at NOT NULL -> in the recycle bin; hidden from every
+    // normal list/lookup/stat query but recoverable by an admin.
+    deleted_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    deleted_by_id: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: { model: 'users', key: 'id' },
+    },
+    deleted_by_name: {
+      type: DataTypes.STRING(150),
+      allowNull: true,
+      comment: 'Snapshot of the deleter\'s display name at time of deletion',
+    },
+    deleted_by_role: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      comment: 'Snapshot of the deleter\'s role at time of deletion',
+    },
   }, {
     tableName: 'bookings',
     timestamps: true,
@@ -187,6 +211,7 @@ module.exports = (sequelize, DataTypes) => {
       { fields: ['check_in_date', 'check_out_date'] },
       { fields: ['status'] },
       { fields: ['payment_status'] },
+      { fields: ['deleted_at'] },
     ],
   });
 

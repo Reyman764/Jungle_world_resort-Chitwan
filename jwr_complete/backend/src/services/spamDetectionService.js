@@ -10,6 +10,7 @@ async function getRecentBookingsByEmail(email, hours = 24) {
       guest_email: email.toLowerCase().trim(),
       created_at: { [Op.gte]: since },
       status: { [Op.ne]: 'cancelled' },
+      deleted_at: null,
     },
   });
 }
@@ -21,6 +22,7 @@ async function hasOverlappingBookings(email, checkIn, checkOut) {
       status: { [Op.in]: ['draft', 'confirmed', 'checked_in'] },
       check_in_date: { [Op.lt]: checkOut },
       check_out_date: { [Op.gt]: checkIn },
+      deleted_at: null,
     },
   });
   return count > 0;

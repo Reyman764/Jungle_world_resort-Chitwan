@@ -9,8 +9,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     booking_id: {
       type: DataTypes.UUID,
-      allowNull: false,
+      allowNull: true,
       references: { model: 'bookings', key: 'id' },
+      comment: 'Nullable: SET NULL on booking delete so the audit trail survives permanent deletion (see migration 024). metadata.booking_reference is the fallback identifier once this goes null.',
     },
     changed_by_id: {
       type: DataTypes.UUID,

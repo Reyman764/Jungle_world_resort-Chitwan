@@ -471,6 +471,15 @@ export default function AdminDashboard() {
               >
                 View Activity Log →
               </button>
+              {user.role === 'admin' && (
+                <button
+                  type="button"
+                  className="admin-audit-link-btn admin-recyclebin-link-btn"
+                  onClick={() => navigate('/admin/recycle-bin')}
+                >
+                  🗑️ Recycle Bin →
+                </button>
+              )}
             </div>
           </>
         )}

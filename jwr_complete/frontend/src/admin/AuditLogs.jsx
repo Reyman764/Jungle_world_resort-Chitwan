@@ -19,6 +19,9 @@ const ACTION_META = {
   BALANCE_DUE_UPDATED:     { icon: 'BD', label: 'Balance due updated',     color: '#9333ea' },
   NOTES_UPDATED:           { icon: '📝', label: 'Internal notes updated',  color: '#7c3aed' },
   CANCELLATION_REASON_UPDATED: { icon: 'CR', label: 'Cancellation reason updated', color: '#b45309' },
+  BOOKING_SOFT_DELETED:        { icon: '🗑️', label: 'Moved to recycle bin',        color: '#b91c1c' },
+  BOOKING_RESTORED:            { icon: '♻️', label: 'Restored from recycle bin',   color: '#0d9488' },
+  BOOKING_PERMANENTLY_DELETED: { icon: '⛔', label: 'Permanently deleted',          color: '#7f1d1d' },
   FIELD_UPDATED:           { icon: '✏️', label: 'Field updated',           color: '#6b7280' },
 }
 

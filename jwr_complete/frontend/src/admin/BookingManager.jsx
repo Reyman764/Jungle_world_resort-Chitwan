@@ -453,15 +453,14 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
                           Receipt
                         </button>
                       )}
-                      {b.status === 'draft' && (
-                        <button
-                          type="button"
-                          className="admin-delete-btn"
-                          onClick={() => setDeleteTarget(b)}
-                        >
-                          Delete
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        className="admin-delete-btn"
+                        onClick={() => setDeleteTarget(b)}
+                        title="Move to recycle bin"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -552,15 +551,15 @@ export default function BookingManager({ onStatsRefresh, onAuthError }) {
         <div className="delete-confirm-overlay" style={{ position: 'fixed', zIndex: 1000 }}>
           <div className="delete-confirm-box">
             <div className="delete-confirm-icon">🗑️</div>
-            <h3 className="delete-confirm-title">Delete Draft Booking?</h3>
+            <h3 className="delete-confirm-title">Move Booking to Recycle Bin?</h3>
             <p className="delete-confirm-msg">
-              Permanently remove <strong>{deleteTarget.booking_reference}</strong> ({deleteTarget.guest_name})?
-              This cannot be undone.
+              <strong>{deleteTarget.booking_reference}</strong> ({deleteTarget.guest_name}) will be removed from this
+              list and moved to the recycle bin. An admin will be able to restore it or erase it permanently later.
             </p>
             <div className="delete-confirm-actions">
               <button type="button" className="modal-cancel-btn" onClick={() => setDeleteTarget(null)} disabled={deleting}>Cancel</button>
               <button type="button" className="modal-delete-confirm-btn" onClick={confirmDelete} disabled={deleting}>
-                {deleting ? 'Deleting…' : 'Yes, Delete'}
+                {deleting ? 'Moving…' : 'Yes, Delete'}
               </button>
             </div>
           </div>

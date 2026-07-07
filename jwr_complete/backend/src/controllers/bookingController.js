@@ -283,7 +283,7 @@ async function createBooking(req, res, next) {
 async function getBookingByReference(req, res, next) {
   try {
     const booking = await Booking.findOne({
-      where: { booking_reference: req.params.reference.toUpperCase() },
+      where: { booking_reference: req.params.reference.toUpperCase(), deleted_at: null },
       include: [
         { model: Package, as: 'package', attributes: ['name', 'badge', 'image_url'] },
       ],

@@ -7,6 +7,9 @@ const {
   getBookingById,
   updateBooking,
   deleteBooking,
+  listRecycleBin,
+  restoreBooking,
+  permanentlyDeleteBooking,
   getAuditLogs,
   getDashboardStats,
   getMonthlyTrend,
@@ -25,6 +28,25 @@ router.get('/audit-logs',    listAuditLogs);
 router.get('/stats',         getDashboardStats);
 router.get('/stats/monthly', getMonthlyTrend);
 router.get('/export/csv',    exportBookingsCSV);
+
+// ── Recycle Bin (admin only — must be registered before the
+//    generic '/:id' route below, otherwise Express would match
+//    GET /recycle-bin as GET /:id with id="recycle-bin") ─────
+router.get(
+  '/recycle-bin',
+  requireRole(['admin']),
+  listRecycleBin
+);
+router.post(
+  '/recycle-bin/:id/restore',
+  requireRole(['admin']),
+  restoreBooking
+);
+router.delete(
+  '/recycle-bin/:id',
+  requireRole(['admin']),
+  permanentlyDeleteBooking
+);
 
 // ── Staff management (must come before /:id wildcard) ─────
 router.get(

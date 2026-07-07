@@ -6,6 +6,7 @@ const { uploadImage } = require('../utils/cloudinaryUpload');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { getClientIp } = require('../middleware/rateLimiter');
+const { logAuditEvent } = require('./auditLogController');
 
 const BOOKING_STATUSES = new Set([
   'draft',
@@ -320,7 +321,7 @@ async function getBookings(req, res, next) {
 
     const limit = Math.min(Math.max(parseInt(limitParam, 10) || 20, 1), 100);
     const offset = (parseInt(page, 10) - 1) * limit;
-    const where = {};
+    const where = { deleted_at: null }; // never show recycle-binned bookings in the normal list
 
     if (status) where.status = status;
     if (payment_status) where.payment_status = payment_status;
@@ -379,56 +380,64 @@ async function getBookings(req, res, next) {
 
 /**
  * DELETE /api/admin/bookings/:id
- * Hard-delete draft bookings only. Removes payments first (FK RESTRICT).
+ * Soft-delete — moves the booking into the recycle bin instead of erasing
+ * it. Works for any booking status (draft, confirmed, partial, completed,
+ * etc.) since it's now fully recoverable. Records who deleted it and when,
+ * and writes a BOOKING_SOFT_DELETED entry to the existing audit trail so
+ * it shows up in that booking's change history too. Only a permanent
+ * delete from the recycle bin (admin-only) actually erases the row.
  */
 async function deleteBooking(req, res, next) {
   try {
-    const actor = req.user || {};
-    const actorName = actor.first_name
-      ? `${actor.first_name} ${actor.last_name || ''}`.trim()
-      : (actor.email || 'Admin');
+    const { changedBy, changedByRole, changedById, ip, userAgent } = actorFromRequest(req);
+    const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim().slice(0, 255) : null;
 
-    let deletedBookingId;
-    let bookingReference;
-    let hardDeleted = false;
+    let responsePayload;
 
     await sequelize.transaction(async (transaction) => {
-      const booking = await Booking.findByPk(req.params.id, { transaction });
+      const booking = await Booking.findOne({
+        where: { id: req.params.id, deleted_at: null },
+        transaction,
+      });
+
       if (!booking) {
         const error = new Error('Booking not found');
         error.status = 404;
         throw error;
       }
 
-      deletedBookingId = booking.id;
-      bookingReference = booking.booking_reference;
+      const statusAtDeletion = booking.status;
 
-      if (booking.status !== 'draft') {
-        const error = new Error('Only draft bookings can be permanently deleted. Cancel confirmed bookings instead.');
-        error.status = 400;
-        throw error;
-      }
+      await booking.update({
+        deleted_at: new Date(),
+        deleted_by_id: changedById,
+        deleted_by_name: changedBy,
+        deleted_by_role: changedByRole,
+      }, { transaction });
 
-      // Payments table uses ON DELETE RESTRICT — must remove children first
-      await Payment.destroy({ where: { booking_id: booking.id }, transaction });
-      await Review.destroy({ where: { booking_id: booking.id }, transaction });
-      await BookingAuditLog.destroy({ where: { booking_id: booking.id }, transaction });
-      await booking.destroy({ transaction });
+      await logAuditEvent(booking.id, 'BOOKING_SOFT_DELETED', {
+        performedById: changedById,
+        performedByName: changedBy,
+        performedByRole: changedByRole,
+        field_name: 'booking',
+        old_value: `Active (${statusAtDeletion})`,
+        new_value: 'Moved to Recycle Bin',
+        reason,
+        risk_level: 'high',
+        ip_address: ip,
+        user_agent: userAgent,
+        metadata: { booking_reference: booking.booking_reference },
+      }, transaction);
 
-      hardDeleted = true;
+      responsePayload = {
+        success: true,
+        message: `Booking ${booking.booking_reference} moved to the recycle bin`,
+        deletedBookingId: booking.id,
+        booking_reference: booking.booking_reference,
+      };
     });
 
-    if (!hardDeleted) {
-      return res.status(500).json({ error: 'Delete failed' });
-    }
-
-    return res.json({
-      success: true,
-      message: 'Booking permanently deleted',
-      deletedBookingId,
-      booking_reference: bookingReference,
-      hardDeleted: true,
-    });
+    return res.json(responsePayload);
   } catch (err) {
     if (err.status) return res.status(err.status).json({ error: err.message });
     console.error('[admin] deleteBooking error:', err.message);
@@ -436,9 +445,174 @@ async function deleteBooking(req, res, next) {
   }
 }
 
+/**
+ * GET /api/admin/recycle-bin
+ * Admin-only. Lists every soft-deleted booking, most recently deleted
+ * first, along with who deleted it and when.
+ */
+async function listRecycleBin(req, res, next) {
+  try {
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
+    const offset = (page - 1) * limit;
+
+    const { count, rows } = await Booking.findAndCountAll({
+      where: { deleted_at: { [Op.ne]: null } },
+      include: [
+        { model: Package, as: 'package', attributes: ['id', 'name'], required: false },
+      ],
+      order: [['deleted_at', 'DESC']],
+      limit,
+      offset,
+    });
+
+    return res.json({
+      bookings: rows,
+      total: count,
+      page,
+      totalPages: Math.max(Math.ceil(count / limit), 1),
+    });
+  } catch (err) {
+    console.error('[admin] listRecycleBin error:', err.message);
+    next(err);
+  }
+}
+
+/**
+ * POST /api/admin/recycle-bin/:id/restore
+ * Admin-only. Clears the soft-delete columns and puts the booking back
+ * into every normal list/lookup. Logs a BOOKING_RESTORED audit entry.
+ */
+async function restoreBooking(req, res, next) {
+  try {
+    const { changedBy, changedByRole, changedById, ip, userAgent } = actorFromRequest(req);
+    let restored;
+
+    await sequelize.transaction(async (transaction) => {
+      const booking = await Booking.findOne({
+        where: { id: req.params.id, deleted_at: { [Op.ne]: null } },
+        transaction,
+      });
+
+      if (!booking) {
+        const error = new Error('Booking not found in recycle bin');
+        error.status = 404;
+        throw error;
+      }
+
+      const deletedByName = booking.deleted_by_name || 'Unknown';
+      const deletedByRole = booking.deleted_by_role || 'unknown';
+
+      await booking.update({
+        deleted_at: null,
+        deleted_by_id: null,
+        deleted_by_name: null,
+        deleted_by_role: null,
+      }, { transaction });
+
+      await logAuditEvent(booking.id, 'BOOKING_RESTORED', {
+        performedById: changedById,
+        performedByName: changedBy,
+        performedByRole: changedByRole,
+        field_name: 'booking',
+        old_value: `Deleted by ${deletedByName} (${deletedByRole})`,
+        new_value: 'Restored',
+        risk_level: 'medium',
+        ip_address: ip,
+        user_agent: userAgent,
+        metadata: { booking_reference: booking.booking_reference },
+      }, transaction);
+
+      restored = booking;
+    });
+
+    return res.json({
+      success: true,
+      message: `Booking ${restored.booking_reference} restored`,
+      booking: restored,
+    });
+  } catch (err) {
+    if (err.status) return res.status(err.status).json({ error: err.message });
+    console.error('[admin] restoreBooking error:', err.message);
+    return next(err);
+  }
+}
+
+/**
+ * DELETE /api/admin/recycle-bin/:id
+ * Admin-only. Permanently erases a booking that's already in the recycle
+ * bin — this is the only path left in the app that actually destroys a
+ * booking row. Logs BOOKING_PERMANENTLY_DELETED first, then destroys the
+ * booking. The audit log rows for this booking (including the one just
+ * written) are deliberately left alone: booking_audit_logs.booking_id is
+ * ON DELETE SET NULL (migration 024), so the full history — who booked
+ * it, every status/payment change, who deleted it, who permanently
+ * erased it — survives the booking itself, identified afterwards by
+ * metadata.booking_reference instead of the now-gone booking_id. This
+ * mirrors the staff_audit_logs fix in migration 021: an audit trail that
+ * disappears when the audited row is removed defeats its purpose.
+ */
+async function permanentlyDeleteBooking(req, res, next) {
+  try {
+    const { changedBy, changedByRole, changedById, ip, userAgent } = actorFromRequest(req);
+
+    let deletedBookingId;
+    let bookingReference;
+
+    await sequelize.transaction(async (transaction) => {
+      const booking = await Booking.findOne({
+        where: { id: req.params.id, deleted_at: { [Op.ne]: null } },
+        transaction,
+      });
+
+      if (!booking) {
+        const error = new Error('Booking not found in recycle bin');
+        error.status = 404;
+        throw error;
+      }
+
+      deletedBookingId = booking.id;
+      bookingReference = booking.booking_reference;
+
+      await logAuditEvent(booking.id, 'BOOKING_PERMANENTLY_DELETED', {
+        performedById: changedById,
+        performedByName: changedBy,
+        performedByRole: changedByRole,
+        field_name: 'booking',
+        old_value: `Deleted by ${booking.deleted_by_name || 'Unknown'}`,
+        new_value: 'Permanently Erased',
+        risk_level: 'high',
+        ip_address: ip,
+        user_agent: userAgent,
+        metadata: { booking_reference: booking.booking_reference },
+      }, transaction);
+
+      // Payments table uses ON DELETE RESTRICT — must remove children first.
+      // Reviews cascade on their own. Audit logs are intentionally left
+      // in place (see doc comment above) — they SET NULL, they don't block
+      // the delete and they don't get destroyed here.
+      await Payment.destroy({ where: { booking_id: booking.id }, transaction });
+      await Review.destroy({ where: { booking_id: booking.id }, transaction });
+      await booking.destroy({ transaction });
+    });
+
+    return res.json({
+      success: true,
+      message: `Booking ${bookingReference} permanently deleted`,
+      deletedBookingId,
+      booking_reference: bookingReference,
+    });
+  } catch (err) {
+    if (err.status) return res.status(err.status).json({ error: err.message });
+    console.error('[admin] permanentlyDeleteBooking error:', err.message);
+    return next(err);
+  }
+}
+
 async function getBookingById(req, res, next) {
   try {
-    const booking = await Booking.findByPk(req.params.id, {
+    const booking = await Booking.findOne({
+      where: { id: req.params.id, deleted_at: null },
       include: [
         {
           model: Package,
@@ -470,7 +644,10 @@ async function updateBooking(req, res, next) {
     let refreshed;
 
     await sequelize.transaction(async (transaction) => {
-      const booking = await Booking.findByPk(req.params.id, { transaction });
+      const booking = await Booking.findOne({
+        where: { id: req.params.id, deleted_at: null },
+        transaction,
+      });
       if (!booking) {
         const error = new Error('Booking not found');
         error.status = 404;
@@ -501,7 +678,8 @@ async function updateBooking(req, res, next) {
         await BookingAuditLog.bulkCreate(auditEntries, { transaction });
       }
 
-      refreshed = await Booking.findByPk(req.params.id, {
+      refreshed = await Booking.findOne({
+        where: { id: req.params.id },
         include: [{ model: Package, as: 'package', attributes: ['id', 'name', 'slug'] }],
         transaction,
       });
@@ -553,12 +731,13 @@ async function getDashboardStats(req, res, next) {
       completed,
       avgParty,
     ] = await Promise.all([
-      Booking.count(),
-      Booking.count({ where: { status: 'draft' } }),
-      Booking.count({ where: { status: 'confirmed' } }),
-      Booking.count({ where: { status: 'checked_in' } }),
-      Booking.count({ where: { status: 'checked_out' } }),
+      Booking.count({ where: { deleted_at: null } }),
+      Booking.count({ where: { status: 'draft', deleted_at: null } }),
+      Booking.count({ where: { status: 'confirmed', deleted_at: null } }),
+      Booking.count({ where: { status: 'checked_in', deleted_at: null } }),
+      Booking.count({ where: { status: 'checked_out', deleted_at: null } }),
       Booking.findOne({
+        where: { deleted_at: null },
         attributes: [
           [sequelize.fn('AVG', sequelize.col('num_adults')), 'avg_adults'],
         ],
@@ -584,6 +763,7 @@ async function getDashboardStats(req, res, next) {
           END
         ), 0) AS confirmed_revenue
       FROM bookings
+      WHERE deleted_at IS NULL
       `,
       {
         replacements: {
@@ -878,6 +1058,7 @@ async function getMonthlyTrend(req, res, next) {
       FROM bookings
       WHERE created_at >= NOW() - INTERVAL '12 months'
         AND status NOT IN ('draft')
+        AND deleted_at IS NULL
       GROUP BY DATE_TRUNC('month', created_at)
       ORDER BY DATE_TRUNC('month', created_at) ASC
       `,
@@ -926,7 +1107,7 @@ async function exportBookingsCSV(req, res, next) {
       is_spam,
     } = req.query;
 
-    const where = {};
+    const where = { deleted_at: null };
     if (status)   where.status         = status;
     if (category) where.guest_category = category;
     if (is_spam === 'true')  where.is_spam = true;
@@ -1029,6 +1210,9 @@ module.exports = {
   getBookingById,
   updateBooking,
   deleteBooking,
+  listRecycleBin,
+  restoreBooking,
+  permanentlyDeleteBooking,
   getAuditLogs,
   getDashboardStats,
   getMonthlyTrend,
