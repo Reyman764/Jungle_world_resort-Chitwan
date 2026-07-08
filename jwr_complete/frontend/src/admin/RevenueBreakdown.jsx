@@ -1,92 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import './admin.css'
-
-const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
-
-function authHeader() {
-  const token = localStorage.getItem('token')
-  return token
-    ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
-    : { 'Content-Type': 'application/json' }
-}
-
-function fmt(n) {
-  return `NPR ${Math.round(Number(n || 0)).toLocaleString()}`
-}
-
-const PAYMENT_STATUS_LABEL = {
-  completed: 'Completed',
-  partial: 'Partially Paid',
-  refunded: 'Refunded',
-  pending: 'Pending',
-  failed: 'Failed',
-}
-
-const BOOKING_STATUS_LABEL = {
-  draft: 'Draft',
-  confirmed: 'Confirmed',
-  checked_in: 'Checked In',
-  checked_out: 'Checked Out',
-  cancelled: 'Cancelled',
-  no_show: 'No Show',
-}
+import {
+  API, authHeader, fmtMoney as fmt,
+  PAYMENT_STATUS_LABEL, BOOKING_STATUS_LABEL,
+  StatusBadge, PayBadge, BreakdownBarList,
+} from './statBreakdownShared'
 
 const REVENUE_STATUSES = ['confirmed', 'checked_in', 'checked_out']
-
-function StatusBadge({ status }) {
-  return (
-    <span className={`status-badge status-${status || 'draft'}`}>
-      {BOOKING_STATUS_LABEL[status] || status}
-    </span>
-  )
-}
-
-function PayBadge({ status }) {
-  if (status === 'completed') {
-    return (
-      <span className="pay-badge-completed" title="Paid in Full" aria-label="Paid in Full">
-        ✓ Paid
-      </span>
-    )
-  }
-  return (
-    <span className={`status-badge pay-${status || 'pending'}`}>
-      {PAYMENT_STATUS_LABEL[status] || status}
-    </span>
-  )
-}
-
-// Horizontal bar list used for the three "revenue by ___" groupings.
-function BreakdownBarList({ items, nameKey, labelMap }) {
-  if (!items || items.length === 0) {
-    return <p className="rev-empty-note">Nothing here yet.</p>
-  }
-  const max = Math.max(...items.map(i => Number(i.revenue)), 1)
-  return (
-    <div className="rev-bar-list">
-      {items.map((item, idx) => {
-        const revenueNum = Number(item.revenue)
-        const pct = revenueNum > 0 ? Math.max((revenueNum / max) * 100, 3) : 0
-        const rawLabel = item[nameKey]
-        const label = (labelMap ? labelMap[rawLabel] : null) || rawLabel || 'Unknown'
-        return (
-          <div className="rev-bar-row" key={`${rawLabel ?? 'x'}-${idx}`}>
-            <div className="rev-bar-row__top">
-              <span className="rev-bar-row__label">{label}</span>
-              <span className="rev-bar-row__value">{fmt(item.revenue)}</span>
-            </div>
-            <div className="rev-bar-track">
-              <div className="rev-bar-fill" style={{ width: `${pct}%` }} />
-            </div>
-            <div className="rev-bar-row__count">
-              {item.booking_count} booking{item.booking_count === 1 ? '' : 's'}
-            </div>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
 
 export default function RevenueBreakdown({ isOpen, onClose, onReconciled, isAdmin }) {
   const [data, setData] = useState(null)
@@ -231,16 +151,39 @@ export default function RevenueBreakdown({ isOpen, onClose, onReconciled, isAdmi
 
               <div className="detail-section detail-section--full">
                 <div className="detail-section__title">Revenue by Package</div>
-                <BreakdownBarList items={data.by_package} nameKey="package_name" />
+                <BreakdownBarList
+                  items={data.by_package}
+                  nameKey="package_name"
+                  valueKey="revenue"
+                  formatValue={(item) => fmt(item.revenue)}
+                  subKey="booking_count"
+                  formatSub={(item) => `${item.booking_count} booking${item.booking_count === 1 ? '' : 's'}`}
+                />
               </div>
 
               <div className="detail-section">
                 <div className="detail-section__title">By Payment Status</div>
-                <BreakdownBarList items={data.by_payment_status} nameKey="payment_status" labelMap={PAYMENT_STATUS_LABEL} />
+                <BreakdownBarList
+                  items={data.by_payment_status}
+                  nameKey="payment_status"
+                  labelMap={PAYMENT_STATUS_LABEL}
+                  valueKey="revenue"
+                  formatValue={(item) => fmt(item.revenue)}
+                  subKey="booking_count"
+                  formatSub={(item) => `${item.booking_count} booking${item.booking_count === 1 ? '' : 's'}`}
+                />
               </div>
               <div className="detail-section">
                 <div className="detail-section__title">By Booking Status</div>
-                <BreakdownBarList items={data.by_status} nameKey="status" labelMap={BOOKING_STATUS_LABEL} />
+                <BreakdownBarList
+                  items={data.by_status}
+                  nameKey="status"
+                  labelMap={BOOKING_STATUS_LABEL}
+                  valueKey="revenue"
+                  formatValue={(item) => fmt(item.revenue)}
+                  subKey="booking_count"
+                  formatSub={(item) => `${item.booking_count} booking${item.booking_count === 1 ? '' : 's'}`}
+                />
               </div>
 
               <div className="detail-section detail-section--full">

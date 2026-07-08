@@ -1262,6 +1262,109 @@ async function reconcilePaymentMismatches(req, res, next) {
   }
 }
 
+// Mirrors the exact WHERE clause each stat card on the dashboard uses in
+// getDashboardStats, so the count returned here always matches the number
+// on the card that was clicked.
+const BOOKING_BREAKDOWN_SCOPES = {
+  all: {
+    where: () => ({ deleted_at: null }),
+    order: [['created_at', 'DESC']],
+  },
+  draft: {
+    where: () => ({ deleted_at: null, status: 'draft' }),
+    order: [['created_at', 'ASC']], // oldest (most clearly abandoned) first
+  },
+  active: {
+    where: () => ({ deleted_at: null, status: { [Op.in]: ['confirmed', 'checked_in'] } }),
+    order: [['check_in_date', 'ASC']], // soonest arrival first
+  },
+};
+
+/**
+ * GET /api/admin/stats/bookings-breakdown?scope=all|draft|active
+ * Explains the Total Bookings / Pending (Draft) / Confirmed & Active stat
+ * cards the same way getRevenueBreakdown explains Total Revenue: which
+ * packages and channels they're made of, plus the itemized bookings
+ * themselves.
+ */
+async function getBookingsBreakdown(req, res, next) {
+  try {
+    const scope = BOOKING_BREAKDOWN_SCOPES[req.query.scope] ? req.query.scope : 'all';
+    const config = BOOKING_BREAKDOWN_SCOPES[scope];
+
+    const bookings = await Booking.findAll({
+      where: config.where(),
+      include: [
+        { model: Package, as: 'package', attributes: ['id', 'name'], required: false },
+      ],
+      attributes: [
+        'id', 'booking_reference', 'guest_name', 'guest_email', 'guest_phone',
+        'status', 'payment_status', 'check_in_date', 'check_out_date',
+        'num_adults', 'num_children', 'total_price', 'paid_amount',
+        'source', 'is_spam', 'package_id', 'created_at',
+      ],
+      order: config.order,
+    });
+
+    const byPackage = new Map();
+    const byStatus = new Map();
+    const bySource = new Map();
+    const items = [];
+
+    for (const row of bookings) {
+      const plain = row.get({ plain: true });
+
+      const pkgKey = plain.package_id || 'unassigned';
+      const pkgName = plain.package?.name || 'Unassigned / Deleted Package';
+      if (!byPackage.has(pkgKey)) {
+        byPackage.set(pkgKey, { package_id: plain.package_id, package_name: pkgName, booking_count: 0 });
+      }
+      byPackage.get(pkgKey).booking_count += 1;
+
+      const stKey = plain.status || 'draft';
+      if (!byStatus.has(stKey)) byStatus.set(stKey, { status: stKey, booking_count: 0 });
+      byStatus.get(stKey).booking_count += 1;
+
+      const srcKey = plain.source || 'direct';
+      if (!bySource.has(srcKey)) bySource.set(srcKey, { source: srcKey, booking_count: 0 });
+      bySource.get(srcKey).booking_count += 1;
+
+      items.push({
+        id: plain.id,
+        booking_reference: plain.booking_reference,
+        guest_name: plain.guest_name,
+        guest_email: plain.guest_email,
+        guest_phone: plain.guest_phone,
+        package_name: pkgName,
+        status: stKey,
+        payment_status: plain.payment_status || 'pending',
+        check_in_date: plain.check_in_date,
+        check_out_date: plain.check_out_date,
+        num_adults: plain.num_adults,
+        num_children: plain.num_children,
+        total_price: money(plain.total_price).toFixed(2),
+        paid_amount: money(plain.paid_amount).toFixed(2),
+        source: srcKey,
+        is_spam: !!plain.is_spam,
+        created_at: plain.created_at,
+      });
+    }
+
+    const sortByCount = (map) => [...map.values()].sort((a, b) => b.booking_count - a.booking_count);
+
+    return res.json({
+      scope,
+      booking_count: bookings.length,
+      by_package: sortByCount(byPackage),
+      by_status: sortByCount(byStatus),
+      by_source: sortByCount(bySource),
+      bookings: items,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 /**
  * GET /api/admin/export/csv
  * Streams filtered bookings as a CSV file.
@@ -1390,6 +1493,7 @@ module.exports = {
   getMonthlyTrend,
   getRevenueBreakdown,
   reconcilePaymentMismatches,
+  getBookingsBreakdown,
   exportBookingsCSV,
   deleteUser,
   paymentRevenueFromValues,

@@ -15,6 +15,7 @@ const {
   getMonthlyTrend,
   getRevenueBreakdown,
   reconcilePaymentMismatches,
+  getBookingsBreakdown,
   exportBookingsCSV,
   deleteUser,
 } = require('../controllers/adminController');
@@ -30,6 +31,7 @@ router.get('/audit-logs',    listAuditLogs);
 router.get('/stats',         getDashboardStats);
 router.get('/stats/monthly', getMonthlyTrend);
 router.get('/stats/revenue-breakdown', getRevenueBreakdown);
+router.get('/stats/bookings-breakdown', getBookingsBreakdown);
 router.post(
   '/stats/reconcile-payments',
   requireRole(['admin']),

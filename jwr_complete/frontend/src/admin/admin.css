@@ -4937,3 +4937,10 @@
   .rev-summary-item__value { font-size: 1.35rem; }
   .rev-table { font-size: 11px; }
 }
+
+.rev-table-subtext {
+  font-size: 10.5px;
+  color: var(--a-text-4);
+  margin-top: 2px;
+  white-space: nowrap;
+}

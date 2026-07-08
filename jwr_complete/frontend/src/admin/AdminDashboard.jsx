@@ -7,6 +7,7 @@ import GalleryManager from './GalleryManager'
 import OfferManager from './OfferManager'
 import StaffManagement from './StaffManagement'
 import RevenueBreakdown from './RevenueBreakdown'
+import BookingsBreakdown from './BookingsBreakdown'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
@@ -358,6 +359,7 @@ export default function AdminDashboard() {
   const [statsErr, setStatsErr] = useState('')
   const [trend, setTrend] = useState(null)
   const [showRevenueBreakdown, setShowRevenueBreakdown] = useState(false)
+  const [bookingsBreakdownScope, setBookingsBreakdownScope] = useState(null)
   const [activeTab, setActiveTab] = useState('bookings')
 
   const loadStats = useCallback(() => {
@@ -452,14 +454,32 @@ export default function AdminDashboard() {
             ) : (
               <>
                 <div className="admin-stats-grid">
-                  <StatCard label="Total Bookings" value={stats?.total_bookings} sub="all time" accent="#1a4731" icon="📋" />
-                  <StatCard label="Pending (Draft)" value={stats?.pending_confirmations} sub="can be deleted" accent="#d97706" icon="⏳" />
+                  <StatCard
+                    label="Total Bookings"
+                    value={stats?.total_bookings}
+                    sub="all time"
+                    accent="#1a4731"
+                    icon="📋"
+                    onClick={() => setBookingsBreakdownScope('all')}
+                    hint="View breakdown →"
+                  />
+                  <StatCard
+                    label="Pending (Draft)"
+                    value={stats?.pending_confirmations}
+                    sub="can be deleted"
+                    accent="#d97706"
+                    icon="⏳"
+                    onClick={() => setBookingsBreakdownScope('draft')}
+                    hint="View breakdown →"
+                  />
                   <StatCard
                     label="Confirmed / Active"
                     value={stats ? Number(stats.confirmed_bookings) + Number(stats.checked_in) : undefined}
                     sub={stats ? `${stats.confirmed_bookings} confirmed · ${stats.checked_in} checked in` : ''}
                     accent="#16a34a"
                     icon="✓"
+                    onClick={() => setBookingsBreakdownScope('active')}
+                    hint="View breakdown →"
                   />
                   <StatCard
                     label="Total Revenue"
@@ -479,6 +499,11 @@ export default function AdminDashboard() {
                   onClose={() => setShowRevenueBreakdown(false)}
                   onReconciled={loadStats}
                   isAdmin={user.role === 'admin'}
+                />
+                <BookingsBreakdown
+                  isOpen={!!bookingsBreakdownScope}
+                  scope={bookingsBreakdownScope || 'all'}
+                  onClose={() => setBookingsBreakdownScope(null)}
                 />
               </>
             )}
