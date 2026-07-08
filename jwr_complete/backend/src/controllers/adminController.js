@@ -763,7 +763,7 @@ async function getDashboardStats(req, res, next) {
           END
         ), 0) AS confirmed_revenue
       FROM bookings
-      WHERE deleted_at IS NULL
+      WHERE deleted_at IS NULL AND status <> 'draft'
       `,
       {
         replacements: {
@@ -1043,18 +1043,7 @@ async function getMonthlyTrend(req, res, next) {
       SELECT
         TO_CHAR(DATE_TRUNC('month', created_at), 'YYYY-MM') AS month,
         COUNT(*)::int                                         AS bookings,
-        COALESCE(SUM(
-          CASE
-            WHEN payment_status = 'partial'  THEN COALESCE(paid_amount, 0)
-            WHEN payment_status = 'completed' THEN COALESCE(total_price, 0)
-            WHEN payment_status = 'refunded'
-              THEN GREATEST(
-                COALESCE(NULLIF(paid_amount,0), total_price, 0) - COALESCE(refund_amount,0),
-                0
-              )
-            ELSE 0
-          END
-        ), 0)::float                                          AS revenue
+        COALESCE(SUM(${PAYMENT_REVENUE_SQL}), 0)::float       AS revenue
       FROM bookings
       WHERE created_at >= NOW() - INTERVAL '12 months'
         AND status NOT IN ('draft')
@@ -1085,6 +1074,189 @@ async function getMonthlyTrend(req, res, next) {
     });
 
     return res.json({ trend: months });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * GET /api/admin/stats/revenue-breakdown
+ * Explains the "Total Revenue" number on the dashboard: which packages,
+ * payment statuses, and booking statuses it's made up of, plus an
+ * itemized list of every active booking counted in it (mirrors the exact
+ * same formula as getDashboardStats/getMonthlyTrend, via
+ * paymentRevenueFromValues, so the totals always agree).
+ *
+ * Also flags any booking whose stored paid_amount / refund_amount /
+ * balance_due don't match what its own payment_status implies (the same
+ * normalization applyPaymentRules already enforces on every manual edit).
+ * These flagged bookings are the "doesn't add up" cases — usually data
+ * left over from before a fix, or edited directly in the database.
+ */
+async function getRevenueBreakdown(req, res, next) {
+  try {
+    const bookings = await Booking.findAll({
+      where: { deleted_at: null, status: { [Op.ne]: 'draft' } },
+      include: [
+        { model: Package, as: 'package', attributes: ['id', 'name'], required: false },
+      ],
+      attributes: [
+        'id', 'booking_reference', 'guest_name', 'status', 'payment_status',
+        'total_price', 'paid_amount', 'refund_amount', 'balance_due',
+        'package_id', 'created_at',
+      ],
+      order: [['created_at', 'DESC']],
+    });
+
+    const byPackage = new Map();
+    const byPaymentStatus = new Map();
+    const byStatus = new Map();
+    const items = [];
+    let grandTotal = 0;
+    let mismatchedCount = 0;
+
+    for (const row of bookings) {
+      const plain = row.get({ plain: true });
+      const revenue = paymentRevenueFromValues(plain);
+      grandTotal += revenue;
+
+      const pkgKey = plain.package_id || 'unassigned';
+      const pkgName = plain.package?.name || 'Unassigned / Deleted Package';
+      if (!byPackage.has(pkgKey)) {
+        byPackage.set(pkgKey, { package_id: plain.package_id, package_name: pkgName, revenue: 0, booking_count: 0 });
+      }
+      const pkgAgg = byPackage.get(pkgKey);
+      pkgAgg.revenue += revenue;
+      pkgAgg.booking_count += 1;
+
+      const psKey = plain.payment_status || 'pending';
+      if (!byPaymentStatus.has(psKey)) {
+        byPaymentStatus.set(psKey, { payment_status: psKey, revenue: 0, booking_count: 0 });
+      }
+      const psAgg = byPaymentStatus.get(psKey);
+      psAgg.revenue += revenue;
+      psAgg.booking_count += 1;
+
+      const stKey = plain.status || 'draft';
+      if (!byStatus.has(stKey)) {
+        byStatus.set(stKey, { status: stKey, revenue: 0, booking_count: 0 });
+      }
+      const stAgg = byStatus.get(stKey);
+      stAgg.revenue += revenue;
+      stAgg.booking_count += 1;
+
+      // Would applyPaymentRules (the same rules used on every manual edit)
+      // compute different paid/refund/balance figures than what's stored?
+      const expected = applyPaymentRules(plain, { payment_status: psKey });
+      const isMismatched =
+        money(plain.paid_amount) !== money(expected.paid_amount) ||
+        money(plain.refund_amount) !== money(expected.refund_amount) ||
+        money(plain.balance_due) !== money(expected.balance_due);
+      if (isMismatched) mismatchedCount += 1;
+
+      items.push({
+        id: plain.id,
+        booking_reference: plain.booking_reference,
+        guest_name: plain.guest_name,
+        package_name: pkgName,
+        status: stKey,
+        payment_status: psKey,
+        total_price: money(plain.total_price).toFixed(2),
+        paid_amount: money(plain.paid_amount).toFixed(2),
+        refund_amount: money(plain.refund_amount).toFixed(2),
+        balance_due: money(plain.balance_due).toFixed(2),
+        revenue: revenue.toFixed(2),
+        created_at: plain.created_at,
+        is_mismatched: isMismatched,
+        ...(isMismatched ? {
+          expected_paid_amount: money(expected.paid_amount).toFixed(2),
+          expected_refund_amount: money(expected.refund_amount).toFixed(2),
+          expected_balance_due: money(expected.balance_due).toFixed(2),
+        } : {}),
+      });
+    }
+
+    items.sort((a, b) => Number(b.revenue) - Number(a.revenue));
+
+    const sortDesc = (map) => [...map.values()]
+      .sort((a, b) => b.revenue - a.revenue)
+      .map(x => ({ ...x, revenue: x.revenue.toFixed(2) }));
+
+    return res.json({
+      grand_total: grandTotal.toFixed(2),
+      booking_count: bookings.length,
+      mismatched_count: mismatchedCount,
+      by_package: sortDesc(byPackage),
+      by_payment_status: sortDesc(byPaymentStatus),
+      by_status: sortDesc(byStatus),
+      bookings: items,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * POST /api/admin/stats/reconcile-payments
+ * Admin-only. Finds every active, non-draft booking whose paid_amount /
+ * refund_amount / balance_due don't match what applyPaymentRules would
+ * compute from its own payment_status + total_price, and corrects them —
+ * the exact same normalization already applied on every manual edit in
+ * updateBooking(), just swept once across existing data. Every change goes
+ * through the normal audit trail, same as a manual edit would.
+ */
+async function reconcilePaymentMismatches(req, res, next) {
+  try {
+    const actor = actorFromRequest(req);
+    const fixed = [];
+
+    await sequelize.transaction(async (transaction) => {
+      const bookings = await Booking.findAll({
+        where: { deleted_at: null, status: { [Op.ne]: 'draft' } },
+        transaction,
+      });
+
+      for (const booking of bookings) {
+        const expected = applyPaymentRules(booking, { payment_status: booking.payment_status });
+        const changedUpdates = {};
+
+        for (const field of ['paid_amount', 'refund_amount', 'balance_due']) {
+          if (!valuesMatch(field, booking[field], expected[field])) {
+            changedUpdates[field] = expected[field];
+          }
+        }
+
+        if (Object.keys(changedUpdates).length === 0) continue;
+
+        const auditEntries = auditEntriesForChanges({
+          booking,
+          updates: changedUpdates,
+          actor,
+          req,
+        });
+
+        await booking.update(changedUpdates, { transaction });
+
+        if (auditEntries.length > 0) {
+          await BookingAuditLog.bulkCreate(auditEntries, { transaction });
+        }
+
+        fixed.push({
+          booking_reference: booking.booking_reference,
+          guest_name: booking.guest_name,
+          changes: changedUpdates,
+        });
+      }
+    });
+
+    return res.json({
+      success: true,
+      fixed_count: fixed.length,
+      fixed,
+      message: fixed.length
+        ? `Reconciled payment fields on ${fixed.length} booking${fixed.length === 1 ? '' : 's'}.`
+        : 'Nothing to fix — every active booking already matches.',
+    });
   } catch (err) {
     next(err);
   }
@@ -1216,6 +1388,8 @@ module.exports = {
   getAuditLogs,
   getDashboardStats,
   getMonthlyTrend,
+  getRevenueBreakdown,
+  reconcilePaymentMismatches,
   exportBookingsCSV,
   deleteUser,
   paymentRevenueFromValues,

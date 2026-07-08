@@ -13,6 +13,8 @@ const {
   getAuditLogs,
   getDashboardStats,
   getMonthlyTrend,
+  getRevenueBreakdown,
+  reconcilePaymentMismatches,
   exportBookingsCSV,
   deleteUser,
 } = require('../controllers/adminController');
@@ -27,6 +29,12 @@ router.use(requireRole(['admin', 'manager', 'staff']));
 router.get('/audit-logs',    listAuditLogs);
 router.get('/stats',         getDashboardStats);
 router.get('/stats/monthly', getMonthlyTrend);
+router.get('/stats/revenue-breakdown', getRevenueBreakdown);
+router.post(
+  '/stats/reconcile-payments',
+  requireRole(['admin']),
+  reconcilePaymentMismatches
+);
 router.get('/export/csv',    exportBookingsCSV);
 
 // ── Recycle Bin (admin only — must be registered before the

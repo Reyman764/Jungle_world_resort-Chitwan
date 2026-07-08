@@ -6,6 +6,7 @@ import PackageManager from './PackageManager'
 import GalleryManager from './GalleryManager'
 import OfferManager from './OfferManager'
 import StaffManagement from './StaffManagement'
+import RevenueBreakdown from './RevenueBreakdown'
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
@@ -14,13 +15,24 @@ function authHeader() {
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
-const StatCard = memo(function StatCard({ label, value, sub, accent, icon }) {
+const StatCard = memo(function StatCard({ label, value, sub, accent, icon, onClick, hint }) {
+  const clickable = typeof onClick === 'function'
   return (
-    <div className="stat-card" style={{ '--stat-accent': accent }}>
+    <div
+      className={`stat-card${clickable ? ' stat-card--clickable' : ''}`}
+      style={{ '--stat-accent': accent }}
+      onClick={onClick}
+      role={clickable ? 'button' : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onKeyDown={clickable ? (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() }
+      } : undefined}
+    >
       {icon && <div className="stat-card__icon">{icon}</div>}
       <div className="stat-card__label">{label}</div>
       <div className="stat-card__value">{value ?? '—'}</div>
       {sub && <div className="stat-card__sub">{sub}</div>}
+      {clickable && hint && <div className="stat-card__hint">{hint}</div>}
     </div>
   )
 })
@@ -345,6 +357,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState(null)
   const [statsErr, setStatsErr] = useState('')
   const [trend, setTrend] = useState(null)
+  const [showRevenueBreakdown, setShowRevenueBreakdown] = useState(false)
   const [activeTab, setActiveTab] = useState('bookings')
 
   const loadStats = useCallback(() => {
@@ -454,10 +467,19 @@ export default function AdminDashboard() {
                     sub={stats ? `NPR ${Math.round(Number(stats.revenue_this_month)).toLocaleString()} this month` : ''}
                     accent="#2563eb"
                     icon="₨"
+                    onClick={() => setShowRevenueBreakdown(true)}
+                    hint="View breakdown →"
                   />
                 </div>
 
                 {trend && trend.length > 0 && <TrendChart data={trend} />}
+
+                <RevenueBreakdown
+                  isOpen={showRevenueBreakdown}
+                  onClose={() => setShowRevenueBreakdown(false)}
+                  onReconciled={loadStats}
+                  isAdmin={user.role === 'admin'}
+                />
               </>
             )}
 
